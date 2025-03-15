@@ -47,7 +47,7 @@ export default function DriversPanel({
               
               // Get all orders assigned to this driver
               const assignedOrderIds = Object.entries(assignments)
-                .filter(([_, assignment]) => assignment.driverId === driver.id)
+                .filter(([__, assignment]) => assignment.driverId === driver.id)
                 .map(([orderId]) => orderId);
               
               // Determine card styling based on selection and availability
