@@ -1,0 +1,47 @@
+  export const getZoneColor = (zone: string) => {
+    switch(zone) {
+      case 'North Zone':
+        return {
+          dot: 'bg-blue-300',
+          text: 'text-blue-600',
+          bg: 'bg-blue-50'
+        };
+      case 'South Zone':
+        return {
+          dot: 'bg-purple-300',
+          text: 'text-purple-600',
+          bg: 'bg-purple-50'
+        };
+      case 'East Zone':
+        return {
+          dot: 'bg-amber-300',
+          text: 'text-amber-600',
+          bg: 'bg-amber-50'
+        };
+      case 'West Zone':
+        return {
+          dot: 'bg-emerald-300',
+          text: 'text-emerald-600',
+          bg: 'bg-emerald-50'
+        };
+      default:
+        return {
+          dot: 'bg-gray-300',
+          text: 'text-gray-600',
+          bg: 'bg-gray-50'
+        };
+    }
+  };
+  
+export const getPriorityBadgeClass = (priority: string) => {
+  switch(priority) {
+    case 'High':
+      return 'bg-red-100 text-red-800';
+    case 'Medium':
+      return 'bg-yellow-100 text-yellow-800';
+    case 'Low':
+      return 'bg-gray-100 text-gray-800';
+    default:
+      return 'bg-gray-100 text-gray-800';
+  }
+}; 
