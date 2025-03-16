@@ -19,7 +19,8 @@ const eslintConfig = [
         "destructuredArrayIgnorePattern": "^__"
       }],
       "react/no-unescaped-entities": "off",
-      "@typescript-eslint/no-unused-vars": "off"
+      "@typescript-eslint/no-unused-vars": "off",
+      "@typescript-eslint/no-explicit-any": "warn"
     }
   }
 ];

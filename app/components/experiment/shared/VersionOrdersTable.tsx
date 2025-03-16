@@ -2,23 +2,26 @@ import React from 'react';
 import { Table, TableHeader, TableBody, TableRow, TableCell, TableHeaderCell } from '@/components/ui/Table';
 import { Card, CardHeader, CardContent } from '@/components/ui/Card';
 import { Order, Assignment } from '@/lib/types/orderAssignment';
-import { getZoneColor, getPriorityBadgeClass } from '@/lib/utils/orderUtils';
+import { getZoneColor, getVersionPriorityBadgeClass } from '@/lib/utils/orderUtils';
+import { ExperimentVersion } from '@/lib/types/experiment';
 
-interface OrdersTableProps {
+interface VersionOrdersTableProps {
   orders: Order[];
   selectedOrder: string | null;
   assignments: Record<string, Assignment>;
   onOrderSelect: (orderId: string) => void;
   onUnassignOrder: (orderId: string) => void;
+  version: ExperimentVersion;
 }
 
-export default function OrdersTable({ 
+export default function VersionOrdersTable({ 
   orders, 
   selectedOrder, 
   assignments, 
   onOrderSelect,
-  onUnassignOrder
-}: OrdersTableProps) {
+  onUnassignOrder,
+  version
+}: VersionOrdersTableProps) {
   return (
     <div className={`lg:w-2/3 transition-[opacity] duration-150 ${selectedOrder ? 'opacity-90' : 'opacity-100'}`}>
       <Card className="h-full shadow-sm">
@@ -35,7 +38,6 @@ export default function OrdersTable({
                 <TableHeaderCell>
                   <div className="flex items-center gap-1 font-medium">Order ID</div>
                 </TableHeaderCell>
-                <TableHeaderCell>Customer</TableHeaderCell>
                 <TableHeaderCell>
                   <div className="flex items-center gap-1 font-medium">Priority</div>
                 </TableHeaderCell>
@@ -53,7 +55,7 @@ export default function OrdersTable({
               {orders.map((order) => {
                 const orderZone = order.zone;
                 const zoneColors = getZoneColor(orderZone);
-                const priorityBadgeClass = getPriorityBadgeClass(order.priority);
+                const priorityBadgeClass = getVersionPriorityBadgeClass(order.priority, version);
                 
                 return (
                   <TableRow 
@@ -68,7 +70,6 @@ export default function OrdersTable({
                       }
                       transition-[opacity] duration-150
                     `}
-                    noHover={selectedOrder === order.id}
                     onClick={() => {
                       if (!assignments[order.id]) {
                         onOrderSelect(order.id);
@@ -93,7 +94,6 @@ export default function OrdersTable({
                       )}
                     </TableCell>
                     <TableCell className="font-medium"># {order.id}</TableCell>
-                    <TableCell>{order.customer}</TableCell>
                     <TableCell>
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${priorityBadgeClass} inline-block min-w-[60px] text-center`}>
                         {order.priority}
@@ -107,12 +107,10 @@ export default function OrdersTable({
                       </div>
                     </TableCell>
                     <TableCell className="w-48">
-                      <div className="flex items-center justify-between w-full">
-                        <div className="flex items-center">
-                          <span className={`${assignments[order.id] ? 'font-medium text-green-700' : 'text-gray-600'}`}>
-                            {assignments[order.id] ? 'Assigned' : 'Pending'}
-                          </span>
-                        </div>
+                      <div className="flex items-center justify-between">
+                        <span className={`${assignments[order.id] ? 'font-medium text-green-700' : 'text-gray-600'}`}>
+                          {assignments[order.id] ? 'Assigned' : 'Pending'}
+                        </span>
                         
                         <div className="w-6 h-6 flex items-center justify-center">
                           {assignments[order.id] && (
