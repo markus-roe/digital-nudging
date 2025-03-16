@@ -17,9 +17,9 @@ export default function TaskHeader({
     <div className="bg-white p-4 rounded-lg mb-6 border border-gray-200 shadow-sm">
       <div className="flex flex-wrap gap-6 justify-between items-center">
         <div className="flex-1">
-          <p className="font-medium text-sm text-gray-700">Remember:</p>
+          <p className="font-medium text-sm text-gray-700">Task Instructions:</p>
           <ul className="text-sm list-disc pl-5 mt-1 space-y-1 text-gray-600">
-            <li className="flex items-center">
+            <li>
               Process by priority: 
               <span className="inline-flex gap-1 ml-1 items-center">
                 <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 min-w-[50px] text-center">High</span>

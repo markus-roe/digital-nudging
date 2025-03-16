@@ -42,7 +42,7 @@ export default function OrdersTable({
                 <TableHeaderCell>Items</TableHeaderCell>
                 <TableHeaderCell>
                   <div className="flex items-center gap-1 font-medium">
-                    <span className="inline-block w-3 h-3 rounded-full bg-gray-300 mr-1"></span>
+                    <span className="inline-block w-2 h-2 rounded-full bg-gray-300 mr-1"></span>
                     Zone
                   </div>
                 </TableHeaderCell>
@@ -86,13 +86,13 @@ export default function OrdersTable({
                                 onOrderSelect(order.id);
                               }
                             }}
-                            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
                             onClick={(e) => e.stopPropagation()} 
                           />
                         </div>
                       )}
                     </TableCell>
-                    <TableCell className="font-medium">{order.id}</TableCell>
+                    <TableCell className="font-medium"># {order.id}</TableCell>
                     <TableCell>{order.customer}</TableCell>
                     <TableCell>
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${priorityBadgeClass} inline-block min-w-[60px] text-center`}>
@@ -107,9 +107,8 @@ export default function OrdersTable({
                       </div>
                     </TableCell>
                     <TableCell className="w-48">
-                      <div className="flex items-center justify-between w-full px-2">
+                      <div className="flex items-center justify-between w-full">
                         <div className="flex items-center">
-                          <div className={`w-3 h-3 rounded-full mr-3 ${assignments[order.id] ? 'bg-green-500' : 'bg-gray-400'}`}></div>
                           <span className={`${assignments[order.id] ? 'font-medium text-green-700' : 'text-gray-600'}`}>
                             {assignments[order.id] ? 'Assigned' : 'Pending'}
                           </span>
