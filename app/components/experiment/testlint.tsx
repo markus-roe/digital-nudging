@@ -4,3 +4,5 @@
 
   //add code which is eslint error to test lint-staged
   const eslintError = 1;
+
+  
