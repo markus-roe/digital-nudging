@@ -1,10 +1,19 @@
 "use client";
 
+import { Suspense } from 'react';
 import { useSearchParams } from "next/navigation";
 import ERPExperiment from "@/app/components/experiment/ERPExperiment";
 import { ExperimentVersion } from "@/lib/types/experiment";
 
 export default function ERPPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <ERPPageContent />
+    </Suspense>
+  );
+}
+
+function ERPPageContent() {
   const searchParams = useSearchParams();
   const versionParam = searchParams.get("version") || "a";
   const version = (versionParam.toLowerCase() === "a" || versionParam.toLowerCase() === "b" 
