@@ -4,7 +4,7 @@ export const initialOrderValidations: OrderValidation[] = [
   {
     id: '1',
     customer: 'Acme Corp',
-    address: 'Main Stret 123',
+    address: 'Main Street 123',
     contactName: 'John Smith',
     contactPhone: '555-123-456',
     contactEmail: 'john.smith@acmecorp.com',

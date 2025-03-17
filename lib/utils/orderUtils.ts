@@ -36,20 +36,20 @@ export const getZoneColor = (zone: string) => {
 export const getPriorityBadgeClass = (priority: string) => {
   switch(priority) {
     case 'High':
-      return 'bg-red-100 text-red-800';
+      return 'bg-red-100 text-red-800 border border-red-200';
     case 'Medium':
-      return 'bg-yellow-100 text-yellow-800';
+      return 'bg-amber-50 text-amber-700 border border-amber-200';
     case 'Low':
-      return 'bg-gray-100 text-gray-800';
+      return 'bg-gray-100 text-gray-700 border border-gray-200';
     default:
-      return 'bg-gray-100 text-gray-800';
+      return 'bg-gray-100 text-gray-700 border border-gray-200';
   }
 };
 
 export const getVersionPriorityBadgeClass = (priority: string, version: 'a' | 'b') => {
   // Version A: No color nudging - all priorities have the same styling
   if (version === 'a') {
-    return 'bg-gray-100 text-gray-800';
+    return 'bg-gray-100 text-gray-800 border border-gray-200';
   }
   
   // Version B: With color nudging - different colors for different priorities

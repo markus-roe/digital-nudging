@@ -4,13 +4,13 @@ import { Button } from '@/components/ui/Button';
 import { OrderValidation, OrderValidationFormData } from '@/lib/types/orderValidation';
 import { ExperimentVersion } from '@/lib/types/experiment';
 import { validateOrderData } from '@/lib/utils/orderValidationUtils';
+import { VALIDATION_MESSAGES } from '@/lib/constants/validationMessages';
 
 interface OrderValidationFormProps {
   order: OrderValidation;
   version: ExperimentVersion;
   formErrors: Record<string, string>;
   onSubmit: (orderId: string, formData: OrderValidationFormData) => boolean;
-  onCancel: () => void;
   onFormDataChange?: (formData: OrderValidationFormData) => void;
 }
 
@@ -19,7 +19,6 @@ export default function OrderValidationForm({
   version,
   formErrors: initialFormErrors,
   onSubmit,
-  onCancel,
   onFormDataChange
 }: OrderValidationFormProps) {
   const [formData, setFormData] = useState<OrderValidationFormData>({
@@ -178,6 +177,28 @@ export default function OrderValidationForm({
     // Always show errors for version B
     return !!formErrors[fieldName];
   };
+
+    
+  // Get error message for a field
+  const getErrorMessage = (field: string): string => {
+    if (formErrors[field]) {
+      return formErrors[field];
+    }
+    
+    // If no current error, return the standard validation message
+    if (field === 'address') {
+      return VALIDATION_MESSAGES.address.format;
+    } else if (field === 'contactName') {
+      return VALIDATION_MESSAGES.contactName.required;
+    } else if (field === 'contactPhone') {
+      return VALIDATION_MESSAGES.contactPhone.format;
+    } else if (field === 'contactEmail') {
+      return VALIDATION_MESSAGES.contactEmail.format;
+    }
+    
+    return '';
+  };
+  
   
   return (
     <Card className="shadow-md">
@@ -186,7 +207,26 @@ export default function OrderValidationForm({
           <span className="font-medium text-gray-800">Validate Order #{order.id} - {order.customer}</span>
         </div>
       </CardHeader>
-      <CardContent className="p-4">
+
+      <div className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-md">
+        <h4 className="font-medium text-gray-700 mb-3">Fields requiring correction:</h4>
+        <ul className="space-y-2">
+          {order.errors.map((field) => (
+            <li key={field} className="flex flex-col">
+              <div className="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-red-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+                <span className="font-medium text-gray-800">{field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1')}</span>
+              </div>
+              <p className="text-sm text-gray-600 ml-6 mt-1">{getErrorMessage(field)}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <hr className="border-t border-gray-200 mb-3" />
+
+      <CardContent className="">
         <form onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
@@ -285,13 +325,6 @@ export default function OrderValidationForm({
             </div>
             
             <div className="flex justify-start space-x-3 pt-4">
-              <Button
-                variant="outline"
-                onClick={onCancel}
-                className="px-4 py-2"
-              >
-                Cancel
-              </Button>
               <Button
                 type="submit"
                 variant="primary"

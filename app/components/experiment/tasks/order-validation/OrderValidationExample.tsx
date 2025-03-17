@@ -181,11 +181,8 @@ export default function OrderValidationExample({ version, onComplete }: OrderVal
               {/* Buttons */}
               {(animationStep >= 2) && (
                 <div className="flex justify-start space-x-3 mt-3">
-                  <button className="px-2 py-1 text-xs border border-gray-300 rounded">
-                    Cancel
-                  </button>
                   {animationStep === 3 ? (
-                    <button 
+                    <button
                       className="px-2 py-1 text-xs bg-blue-600 text-white rounded animate-pulse"
                       onClick={handleSaveButtonClick}
                     >

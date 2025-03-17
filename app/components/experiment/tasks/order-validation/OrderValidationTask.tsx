@@ -6,7 +6,6 @@ import { OrderValidationFormData } from "@/lib/types/orderValidation";
 import OrderValidationList from "./OrderValidationList";
 import OrderValidationForm from "./OrderValidationForm";
 import TaskTemplate from "@/app/components/experiment/shared/TaskTemplate";
-import { VALIDATION_MESSAGES } from "@/lib/constants/validationMessages";
 import OrderValidationExample from "./OrderValidationExample";
 
 interface OrderValidationProps {
@@ -42,37 +41,11 @@ export default function OrderValidationTask({
   // Check if task is completed
   const taskCompleted = validatedOrdersCount === orders.length;
   
-  // Handle canceling order selection
-  const handleCancelOrderSelection = () => {
-    handleOrderSelect('');
-    setCurrentFormData(null);
-  };
-
   // Handle form data changes
   const handleFormDataChange = (formData: OrderValidationFormData) => {
     setCurrentFormData(formData);
   };
-  
-  // Get error message for a field
-  const getErrorMessage = (field: string): string => {
-    if (formErrors[field]) {
-      return formErrors[field];
-    }
-    
-    // If no current error, return the standard validation message
-    if (field === 'address') {
-      return VALIDATION_MESSAGES.address.format;
-    } else if (field === 'contactName') {
-      return VALIDATION_MESSAGES.contactName.required;
-    } else if (field === 'contactPhone') {
-      return VALIDATION_MESSAGES.contactPhone.format;
-    } else if (field === 'contactEmail') {
-      return VALIDATION_MESSAGES.contactEmail.format;
-    }
-    
-    return '';
-  };
-  
+
   return (
     <TaskTemplate
       version={version}
@@ -103,28 +76,12 @@ export default function OrderValidationTask({
         <div className="lg:w-6/8">
           {selectedOrder ? (
             <>
-              <div className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-md">
-                <h4 className="font-medium text-gray-700 mb-3">Fields requiring correction:</h4>
-                <ul className="space-y-2">
-                  {selectedOrder.errors.map((field) => (
-                    <li key={field} className="flex flex-col">
-                      <div className="flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-red-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                        </svg>
-                        <span className="font-medium text-gray-800">{field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1')}</span>
-                      </div>
-                      <p className="text-sm text-gray-600 ml-6 mt-1">{getErrorMessage(field)}</p>
-                    </li>
-                  ))}
-                </ul>
-              </div>
+           
               <OrderValidationForm
                 order={selectedOrder}
                 version={version}
                 formErrors={formErrors}
                 onSubmit={submitValidation}
-                onCancel={handleCancelOrderSelection}
                 onFormDataChange={handleFormDataChange}
               />
             </>

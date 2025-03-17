@@ -43,6 +43,18 @@ export default function OrderAssignmentExample({ version }: OrderAssignmentExamp
     }
   };
   
+  // Get priority dot color based on priority and version
+  const getPriorityDotColor = (priority: string, version: 'a' | 'b') => {
+    if (version === 'a') return 'bg-gray-500';
+    
+    switch(priority) {
+      case 'High': return 'bg-red-500';
+      case 'Medium': return 'bg-amber-500';
+      case 'Low': return 'bg-gray-500';
+      default: return 'bg-gray-500';
+    }
+  };
+  
   return (
     <div className="flex flex-col items-center">
       <div className="relative w-full max-w-2xl h-64 border border-gray-200 rounded-lg bg-white overflow-hidden shadow-md select-none">
@@ -60,7 +72,10 @@ export default function OrderAssignmentExample({ version }: OrderAssignmentExamp
             </div>
             <div className="flex-1 font-medium">Order #1</div>
             <div>
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getVersionPriorityBadgeClass('High', version)}`}>High</span>
+              <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${getVersionPriorityBadgeClass('High', version)}`}>
+                <span className={`w-1.5 h-1.5 mr-1 rounded-full ${getPriorityDotColor('High', version)}`}></span>
+                High
+              </span>
             </div>
             <div className="ml-3">
               <div className="relative">
@@ -78,7 +93,10 @@ export default function OrderAssignmentExample({ version }: OrderAssignmentExamp
             </div>
             <div className="flex-1 font-medium">Order #2</div>
             <div>
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getVersionPriorityBadgeClass('Medium', version)}`}>Medium</span>
+              <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${getVersionPriorityBadgeClass('Medium', version)}`}>
+                <span className={`w-1.5 h-1.5 mr-1 rounded-full ${getPriorityDotColor('Medium', version)}`}></span>
+                Medium
+              </span>
             </div>
             <div className="ml-3">
               <span className="inline-block w-3 h-3 rounded-full bg-blue-500 mr-1"></span>

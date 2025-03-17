@@ -39,6 +39,9 @@ export default function VersionOrdersTable({
                   <div className="flex items-center gap-1 font-medium">Order ID</div>
                 </TableHeaderCell>
                 <TableHeaderCell>
+                  <div className="flex items-center gap-1 font-medium">Company</div>
+                </TableHeaderCell>
+                <TableHeaderCell>
                   <div className="flex items-center gap-1 font-medium">Priority</div>
                 </TableHeaderCell>
                 <TableHeaderCell>Items</TableHeaderCell>
@@ -57,6 +60,20 @@ export default function VersionOrdersTable({
                 const zoneColors = getZoneColor(orderZone);
                 const priorityBadgeClass = getVersionPriorityBadgeClass(order.priority, version);
                 const isSelected = selectedOrder === order.id;
+                
+                // Define dot color based on priority
+                const getPriorityDotColor = (priority: string, version: ExperimentVersion) => {
+                  if (version === 'a') return 'bg-gray-500';
+                  
+                  switch(priority) {
+                    case 'High': return 'bg-red-500';
+                    case 'Medium': return 'bg-amber-500';
+                    case 'Low': return 'bg-gray-500';
+                    default: return 'bg-gray-500';
+                  }
+                };
+                
+                const priorityDotColor = getPriorityDotColor(order.priority, version);
                 
                 return (
                   <TableRow 
@@ -97,7 +114,11 @@ export default function VersionOrdersTable({
                     </TableCell>
                     <TableCell className="font-medium"># {order.id}</TableCell>
                     <TableCell>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${priorityBadgeClass} inline-block min-w-[60px] text-center`}>
+                      {order.customer}
+                    </TableCell>
+                    <TableCell>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${priorityBadgeClass}`}>
+                        <span className={`w-1.5 h-1.5 mr-1 rounded-full ${priorityDotColor}`}></span>
                         {order.priority}
                       </span>
                     </TableCell>

@@ -37,15 +37,18 @@ export default function TaskHeader({
             <li>
               Process by priority: 
               <span className="inline-flex gap-1 ml-1 items-center">
-                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getVersionPriorityBadgeClass('High', version)} min-w-[50px] text-center`}>
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${getVersionPriorityBadgeClass('High', version)}`}>
+                  <span className={`w-1.5 h-1.5 mr-1 rounded-full ${version === 'a' ? 'bg-gray-500' : 'bg-red-500'}`}></span>
                   High
                 </span>
                 <span className="text-gray-500">→</span>
-                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getVersionPriorityBadgeClass('Medium', version)} min-w-[50px] text-center`}>
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${getVersionPriorityBadgeClass('Medium', version)}`}>
+                  <span className={`w-1.5 h-1.5 mr-1 rounded-full ${version === 'a' ? 'bg-gray-500' : 'bg-amber-500'}`}></span>
                   Medium
                 </span>
                 <span className="text-gray-500">→</span>
-                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${getVersionPriorityBadgeClass('Low', version)} min-w-[50px] text-center`}>
+                <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${getVersionPriorityBadgeClass('Low', version)}`}>
+                  <span className={`w-1.5 h-1.5 mr-1 rounded-full bg-gray-500`}></span>
                   Low
                 </span>
               </span>
@@ -99,4 +102,4 @@ export default function TaskHeader({
       </div>
     </div>
   );
-} 
+}
