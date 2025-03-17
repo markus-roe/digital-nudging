@@ -36,7 +36,7 @@ export function useParticipantTracking(task: ExperimentTask, version: 'a' | 'b')
         timestamp: Date.now()
       });
     };
-  }, [task, version]);
+  }, [task, version, trackingData?.startTime]);
   
   // Track an interaction
   const trackInteraction = (type: string, data?: any) => {

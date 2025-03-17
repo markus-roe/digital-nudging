@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import { ExperimentVersion } from "@/lib/types/experiment";
 import { FiSearch, FiHelpCircle, FiBell, FiSettings, FiUser } from 'react-icons/fi';
@@ -30,7 +30,7 @@ export default function ERPDashboard({
   // Registration and introduction state
   const [registrationCompleted, setRegistrationCompleted] = useState(false);
   const [introStep, setIntroStep] = useState(0); // Start at 0 for registration
-  const totalIntroSteps = 2;
+  const [isMobile, setIsMobile] = useState(false);
   
   // Registration form state
   const [email, setEmail] = useState('');
@@ -40,6 +40,23 @@ export default function ERPDashboard({
   const [education, setEducation] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState('');
+
+  // Check if device has sufficient screen width for the study
+  useEffect(() => {
+    const checkDeviceCompatibility = () => {
+      const hasMinimumWidth = window.innerWidth >= 1350;
+      setIsMobile(!hasMinimumWidth);
+    };
+    
+    // Check initially
+    checkDeviceCompatibility();
+    
+    // Add event listener for window resize
+    window.addEventListener('resize', checkDeviceCompatibility);
+    
+    // Clean up
+    return () => window.removeEventListener('resize', checkDeviceCompatibility);
+  }, []);
 
   // Handle registration submission
   const handleRegistrationSubmit = async (e: React.FormEvent) => {
@@ -80,6 +97,25 @@ export default function ERPDashboard({
     }
   };
 
+  // Render warning for devices with insufficient screen width
+  if (isMobile) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg shadow-md p-6 max-w-md text-center">
+          <svg className="w-16 h-16 mx-auto text-yellow-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <h2 className="text-xl font-bold text-gray-800 mb-3">Desktop Device Required</h2>
+          <p className="text-gray-600 mb-4">
+            This research study must be completed on a desktop computer or laptop with a large monitor.
+          </p>
+          <p className="text-gray-600 mb-6">
+            Please switch to a desktop device with a wider screen to participate in this study.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   // Render registration and introduction screens
   if (!introCompleted) {
@@ -102,7 +138,7 @@ export default function ERPDashboard({
                   </div>
                 )}
                 
-                <form onSubmit={handleRegistrationSubmit} className="space-y-4">
+                <form onSubmit={handleRegistrationSubmit} className="space-y-4" suppressHydrationWarning>
                   <div>
                     <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
                       Email (for giveaway participation)
@@ -114,6 +150,7 @@ export default function ERPDashboard({
                       onChange={(e) => setEmail(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md"
                       placeholder="your.email@example.com"
+                      suppressHydrationWarning
                     />
                   </div>
                   
@@ -126,6 +163,7 @@ export default function ERPDashboard({
                       value={age}
                       onChange={(e) => setAge(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md cursor-pointer"
+                      suppressHydrationWarning
                     >
                       <option value="">Select age group</option>
                       <option value="18-24">18-24</option>
@@ -145,6 +183,7 @@ export default function ERPDashboard({
                       value={gender}
                       onChange={(e) => setGender(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md cursor-pointer"
+                      suppressHydrationWarning
                     >
                       <option value="">Select gender</option>
                       <option value="male">Male</option>
@@ -163,6 +202,7 @@ export default function ERPDashboard({
                       value={experience}
                       onChange={(e) => setExperience(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md cursor-pointer"
+                      suppressHydrationWarning
                     >
                       <option value="">Select experience level</option>
                       <option value="none">No experience</option>
@@ -181,6 +221,7 @@ export default function ERPDashboard({
                       value={education}
                       onChange={(e) => setEducation(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md cursor-pointer"
+                      suppressHydrationWarning
                     >
                       <option value="">Select education level</option>
                       <option value="high-school">High School</option>
@@ -200,10 +241,6 @@ export default function ERPDashboard({
                       {isSubmitting ? 'Submitting...' : 'Continue'}
                     </Button>
                   </div>
-                  
-                  <p className="text-xs text-gray-500 mt-4">
-                    By submitting this form, you agree to participate in our study. Your data will be handled according to our privacy policy.
-                  </p>
                 </form>
               </Card>
             ) : (
@@ -229,7 +266,7 @@ export default function ERPDashboard({
                   </div>
                 
                 
-                <div className="mt-8 flex justify-between items-center">
+                <div className="mt-8 flex justify-center">
                   <Button
                     variant="primary"
                     className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded"
@@ -271,11 +308,13 @@ export default function ERPDashboard({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-              <div className="absolute left-0 w-48 bg-white rounded-md shadow-lg z-10 hidden group-hover:block border border-gray-100">
-                <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">New Orders</a>
-                <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Pending Orders</a>
-                <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Completed Orders</a>
-                <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Order History</a>
+              <div className="absolute left-0 top-full pt-2 w-48 z-10 hidden group-hover:block">
+                <div className="bg-white rounded-md shadow-lg border border-gray-100">
+                <a href="#" className="block px-4 py-2 text-md text-gray-700 hover:bg-gray-100">New Orders</a>
+                <a href="#" className="block px-4 py-2 text-md text-gray-700 hover:bg-gray-100">Pending Orders</a>
+                <a href="#" className="block px-4 py-2 text-md text-gray-700 hover:bg-gray-100">Completed Orders</a>
+                <a href="#" className="block px-4 py-2 text-md text-gray-700 hover:bg-gray-100">Order History</a>
+                </div>
               </div>
             </div>
             <div className="relative group">
@@ -285,11 +324,13 @@ export default function ERPDashboard({
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                 </svg>
               </button>
-              <div className="absolute left-0 w-48 bg-white rounded-md shadow-lg z-10 hidden group-hover:block border border-gray-100">
-                <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Driver Management</a>
-                <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Route Planning</a>
-                <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Delivery Zones</a>
-                <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Delivery Reports</a>
+              <div className="absolute left-0 top-full pt-2 w-48 z-10 hidden group-hover:block">
+                <div className="bg-white rounded-md shadow-lg border border-gray-100">
+                  <a href="#" className="block px-4 py-2 text-md text-gray-700 hover:bg-gray-100">Driver Management</a>
+                  <a href="#" className="block px-4 py-2 text-md text-gray-700 hover:bg-gray-100">Route Planning</a>
+                  <a href="#" className="block px-4 py-2 text-md text-gray-700 hover:bg-gray-100">Delivery Zones</a>
+                  <a href="#" className="block px-4 py-2 text-md text-gray-700 hover:bg-gray-100">Delivery Reports</a>
+                </div>
               </div>
             </div>
             <a href="#" className="text-gray-700 hover:text-gray-900 font-medium">Analytics</a>
@@ -303,6 +344,7 @@ export default function ERPDashboard({
                 <input
                   type="text"
                   value=""
+                  onChange={() => {}}
                   placeholder="Search..."
                   className="w-64 pl-10 pr-4 py-2 rounded-md border border-gray-300 bg-gray-50 text-sm focus:outline-none focus:ring-none"
                 />
@@ -340,9 +382,9 @@ export default function ERPDashboard({
               
               {/* Dropdown Menu */}
               <div className="absolute right-0 w-48 bg-white rounded-md shadow-lg z-10 hidden group-hover:block border border-gray-100">
-                <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Your Profile</a>
-                <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Settings</a>
-                <a href="#" className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">Sign out</a>
+                <a href="#" className="block px-4 py-2 text-md text-gray-700 hover:bg-gray-100">Your Profile</a>
+                <a href="#" className="block px-4 py-2 text-md text-gray-700 hover:bg-gray-100">Settings</a>
+                <a href="#" className="block px-4 py-2 text-md text-gray-700 hover:bg-gray-100">Sign out</a>
               </div>
             </div>
             
@@ -354,7 +396,7 @@ export default function ERPDashboard({
 
       {/* Main Content Area */}
       <main className="flex-1 flex">
-        <div className="flex flex-col h-full w-full">
+        <div className="flex flex-col w-full">
           {/* Main content area */}
           <div className="flex flex-1">
             {/* Left sidebar */}
@@ -447,8 +489,8 @@ export default function ERPDashboard({
             </div>
             
             {/* Main content */}
-            <div className="flex-1 overflow-auto p-6">
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <div className="flex-1 p-6 overflow-hidden">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 h-full">
                 <div className="mb-4 pb-4 border-b border-gray-200">
                   <h2 className="text-xl font-semibold text-gray-800">
                     {currentTask === 'validation' && 'Order Validation'}

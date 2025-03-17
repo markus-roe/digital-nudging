@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from '@/components/ui/Button';
 import { initialOrders, initialDrivers } from '@/lib/data/orderAssignmentData';
 import VersionTaskHeader from '@/app/components/experiment/shared/VersionTaskHeader';
@@ -11,13 +11,11 @@ import { OrderAssignmentProps } from '@/lib/types/experiment';
 import OrderAssignmentExample from './OrderAssignmentExample';
 
 interface ExtendedOrderAssignmentProps extends OrderAssignmentProps {
-  embedded?: boolean;
   onComplete?: () => void;
 }
 
 export default function OrderAssignmentTask({ 
   version, 
-  embedded = true,
   onComplete 
 }: ExtendedOrderAssignmentProps) {
   // Task state
@@ -27,7 +25,6 @@ export default function OrderAssignmentTask({
   const [taskFinished, setTaskFinished] = useState<boolean>(false);
   const TIME_LIMIT = 180; // 3 minute time limit
   const totalAnimationSteps = 4;
-  const allStepsCompleted = animationStep === totalAnimationSteps - 1;
   
   // Core functionality hooks
   const { 
@@ -67,7 +64,7 @@ export default function OrderAssignmentTask({
     if (taskStarted && !startTime) {
       startTimer();
     }
-  }, [taskStarted, startTime]);
+  }, [taskStarted, startTime, startTimer]);
   
   // Handle animation navigation
   const nextAnimationStep = () => {
@@ -93,7 +90,7 @@ export default function OrderAssignmentTask({
     if (selectedOrder) {
       startHesitationTracking();
     }
-  }, [selectedOrder]);
+  }, [selectedOrder, startHesitationTracking]);
   
   // Check if task is completed
   const taskCompleted = Object.keys(assignments).length === orders.length;
@@ -104,7 +101,7 @@ export default function OrderAssignmentTask({
       stopTimer();
       setTaskFinished(true);
     }
-  }, [taskCompleted, timeRemaining, taskFinished]);
+  }, [taskCompleted, timeRemaining, taskFinished, stopTimer]);
   
   // Handle driver selection and assignment
   const handleDriverSelect = (driverId: string) => {
@@ -128,7 +125,7 @@ export default function OrderAssignmentTask({
   
   // Render the component with or without the modal
   return (
-    <div className="relative">
+    <div className="relative min-h-[400px]">
       <VersionTaskHeader 
         assignedOrdersCount={assignedOrdersCount} 
         totalOrders={orders.length} 
@@ -137,7 +134,7 @@ export default function OrderAssignmentTask({
         version={version}
       />
 
-      <div className={`flex flex-col lg:flex-row gap-6 ${showIntroModal ? 'opacity-50 pointer-events-none' : ''}`}>
+      <div className={`flex flex-col lg:flex-row gap-6 ${showIntroModal ? 'opacity-50 pointer-events-none' : ''} select-none`}>
         <VersionOrdersTable 
           orders={orders}
           selectedOrder={selectedOrder}
@@ -198,8 +195,8 @@ export default function OrderAssignmentTask({
                 </div>
                 <p className="mt-4 text-sm text-gray-600 text-center font-medium">
                   {animationStep === 0 && "Step 1: Select an order from the list"}
-                  {animationStep === 1 && "Step 2: Notice the matching zone between order and driver"}
-                  {animationStep === 2 && "Step 3: Click on a driver to assign the order"}
+                  {animationStep === 1 && "Step 2: Identify the matching zone between order and driver"}
+                  {animationStep === 2 && "Step 3: Click on the driver to assign the order"}
                   {animationStep === 3 && "Step 4: The order is now assigned to the driver"}
                 </p>
               </div>
@@ -208,37 +205,45 @@ export default function OrderAssignmentTask({
             </div>
             
             {/* Navigation buttons */}
-            <div className="flex justify-end">
+            <div className="mt-4 flex items-center justify-center gap-4">
+              <button 
+                className={`px-4 py-2 rounded-lg font-medium flex items-center ${
+                  animationStep > 0 
+                    ? 'bg-gray-100 hover:bg-gray-200 text-gray-700 cursor-pointer' 
+                    : 'bg-gray-100 text-gray-400'
+                }`}
+                onClick={prevAnimationStep}
+                disabled={animationStep === 0}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                Previous
+              </button>
               
-              <div className="flex space-x-3">
-                {animationStep > 0 && (
-                  <Button 
-                    variant="outline"
-                    className="border border-gray-300 hover:bg-gray-100 px-4 py-2 rounded"
-                    onClick={prevAnimationStep}
-                  >
-                    Previous
-                  </Button>
-                )}
-                
-                {!allStepsCompleted ? (
-                  <Button 
-                    variant="primary"
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-                    onClick={nextAnimationStep}
-                  >
-                    Next
-                  </Button>
-                ) : (
-                  <Button 
-                    variant="primary"
-                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded"
-                    onClick={handleStartTask}
-                  >
-                    Start Task
-                  </Button>
-                )}
-              </div>
+              <button 
+                className={`px-4 py-2 rounded-lg font-medium flex items-center ${
+                  animationStep < totalAnimationSteps - 1 
+                    ? 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer' 
+                    : 'bg-gray-100 text-gray-400'
+                }`}
+                onClick={nextAnimationStep}
+                disabled={animationStep === totalAnimationSteps - 1}
+              >
+                Next
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1"><polyline points="9 18 15 12 9 6"></polyline></svg>
+              </button>
+            </div>
+            <div className="mt-6 h-14 flex justify-center">
+              {animationStep === totalAnimationSteps - 1 ? (
+                <Button 
+                  className="bg-blue-600 hover:bg-blue-500 text-white px-10 py-3 text-lg rounded-xl font-medium transition-all duration-200 flex items-center gap-2"
+                  onClick={handleStartTask}
+                >
+                  <span>Start Task</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+                </Button>
+              ) : (
+                <></>
+              )}
             </div>
           </div>
         </div>

@@ -37,14 +37,21 @@ export function TableRow({
   children, 
   className = '', 
   onClick, 
-  noHover = false 
+  noHover = false,
+  isSelected = false
 }: TableProps & { 
   onClick?: () => void,
-  noHover?: boolean 
+  noHover?: boolean,
+  isSelected?: boolean
 }) {
   return (
     <tr 
-      className={`${!noHover ? 'hover:bg-gray-50' : ''} ${onClick ? 'cursor-pointer' : ''} ${className}`}
+      className={`
+        ${!noHover && !isSelected ? 'hover:bg-gray-50' : ''}
+        ${isSelected ? 'hover:bg-blue-100' : ''}
+        ${onClick ? 'cursor-pointer' : ''} 
+        ${className}
+      `}
       onClick={onClick}
     >
       {children}

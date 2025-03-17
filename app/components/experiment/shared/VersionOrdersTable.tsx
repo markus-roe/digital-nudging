@@ -56,13 +56,14 @@ export default function VersionOrdersTable({
                 const orderZone = order.zone;
                 const zoneColors = getZoneColor(orderZone);
                 const priorityBadgeClass = getVersionPriorityBadgeClass(order.priority, version);
+                const isSelected = selectedOrder === order.id;
                 
                 return (
                   <TableRow 
                     key={order.id}
                     className={`
                       ${
-                        selectedOrder === order.id 
+                        isSelected
                           ? 'bg-blue-100' 
                           : assignments[order.id]
                             ? 'bg-gray-50 opacity-60' 
@@ -70,6 +71,7 @@ export default function VersionOrdersTable({
                       }
                       transition-[opacity] duration-150
                     `}
+                    isSelected={isSelected}
                     onClick={() => {
                       if (!assignments[order.id]) {
                         onOrderSelect(order.id);
@@ -81,7 +83,7 @@ export default function VersionOrdersTable({
                         <div className="flex items-center justify-center h-full">
                           <input 
                             type="checkbox" 
-                            checked={selectedOrder === order.id}
+                            checked={isSelected}
                             onChange={() => {
                               if (!assignments[order.id]) {
                                 onOrderSelect(order.id);

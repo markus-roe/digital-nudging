@@ -51,7 +51,7 @@ export default function DriversPanel({
                 .map(([orderId]) => orderId);
               
               // Determine card styling based on selection and availability
-              let cardClass = "p-4 rounded-lg border transition-all duration-200 ";
+              let cardClass = "p-4 rounded-lg border transition-all duration-200 ease-out";
               
               if (!selectedOrder) {
                 cardClass += "bg-gray-50 border-gray-200 cursor-not-allowed filter blur-[0.3px]";
