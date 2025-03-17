@@ -69,7 +69,6 @@ export default function ERPExperiment({ version, participantId }: ERPExperimentP
       {currentTask === "assignment" && (
         <OrderAssignmentTask 
           version={version}
-          embedded={true}
           onComplete={handleAssignmentComplete}
         />
       )}
