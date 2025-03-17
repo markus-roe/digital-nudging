@@ -8,7 +8,7 @@ interface OrderValidationExampleProps {
 
 export default function OrderValidationExample({ version, onComplete }: OrderValidationExampleProps) {
   const [animationStep, setAnimationStep] = useState<number>(0);
-  const totalSteps = 3;
+  const totalSteps = 4; // Increased to 4 to include the save button click step
   
   // Get the context to notify when example is completed
   const { setExampleCompleted } = useContext(ExampleCompletionContext);
@@ -37,25 +37,52 @@ export default function OrderValidationExample({ version, onComplete }: OrderVal
     switch(animationStep) {
       case 0: return "Step 1: Select an order from the list to validate";
       case 1: return "Step 2: Review the order details and identify errors";
-      case 2: return "Step 3: Save the corrected information to validate the order";
+      case 2: return "Step 3: Correct the information in the form";
+      case 3: return "Step 4: Click Save to validate the order";
       default: return "";
     }
   };
   
+  // Handle save button click - move to next step
+  const handleSaveButtonClick = () => {
+    if (animationStep === 3) {
+      // Simply move to the next step
+      setTimeout(() => {
+        nextAnimationStep();
+      }, 500);
+    }
+  };
+  
+  // Show validation status based on the current step
+  const showAsValidated = animationStep === 3 && animationStep === totalSteps - 1;
+  
   return (
     <div className="flex flex-col items-center">
-      <div className="relative w-full max-w-2xl h-64 border border-gray-200 rounded-lg bg-white overflow-hidden shadow-md select-none">
+      <div className="relative w-full max-w-2xl h-72 border border-gray-200 rounded-lg bg-white overflow-hidden shadow-md select-none">
         {/* Left side - Orders list */}
         <div className="absolute left-0 top-0 w-1/3 h-full border-r border-gray-200 p-3">
           <div className="bg-gray-100 p-2 text-sm font-medium mb-3 rounded">Orders Pending Validation</div>
-          <div className={`p-3 border rounded mb-2 ${animationStep >= 1 ? 'bg-blue-100 border-blue-300' : 'border-gray-200'} transition-colors duration-300`}>
+          <div className={`p-3 border rounded mb-2 ${
+            animationStep >= 1 
+              ? animationStep === totalSteps - 1
+                ? 'bg-gray-50 opacity-60 border-gray-200'
+                : 'bg-blue-100 border-blue-300' 
+              : 'border-gray-200'
+          } transition-colors duration-300`}>
             <div className="font-medium">Order #101</div>
             <div className="text-sm text-gray-600">Acme Corp</div>
             <div className="mt-1">
-              <span className="inline-flex items-center px-2 py-0.5 bg-amber-50 text-amber-700 text-xs font-medium rounded-md border border-amber-200 whitespace-nowrap">
-                <span className="w-1.5 h-1.5 mr-1 rounded-full bg-amber-500"></span>
-                Pending
-              </span>
+              {animationStep === totalSteps - 1 ? (
+                <span className="inline-flex items-center px-2 py-0.5 bg-green-100 text-green-800 text-xs font-medium rounded-md border border-transparent whitespace-nowrap">
+                  <span className="w-1.5 h-1.5 mr-1 rounded-full bg-green-500"></span>
+                  Validated
+                </span>
+              ) : (
+                <span className="inline-flex items-center px-2 py-0.5 bg-amber-50 text-amber-700 text-xs font-medium rounded-md border border-amber-200 whitespace-nowrap">
+                  <span className="w-1.5 h-1.5 mr-1 rounded-full bg-amber-500"></span>
+                  Pending
+                </span>
+              )}
             </div>
           </div>
           <div className="p-3 border border-gray-200 rounded mb-2">
@@ -81,13 +108,13 @@ export default function OrderValidationExample({ version, onComplete }: OrderVal
             </div>
           ) : (
             <>
-              <div className="bg-gray-100 p-2 text-sm font-medium mb-3 rounded flex justify-between">
+              <div className="bg-gray-100 p-2 text-sm font-medium mb-2 rounded flex justify-between">
                 <span>Validate Order #101 - Acme Corp</span>
               </div>
               
               {/* Validation Rules - displayed above form */}
-              {animationStep >= 1 && (
-                <div className="mb-3 bg-blue-50 p-2 border border-blue-200 rounded text-xs">
+              {(animationStep >= 1 && animationStep < totalSteps - 1) && (
+                <div className="mb-2 bg-blue-50 p-2 border border-blue-200 rounded text-xs">
                   <div className="font-medium text-blue-700 mb-1">Fields requiring correction:</div>
                   <ul className="list-disc pl-4 text-blue-600 space-y-0.5">
                     <li>Email must contain @ and domain</li>
@@ -95,8 +122,23 @@ export default function OrderValidationExample({ version, onComplete }: OrderVal
                 </div>
               )}
               
+              {/* Show success message in the last step */}
+              {animationStep === totalSteps - 1 && (
+                <div className="mb-2 bg-green-50 p-2 border border-green-200 rounded text-xs animate-fadeIn">
+                  <div className="font-medium text-green-700 mb-1">Order validation complete:</div>
+                  <ul className="list-disc pl-4 text-green-600 space-y-0.5">
+                    <li className="flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1 inline-block" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>Order successfully validated</span>
+                    </li>
+                  </ul>
+                </div>
+              )}
+              
               {/* Contact Email Field - shows error states */}
-              <div className="mb-3">
+              <div className="mb-2">
                 <div className="flex justify-between items-center mb-1">
                   <label className="block text-xs font-medium text-gray-700">
                     Contact Email
@@ -106,31 +148,23 @@ export default function OrderValidationExample({ version, onComplete }: OrderVal
                   )}
                 </div>
                 <div className="relative">
-                  <input
-                    type="text"
-                    value={animationStep >= 2 ? "contact@acmecorp.com" : "contact@acmecorp"}
-                    readOnly
-                    className={`w-full text-xs px-2 py-1 border rounded-md ${
-                      animationStep === 1 && version === 'b'
-                        ? 'border-red-500 bg-red-50' 
-                        : animationStep >= 2
-                          ? 'border-gray-300'
-                          : 'border-gray-300'
-                    }`}
-                  />
-                  {animationStep === 1 && version === 'b' && (
-                    <div className="absolute -right-1 -top-1 h-5 w-5 bg-blue-500 rounded-full flex items-center justify-center animate-pulse">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
-                    </div>
-                  )}
+                  <div className={`w-full text-xs px-2 py-1 border rounded-md flex items-center ${
+                    animationStep === 1 && version === 'b'
+                      ? 'border-red-500 bg-red-50' 
+                      : 'border-gray-300'
+                  }`}>
+                    <span>contact@acmecorp</span>
+                    {(animationStep >= 2) && (
+                      <span className={`${animationStep === 2 ? 'bg-blue-100 text-blue-800 animate-pulse' : ''} font-medium pr-1 rounded`}>
+                        .com
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
               
               {/* Contact Phone Field */}
-              <div className="mb-3">
+              <div className="mb-2">
                 <div className="flex justify-between items-center mb-1">
                   <label className="block text-xs font-medium text-gray-700">
                     Contact Phone
@@ -145,14 +179,23 @@ export default function OrderValidationExample({ version, onComplete }: OrderVal
               </div>
               
               {/* Buttons */}
-              {animationStep >= 2 && (
-                <div className="flex justify-start space-x-3 mt-4">
+              {(animationStep >= 2) && (
+                <div className="flex justify-start space-x-3 mt-3">
                   <button className="px-2 py-1 text-xs border border-gray-300 rounded">
                     Cancel
                   </button>
-                  <button className="px-2 py-1 text-xs bg-blue-600 text-white rounded">
-                    Save
-                  </button>
+                  {animationStep === 3 ? (
+                    <button 
+                      className="px-2 py-1 text-xs bg-blue-600 text-white rounded animate-pulse"
+                      onClick={handleSaveButtonClick}
+                    >
+                      Save
+                    </button>
+                  ) : (
+                    <button className="px-2 py-1 text-xs bg-blue-600 text-white rounded">
+                      Save
+                    </button>
+                  )}
                 </div>
               )}
             </>
