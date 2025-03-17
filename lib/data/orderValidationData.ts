@@ -39,7 +39,7 @@ export const initialOrderValidations: OrderValidation[] = [
     customer: 'XYZ Ltd',
     address: 'Elm Blvd 101',
     contactName: 'Sarah Williams',
-    contactPhone: '55512345',
+    contactPhone: '555-123-45',
     contactEmail: 'sarah.williams@xyzltd.com',
     deliveryInstructions: 'Fragile items, handle with care',
     hasErrors: true,
@@ -73,7 +73,7 @@ export const initialOrderValidations: OrderValidation[] = [
     address: 'Main Ave 404',
     contactName: 'Emma Davis',
     contactPhone: '555-159-7531',
-    contactEmail: 'emma.davis.localshop.com',
+    contactEmail: 'emma davis@localshop.com',
     deliveryInstructions: 'Back entrance only',
     hasErrors: true,
     errors: ['contactEmail']
