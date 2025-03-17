@@ -3,7 +3,7 @@ import { Card, CardHeader, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { OrderValidation, OrderValidationFormData } from '@/lib/types/orderValidation';
 import { ExperimentVersion } from '@/lib/types/experiment';
-import { getInputErrorClass } from '@/lib/utils/orderValidationUtils';
+import { validateOrderData } from '@/lib/utils/orderValidationUtils';
 
 interface OrderValidationFormProps {
   order: OrderValidation;
@@ -11,14 +11,16 @@ interface OrderValidationFormProps {
   formErrors: Record<string, string>;
   onSubmit: (orderId: string, formData: OrderValidationFormData) => boolean;
   onCancel: () => void;
+  onFormDataChange?: (formData: OrderValidationFormData) => void;
 }
 
 export default function OrderValidationForm({
   order,
   version,
-  formErrors,
+  formErrors: initialFormErrors,
   onSubmit,
-  onCancel
+  onCancel,
+  onFormDataChange
 }: OrderValidationFormProps) {
   const [formData, setFormData] = useState<OrderValidationFormData>({
     address: order.address,
@@ -28,40 +30,153 @@ export default function OrderValidationForm({
     deliveryInstructions: order.deliveryInstructions
   });
   
-  // Reset form data when order changes
+  // Local form errors state for real-time validation
+  const [formErrors, setFormErrors] = useState<Record<string, string>>(initialFormErrors);
+  
+  // Track which fields have been validated
+  const [validatedFields, setValidatedFields] = useState<Set<string>>(new Set());
+  
+  // Track if form has been submitted (for version A)
+  const [hasSubmitted, setHasSubmitted] = useState(false);
+  
+  // Reset form data when order changes and validate immediately
   useEffect(() => {
-    setFormData({
+    const newFormData = {
       address: order.address,
       contactName: order.contactName,
       contactPhone: order.contactPhone,
       contactEmail: order.contactEmail,
       deliveryInstructions: order.deliveryInstructions
-    });
-  }, [order]);
+    };
+    setFormData(newFormData);
+    
+    // Validate all fields immediately on load
+    if (order.hasErrors) {
+      const validationErrors = validateOrderData(newFormData);
+      setFormErrors(validationErrors);
+      
+      // Reset validated fields
+      setValidatedFields(new Set());
+    } else {
+      setFormErrors(initialFormErrors);
+    }
+    
+    // Reset submission state
+    setHasSubmitted(false);
+  }, [order, initialFormErrors]);
   
-  // Handle input change
+  // Handle input change with real-time validation
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
+    
+    // Update form data
+    const updatedFormData = {
+      ...formData,
       [name]: value
-    }));
+    };
+    
+    setFormData(updatedFormData);
+    
+    // Only validate in real-time for version B
+    if (version === 'b') {
+      // Validate the field in real-time
+      const validationErrors = validateOrderData(updatedFormData);
+      
+      // Mark this field as validated
+      setValidatedFields(prev => {
+        const newSet = new Set(prev);
+        newSet.add(name);
+        return newSet;
+      });
+      
+      // Update errors state - add or remove error for this field
+      setFormErrors(prev => {
+        const newErrors = { ...prev };
+        if (validationErrors[name]) {
+          newErrors[name] = validationErrors[name];
+        } else {
+          delete newErrors[name];
+        }
+        return newErrors;
+      });
+    }
+
+    // Notify parent of changes
+    if (onFormDataChange) {
+      onFormDataChange(updatedFormData);
+    }
   };
   
   // Handle form submission
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // For version A, don't update the hasSubmitted state
+    // This prevents the momentary flash of error styling
+    if (version === 'a') {
+      // Skip setting hasSubmitted to true
+      // Just validate and submit directly
+      const validationErrors = validateOrderData(formData);
+      
+      if (Object.keys(validationErrors).length > 0) {
+        setFormErrors(validationErrors);
+        setHasSubmitted(true); // Only set this if there are errors
+        return;
+      }
+      
+      // If validation passes, submit without setting hasSubmitted
+      onSubmit(order.id, formData);
+      return;
+    }
+    
+    // For version B, continue with normal flow
+    // Validate all fields before submission
+    const validationErrors = validateOrderData(formData);
+    setHasSubmitted(true);
+    
+    if (Object.keys(validationErrors).length > 0) {
+      setFormErrors(validationErrors);
+      return;
+    }
+    
     onSubmit(order.id, formData);
   };
   
-  // Determine if a field has an error
-  const hasError = (fieldName: string): boolean => {
-    return !!formErrors[fieldName] || (version === 'b' && !!order.errors[fieldName]);
+  // Get input class based on error state
+  const getInputClass = (fieldName: string): string => {
+    const baseClass = "w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500";
+    
+    // For version A, only apply error styling when explicitly showing errors
+    if (version === 'a') {
+      if (shouldShowError(fieldName)) {
+        return `${baseClass} border-red-500 bg-red-50`;
+      }
+      return `${baseClass} border-gray-300`;
+    }
+    
+    // For version B, show real-time validation
+    // If the field has been validated and has no errors, or if it's not in the error list
+    if (validatedFields.has(fieldName) && !formErrors[fieldName]) {
+      return `${baseClass} border-gray-300`;
+    }
+    
+    // If the field has an error or is in the error list for version B
+    if (formErrors[fieldName] || (order.errors.includes(fieldName) && order.hasErrors)) {
+      return `${baseClass} border-red-500 bg-red-50`;
+    }
+    
+    return `${baseClass} border-gray-300`;
   };
   
-  // Get error message for a field
-  const getErrorMessage = (fieldName: string): string => {
-    return formErrors[fieldName] || (version === 'b' && order.errors[fieldName]) || '';
+  // Check if a field has an error and should show the error message
+  const shouldShowError = (fieldName: string): boolean => {
+    if (version === 'a') {
+      // For version A, only show errors after submission and if there are errors
+      // This prevents the flash of errors during transition
+      return hasSubmitted && !!formErrors[fieldName];
+    }
+    // Always show errors for version B
+    return !!formErrors[fieldName];
   };
   
   return (
@@ -75,75 +190,83 @@ export default function OrderValidationForm({
         <form onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
-              <label htmlFor="address" className="block text-sm font-medium text-gray-700 mb-1">
-                Delivery Address
-              </label>
+              <div className="flex justify-between items-center mb-1">
+                <label htmlFor="address" className="block text-sm font-medium text-gray-700">
+                  Delivery Address
+                </label>
+                {shouldShowError('address') && (
+                  <span className="text-xs text-red-600">{formErrors.address}</span>
+                )}
+              </div>
               <input
                 id="address"
                 name="address"
                 type="text"
                 value={formData.address}
                 onChange={handleChange}
-                className={getInputErrorClass('address', formErrors, version, order)}
+                className={getInputClass('address')}
                 placeholder="Street, City, Postal Code"
               />
-              {hasError('address') && (
-                <p className="mt-1 text-sm text-red-600">{getErrorMessage('address')}</p>
-              )}
             </div>
             
             <div>
-              <label htmlFor="contactName" className="block text-sm font-medium text-gray-700 mb-1">
-                Contact Name
-              </label>
+              <div className="flex justify-between items-center mb-1">
+                <label htmlFor="contactName" className="block text-sm font-medium text-gray-700">
+                  Contact Name
+                </label>
+                {shouldShowError('contactName') && (
+                  <span className="text-xs text-red-600">{formErrors.contactName}</span>
+                )}
+              </div>
               <input
                 id="contactName"
                 name="contactName"
                 type="text"
                 value={formData.contactName}
                 onChange={handleChange}
-                className={getInputErrorClass('contactName', formErrors, version, order)}
+                className={getInputClass('contactName')}
                 placeholder="Full Name"
               />
-              {hasError('contactName') && (
-                <p className="mt-1 text-sm text-red-600">{getErrorMessage('contactName')}</p>
-              )}
             </div>
             
             <div>
-              <label htmlFor="contactPhone" className="block text-sm font-medium text-gray-700 mb-1">
-                Contact Phone
-              </label>
+              <div className="flex justify-between items-center mb-1">
+                <label htmlFor="contactPhone" className="block text-sm font-medium text-gray-700">
+                  Contact Phone
+                </label>
+                {shouldShowError('contactPhone') && (
+                  <span className="text-xs text-red-600">{formErrors.contactPhone}</span>
+                )}
+              </div>
               <input
                 id="contactPhone"
                 name="contactPhone"
                 type="text"
                 value={formData.contactPhone}
                 onChange={handleChange}
-                className={getInputErrorClass('contactPhone', formErrors, version, order)}
+                className={getInputClass('contactPhone')}
                 placeholder="XXX-XXX-XXXX"
               />
-              {hasError('contactPhone') && (
-                <p className="mt-1 text-sm text-red-600">{getErrorMessage('contactPhone')}</p>
-              )}
             </div>
             
             <div>
-              <label htmlFor="contactEmail" className="block text-sm font-medium text-gray-700 mb-1">
-                Contact Email
-              </label>
+              <div className="flex justify-between items-center mb-1">
+                <label htmlFor="contactEmail" className="block text-sm font-medium text-gray-700">
+                  Contact Email
+                </label>
+                {shouldShowError('contactEmail') && (
+                  <span className="text-xs text-red-600">{formErrors.contactEmail}</span>
+                )}
+              </div>
               <input
                 id="contactEmail"
                 name="contactEmail"
                 type="text"
                 value={formData.contactEmail}
                 onChange={handleChange}
-                className={getInputErrorClass('contactEmail', formErrors, version, order)}
+                className={getInputClass('contactEmail')}
                 placeholder="email@example.com"
               />
-              {hasError('contactEmail') && (
-                <p className="mt-1 text-sm text-red-600">{getErrorMessage('contactEmail')}</p>
-              )}
             </div>
             
             <div>
@@ -161,7 +284,7 @@ export default function OrderValidationForm({
               />
             </div>
             
-            <div className="flex justify-end space-x-3 pt-4">
+            <div className="flex justify-start space-x-3 pt-4">
               <Button
                 variant="outline"
                 onClick={onCancel}
@@ -174,7 +297,7 @@ export default function OrderValidationForm({
                 variant="primary"
                 className="px-4 py-2"
               >
-                Validate Order
+                Save
               </Button>
             </div>
           </div>

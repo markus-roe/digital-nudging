@@ -1,15 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import { getVersionPriorityBadgeClass } from '@/lib/utils/orderUtils';
-import { Button } from '@/components/ui/Button';
+import { ExampleCompletionContext } from '@/app/components/experiment/shared/TaskTemplate';
 
 interface OrderAssignmentExampleProps {
   version: 'a' | 'b';
-  onComplete?: () => void;
 }
 
-export default function OrderAssignmentExample({ version, onComplete }: OrderAssignmentExampleProps) {
+export default function OrderAssignmentExample({ version }: OrderAssignmentExampleProps) {
   const [animationStep, setAnimationStep] = useState<number>(0);
   const totalSteps = 4;
+  
+  // Get the context to notify when example is completed
+  const { setExampleCompleted } = useContext(ExampleCompletionContext);
+  
+  // Update example completion status when animation step changes
+  useEffect(() => {
+    // Example is completed only when we're at the last step
+    setExampleCompleted(animationStep === totalSteps - 1);
+  }, [animationStep, totalSteps, setExampleCompleted]);
   
   // Handle animation navigation
   const nextAnimationStep = () => {
@@ -151,19 +159,6 @@ export default function OrderAssignmentExample({ version, onComplete }: OrderAss
           Next
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1"><polyline points="9 18 15 12 9 6"></polyline></svg>
         </button>
-      </div>
-      
-      {/* Start button */}
-      <div className="mt-6 h-14 flex justify-center">
-        {animationStep === totalSteps - 1 && onComplete && (
-          <Button 
-            className="bg-blue-600 hover:bg-blue-500 text-white px-10 py-3 text-lg rounded-xl font-medium transition-all duration-200 flex items-center gap-2"
-            onClick={onComplete}
-          >
-            <span>Start Task</span>
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-          </Button>
-        )}
       </div>
     </div>
   );

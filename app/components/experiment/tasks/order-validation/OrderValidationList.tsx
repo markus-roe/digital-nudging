@@ -30,9 +30,8 @@ export default function OrderValidationList({
               <div
                 key={order.id}
                 className={`
-                  p-3 cursor-pointer transition-colors duration-150
-                  ${isSelected ? 'bg-blue-100' : ''}
-                  ${hasBeenValidated ? 'bg-gray-50 opacity-60' : 'hover:bg-gray-50'}
+                  p-4 cursor-pointer transition-colors duration-150 min-h-[4rem] flex items-center
+                  ${isSelected ? 'bg-blue-100 hover:bg-blue-100' : hasBeenValidated ? 'bg-gray-50 opacity-60' : 'hover:bg-gray-50'}
                 `}
                 onClick={() => {
                   if (!hasBeenValidated) {
@@ -40,23 +39,25 @@ export default function OrderValidationList({
                   }
                 }}
               >
-                <div className="flex justify-between items-center">
-                  <div>
-                    <div className="font-medium">Order #{order.id} - {order.customer}</div>
+                <div className="flex w-full items-center justify-between">
+                  <div className="flex flex-col">
+                    <div className="font-medium">Order #{order.id}</div>
+                    <div className="text-sm text-gray-600">{order.customer}</div>
                   </div>
-                  <div>
+                  <div className="ml-2 flex-shrink-0">
                     {hasBeenValidated ? (
-                      <span className="px-2 py-1 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                      <span className="inline-flex items-center px-2 py-0.5 bg-green-100 text-green-800 text-xs font-medium rounded-md border border-transparent whitespace-nowrap">
+                        <span className="w-1.5 h-1.5 mr-1 rounded-full bg-green-500"></span>
                         Validated
                       </span>
                     ) : (
-                      <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs font-medium rounded-full">
-                        Needs Validation
+                      <span className="inline-flex items-center px-2 py-0.5 bg-amber-50 text-amber-700 text-xs font-medium rounded-md border border-amber-200 whitespace-nowrap">
+                        <span className="w-1.5 h-1.5 mr-1 rounded-full bg-amber-500"></span>
+                        Pending
                       </span>
                     )}
                   </div>
                 </div>
-                
               </div>
             );
           })}

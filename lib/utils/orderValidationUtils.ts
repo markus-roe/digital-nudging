@@ -1,36 +1,4 @@
-import { ExperimentVersion } from '@/lib/types/experiment';
-import { OrderValidation } from '@/lib/types/orderValidation';
-
-// Utility function to get input class based on error state and version
-export function getInputErrorClass(
-  fieldName: string, 
-  errors: Record<string, string>, 
-  version: ExperimentVersion,
-  order?: OrderValidation
-): string {
-  const baseClass = "w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500";
-  
-  if (shouldShowErrorStyling(fieldName, errors, version, order)) {
-    return `${baseClass} border-red-500 bg-red-50`;
-  }
-  
-  return `${baseClass} border-gray-300`;
-}
-
-// Determine if a field should show error styling based on version
-export function shouldShowErrorStyling(
-  fieldName: string, 
-  errors: Record<string, string>, 
-  version: ExperimentVersion,
-  order?: OrderValidation
-): boolean {
-  if (version === 'b') {
-    // In version B (nudged), show error styling for fields with errors
-    // Check both form validation errors and original order errors
-    return !!errors[fieldName] || !!(order?.errors && order.errors[fieldName]);
-  }
-  return false; // In version A (control), don't show error styling
-}
+import { VALIDATION_MESSAGES } from '@/lib/constants/validationMessages';
 
 // Validate form data
 export function validateOrderData(formData: {
@@ -43,28 +11,28 @@ export function validateOrderData(formData: {
   
   // Address validation
   if (!formData.address) {
-    errors.address = 'Address is required';
-  } else if (!formData.address.includes(',')) {
-    errors.address = 'Address should include street, city, and postal code';
+    errors.address = VALIDATION_MESSAGES.address.required;
+  } else if (!/^[A-Za-z]+(\s+[A-Za-z]+)*\s+\d+/.test(formData.address)) {
+    errors.address = VALIDATION_MESSAGES.address.format;
   }
   
   // Contact name validation
   if (!formData.contactName) {
-    errors.contactName = 'Contact name is required';
+    errors.contactName = VALIDATION_MESSAGES.contactName.required;
   }
   
   // Phone validation
   if (!formData.contactPhone) {
-    errors.contactPhone = 'Phone number is required';
+    errors.contactPhone = VALIDATION_MESSAGES.contactPhone.required;
   } else if (!/^\d{3}-\d{3}-\d{4}$/.test(formData.contactPhone)) {
-    errors.contactPhone = 'Phone format should be XXX-XXX-XXXX';
+    errors.contactPhone = VALIDATION_MESSAGES.contactPhone.format;
   }
   
   // Email validation
   if (!formData.contactEmail) {
-    errors.contactEmail = 'Email is required';
+    errors.contactEmail = VALIDATION_MESSAGES.contactEmail.required;
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contactEmail)) {
-    errors.contactEmail = 'Invalid email format';
+    errors.contactEmail = VALIDATION_MESSAGES.contactEmail.format;
   }
   
   return errors;

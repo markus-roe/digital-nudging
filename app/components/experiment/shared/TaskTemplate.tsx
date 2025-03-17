@@ -19,6 +19,12 @@ interface TaskTemplateProps {
   example?: ReactNode;
 }
 
+// Create a context to share example completion state
+export const ExampleCompletionContext = React.createContext({
+  isExampleCompleted: false,
+  setExampleCompleted: (completed: boolean) => {}
+});
+
 export default function TaskTemplate({
   version,
   taskType,
@@ -36,6 +42,7 @@ export default function TaskTemplate({
   const [showIntroModal, setShowIntroModal] = useState<boolean>(true);
   const [taskStarted, setTaskStarted] = useState<boolean>(false);
   const [taskFinished, setTaskFinished] = useState<boolean>(false);
+  const [isExampleCompleted, setExampleCompleted] = useState<boolean>(false);
   const TIME_LIMIT = 180; // 3 minute time limit
   
   // Timer hook
@@ -92,41 +99,50 @@ export default function TaskTemplate({
     }
   };
   
+  // Provide context value
+  const contextValue = {
+    isExampleCompleted,
+    setExampleCompleted
+  };
+  
   return (
-    <div className="relative min-h-[400px]">
-      <TaskHeader
-        taskType={taskType}
-        progressCount={progressCount}
-        totalCount={totalCount}
-        timeRemaining={timeRemaining}
-        formatTime={formatTime}
-        version={version}
-      />
+    <ExampleCompletionContext.Provider value={contextValue}>
+      <div className="relative min-h-[400px]">
+        <TaskHeader
+          taskType={taskType}
+          progressCount={progressCount}
+          totalCount={totalCount}
+          timeRemaining={timeRemaining}
+          formatTime={formatTime}
+          version={version}
+        />
 
-      <div className={`${showIntroModal ? 'opacity-50 pointer-events-none' : ''} select-none`}>
-        {children}
-      </div>
-      
-      {isTaskCompleted && !showIntroModal && (
-        <div className="mt-6 text-center">
-          <Button 
-            variant="primary" 
-            className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-lg rounded-lg shadow-md transition-all duration-200 transform hover:scale-105"
-            onClick={handleTaskComplete}
-          >
-            {getCompleteButtonText()}
-          </Button>
+        <div className={`${showIntroModal ? 'opacity-50 pointer-events-none' : ''}`}>
+          {children}
         </div>
-      )}
+        
+        {isTaskCompleted && !showIntroModal && (
+          <div className="mt-6 text-center">
+            <Button 
+              variant="primary" 
+              className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-lg rounded-lg shadow-md transition-all duration-200 transform hover:scale-105"
+              onClick={handleTaskComplete}
+            >
+              {getCompleteButtonText()}
+            </Button>
+          </div>
+        )}
 
-      <TaskIntroModal
-        title={title}
-        isOpen={showIntroModal}
-        onClose={handleStartTask}
-        description={description}
-        guidelines={guidelines}
-        example={example}
-      />
-    </div>
+        <TaskIntroModal
+          title={title}
+          isOpen={showIntroModal}
+          onClose={handleStartTask}
+          description={description}
+          guidelines={guidelines}
+          example={example}
+          isExampleCompleted={isExampleCompleted}
+        />
+      </div>
+    </ExampleCompletionContext.Provider>
   );
 } 

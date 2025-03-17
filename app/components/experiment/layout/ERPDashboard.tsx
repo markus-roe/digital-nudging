@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { Button } from "@/components/ui/Button";
 import { ExperimentVersion } from "@/lib/types/experiment";
 import { FiSearch, FiHelpCircle, FiBell, FiSettings, FiUser } from 'react-icons/fi';
-import { Card } from '@/components/ui/Card';
 import ExperimentOnboarding from "./ExperimentOnboarding";
+import StepperNavItem from './StepperNavItem';
+import SidebarNavItem from './SidebarNavItem';
+import { workflowSteps, WorkflowStep } from '@/lib/data/workflowSteps';
+import { isStepDisabled, canChangeToStep } from '@/lib/utils/workflowHelpers';
 
 interface ERPDashboardProps {
   version: ExperimentVersion;
@@ -29,21 +31,17 @@ export default function ERPDashboard({
   taskProgress
 }: ERPDashboardProps) {
   const [isMobile, setIsMobile] = useState(false);
+  const [isTablet, setIsTablet] = useState(false);
   
-  // Check if device has sufficient screen width for the study
   useEffect(() => {
     const checkDeviceCompatibility = () => {
-      const hasMinimumWidth = window.innerWidth >= 1350;
-      setIsMobile(!hasMinimumWidth);
+      const width = window.innerWidth;
+      setIsMobile(width < 1025);
+      setIsTablet(width >= 1025 && width < 1350);
     };
     
-    // Check initially
     checkDeviceCompatibility();
-    
-    // Add event listener for window resize
     window.addEventListener('resize', checkDeviceCompatibility);
-    
-    // Clean up
     return () => window.removeEventListener('resize', checkDeviceCompatibility);
   }, []);
 
@@ -72,12 +70,81 @@ export default function ERPDashboard({
     return <ExperimentOnboarding onIntroComplete={onIntroComplete} />;
   }
 
+  const StepperNav = () => (
+    <div className="bg-gray-100 border-b border-gray-200">
+      <div className="max-w-full mx-auto">
+        <div className="flex">
+          {workflowSteps.map((step: WorkflowStep, index: number) => (
+            <StepperNavItem
+              key={step.id}
+              stepNumber={step.number}
+              title={step.title}
+              description={step.description}
+              isActive={currentTask === step.id}
+              isCompleted={taskProgress[step.id]}
+              isDisabled={isStepDisabled(step, currentTask, taskProgress)}
+              onClick={() => {
+                if (canChangeToStep(step, currentTask, taskProgress)) {
+                  onTaskChange(step.id);
+                }
+              }}
+              showRightBorder={index < workflowSteps.length - 1}
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+
+  const SidebarNav = () => (
+    <div className="w-64 bg-gray-100 border-r border-gray-200 flex flex-col">
+      <div className="p-4 border-b border-gray-200">
+        <h2 className="font-medium text-gray-700">Order Management</h2>
+      </div>
+      <nav className="flex-1">
+        <ul>
+          {workflowSteps.map((step: WorkflowStep) => (
+            <SidebarNavItem
+              key={step.id}
+              stepNumber={step.number}
+              title={step.title}
+              description={step.description}
+              isActive={currentTask === step.id}
+              isCompleted={taskProgress[step.id]}
+              isDisabled={isStepDisabled(step, currentTask, taskProgress)}
+              onClick={() => {
+                if (canChangeToStep(step, currentTask, taskProgress)) {
+                  onTaskChange(step.id);
+                }
+              }}
+            />
+          ))}
+        </ul>
+      </nav>
+      <div className="p-4 border-t border-gray-200">
+        <div className="text-sm text-gray-500 mb-2">Workflow Progress</div>
+        <div className="w-full bg-gray-200 rounded-full h-2.5">
+          <div 
+            className="bg-blue-600 h-2.5 rounded-full" 
+            style={{ 
+              width: `${(
+                (taskProgress.validation ? 1 : 0) + 
+                (taskProgress.assignment ? 1 : 0) + 
+                (taskProgress.scheduling ? 1 : 0)
+              ) * 33.33}%` 
+            }}
+          ></div>
+        </div>
+      </div>
+    </div>
+  );
+
   // Render main dashboard with tabs
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       {/* Top Header Bar */}
       <header className="bg-white shadow">
-        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between cursor-default select-none">
           <div className="flex items-center">
           <svg className="w-8 h-8 mr-3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path d="M12 2L2 7L12 12L22 7L12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -128,7 +195,7 @@ export default function ERPDashboard({
           
           <div className="flex items-center space-x-4">
             {/* Search Bar */}
-            <div className="hidden md:block">
+            {/* <div className="hidden md:block">
               <div className="relative">
                 <input
                   type="text"
@@ -141,7 +208,7 @@ export default function ERPDashboard({
                   <FiSearch className="h-4 w-4 text-gray-500" />
                 </div>
               </div>
-            </div>
+            </div> */}
             
             {/* Help Button */}
             <button className="p-2 rounded-full hover:bg-gray-100 cursor-pointer" aria-label="Help">
@@ -186,110 +253,22 @@ export default function ERPDashboard({
       {/* Main Content Area */}
       <main className="flex-1 flex">
         <div className="flex flex-col w-full">
-          {/* Main content area */}
+          {/* Show stepper nav for tablet view */}
+          {isTablet && <StepperNav />}
+          
           <div className="flex flex-1">
-            {/* Left sidebar */}
-            <div className="w-64 bg-gray-100 border-r border-gray-200 flex flex-col">
-              <div className="p-4 border-b border-gray-200">
-                <h2 className="font-medium text-gray-700">Order Management</h2>
-              </div>
-              <nav className="flex-1">
-                <ul>
-                  <li>
-                    <button 
-                      className={`cursor-pointer w-full text-left px-4 py-3 flex items-center ${currentTask === 'validation' ? 'bg-blue-50 border-l-4 border-blue-600 text-blue-700' : 'text-gray-700 hover:bg-gray-200'}`}
-                      onClick={() => currentTask === 'validation' || taskProgress.validation ? onTaskChange('validation') : null}
-                      disabled={currentTask !== 'validation' && !taskProgress.validation}
-                    >
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${taskProgress.validation ? 'bg-green-100 text-green-700' : currentTask === 'validation' ? 'bg-blue-100 text-blue-700' : 'bg-gray-200 text-gray-500'}`}>
-                        {taskProgress.validation ? (
-                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        ) : (
-                          <span>1</span>
-                        )}
-                      </div>
-                      <div>
-                        <div className="font-medium">Order Validation</div>
-                        <div className="text-xs text-gray-500">Verify order details</div>
-                      </div>
-                    </button>
-                  </li>
-                  <li>
-                    <button 
-                      className={`cursor-pointer w-full text-left px-4 py-3 flex items-center ${currentTask === 'assignment' ? 'bg-blue-50 border-l-4 border-blue-600 text-blue-700' : 'text-gray-700 hover:bg-gray-200'}`}
-                      onClick={() => taskProgress.validation && (currentTask === 'assignment' || taskProgress.assignment) ? onTaskChange('assignment') : null}
-                      disabled={!taskProgress.validation || (currentTask !== 'assignment' && !taskProgress.assignment)}
-                    >
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${taskProgress.assignment ? 'bg-green-100 text-green-700' : currentTask === 'assignment' ? 'bg-blue-100 text-blue-700' : 'bg-gray-200 text-gray-500'}`}>
-                        {taskProgress.assignment ? (
-                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        ) : (
-                          <span>2</span>
-                        )}
-                      </div>
-                      <div>
-                        <div className="font-medium">Driver Assignment</div>
-                        <div className="text-xs text-gray-500">Assign orders to drivers</div>
-                      </div>
-                    </button>
-                  </li>
-                  <li>
-                    <button 
-                      className={`cursor-pointer w-full text-left px-4 py-3 flex items-center ${currentTask === 'scheduling' ? 'bg-blue-50 border-l-4 border-blue-600 text-blue-700' : 'text-gray-700 hover:bg-gray-200'}`}
-                      onClick={() => taskProgress.assignment && (currentTask === 'scheduling' || taskProgress.scheduling) ? onTaskChange('scheduling') : null}
-                      disabled={!taskProgress.assignment || (currentTask !== 'scheduling' && !taskProgress.scheduling)}
-                    >
-                      <div className={`w-8 h-8 rounded-full flex items-center justify-center mr-3 ${taskProgress.scheduling ? 'bg-green-100 text-green-700' : currentTask === 'scheduling' ? 'bg-blue-100 text-blue-700' : 'bg-gray-200 text-gray-500'}`}>
-                        {taskProgress.scheduling ? (
-                          <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        ) : (
-                          <span>3</span>
-                        )}
-                      </div>
-                      <div>
-                        <div className="font-medium">Delivery Scheduling</div>
-                        <div className="text-xs text-gray-500">Schedule delivery times</div>
-                      </div>
-                    </button>
-                  </li>
-                </ul>
-              </nav>
-              <div className="p-4 border-t border-gray-200">
-                <div className="text-sm text-gray-500 mb-2">Workflow Progress</div>
-                <div className="w-full bg-gray-200 rounded-full h-2.5">
-                  <div 
-                    className="bg-blue-600 h-2.5 rounded-full" 
-                    style={{ 
-                      width: `${(
-                        (taskProgress.validation ? 1 : 0) + 
-                        (taskProgress.assignment ? 1 : 0) + 
-                        (taskProgress.scheduling ? 1 : 0)
-                      ) * 33.33}%` 
-                    }}
-                  ></div>
-                </div>
-              </div>
-            </div>
+            {/* Show sidebar only for desktop view */}
+            {!isTablet && <SidebarNav />}
             
             {/* Main content */}
             <div className="flex-1 p-6 overflow-hidden">
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 h-full">
                 <div className="mb-4 pb-4 border-b border-gray-200">
                   <h2 className="text-xl font-semibold text-gray-800">
-                    {currentTask === 'validation' && 'Order Validation'}
-                    {currentTask === 'assignment' && 'Driver Assignment'}
-                    {currentTask === 'scheduling' && 'Delivery Scheduling'}
+                    {currentTask && workflowSteps.find(step => step.id === currentTask)?.title}
                   </h2>
                   <p className="text-sm text-gray-500">
-                    {currentTask === 'validation' && 'Review and validate order details before processing'}
-                    {currentTask === 'assignment' && 'Assign validated orders to appropriate drivers'}
-                    {currentTask === 'scheduling' && 'Schedule delivery times for assigned orders'}
+                    {currentTask && workflowSteps.find(step => step.id === currentTask)?.description}
                   </p>
                 </div>
                 

@@ -1,0 +1,206 @@
+import React, { useState, useContext, useEffect } from 'react';
+import { ExampleCompletionContext } from '@/app/components/experiment/shared/TaskTemplate';
+
+interface OrderValidationExampleProps {
+  version: 'a' | 'b';
+  onComplete?: () => void;
+}
+
+export default function OrderValidationExample({ version, onComplete }: OrderValidationExampleProps) {
+  const [animationStep, setAnimationStep] = useState<number>(0);
+  const totalSteps = 3;
+  
+  // Get the context to notify when example is completed
+  const { setExampleCompleted } = useContext(ExampleCompletionContext);
+  
+  // Update example completion status when animation step changes
+  useEffect(() => {
+    // Example is completed only when we're at the last step
+    setExampleCompleted(animationStep === totalSteps - 1);
+  }, [animationStep, totalSteps, setExampleCompleted]);
+  
+  // Handle animation navigation
+  const nextAnimationStep = () => {
+    if (animationStep < totalSteps - 1) {
+      setAnimationStep(animationStep + 1);
+    }
+  };
+  
+  const prevAnimationStep = () => {
+    if (animationStep > 0) {
+      setAnimationStep(animationStep - 1);
+    }
+  };
+  
+  // Get step description based on current animation step
+  const getStepDescription = () => {
+    switch(animationStep) {
+      case 0: return "Step 1: Select an order from the list to validate";
+      case 1: return "Step 2: Review the order details and identify errors";
+      case 2: return "Step 3: Save the corrected information to validate the order";
+      default: return "";
+    }
+  };
+  
+  return (
+    <div className="flex flex-col items-center">
+      <div className="relative w-full max-w-2xl h-64 border border-gray-200 rounded-lg bg-white overflow-hidden shadow-md select-none">
+        {/* Left side - Orders list */}
+        <div className="absolute left-0 top-0 w-1/3 h-full border-r border-gray-200 p-3">
+          <div className="bg-gray-100 p-2 text-sm font-medium mb-3 rounded">Orders Pending Validation</div>
+          <div className={`p-3 border rounded mb-2 ${animationStep >= 1 ? 'bg-blue-100 border-blue-300' : 'border-gray-200'} transition-colors duration-300`}>
+            <div className="font-medium">Order #101</div>
+            <div className="text-sm text-gray-600">Acme Corp</div>
+            <div className="mt-1">
+              <span className="inline-flex items-center px-2 py-0.5 bg-amber-50 text-amber-700 text-xs font-medium rounded-md border border-amber-200 whitespace-nowrap">
+                <span className="w-1.5 h-1.5 mr-1 rounded-full bg-amber-500"></span>
+                Pending
+              </span>
+            </div>
+          </div>
+          <div className="p-3 border border-gray-200 rounded mb-2">
+            <div className="font-medium">Order #102</div>
+            <div className="text-sm text-gray-600">Widget Inc</div>
+            <div className="mt-1">
+              <span className="inline-flex items-center px-2 py-0.5 bg-amber-50 text-amber-700 text-xs font-medium rounded-md border border-amber-200 whitespace-nowrap">
+                <span className="w-1.5 h-1.5 mr-1 rounded-full bg-amber-500"></span>
+                Pending
+              </span>
+            </div>
+          </div>
+        </div>
+        
+        {/* Right side - Validation Form */}
+        <div className="absolute right-0 top-0 w-2/3 h-full p-3 overflow-hidden">
+          {animationStep === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+              </svg>
+              <p className="text-sm text-gray-500">Select an order to validate</p>
+            </div>
+          ) : (
+            <>
+              <div className="bg-gray-100 p-2 text-sm font-medium mb-3 rounded flex justify-between">
+                <span>Validate Order #101 - Acme Corp</span>
+              </div>
+              
+              {/* Validation Rules - displayed above form */}
+              {animationStep >= 1 && (
+                <div className="mb-3 bg-blue-50 p-2 border border-blue-200 rounded text-xs">
+                  <div className="font-medium text-blue-700 mb-1">Fields requiring correction:</div>
+                  <ul className="list-disc pl-4 text-blue-600 space-y-0.5">
+                    <li>Email must contain @ and domain</li>
+                  </ul>
+                </div>
+              )}
+              
+              {/* Contact Email Field - shows error states */}
+              <div className="mb-3">
+                <div className="flex justify-between items-center mb-1">
+                  <label className="block text-xs font-medium text-gray-700">
+                    Contact Email
+                  </label>
+                  {version == "b" && animationStep == 1 && (
+                    <span className="text-xs text-red-600">Invalid email format</span>
+                  )}
+                </div>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={animationStep >= 2 ? "contact@acmecorp.com" : "contact@acmecorp"}
+                    readOnly
+                    className={`w-full text-xs px-2 py-1 border rounded-md ${
+                      animationStep === 1 && version === 'b'
+                        ? 'border-red-500 bg-red-50' 
+                        : animationStep >= 2
+                          ? 'border-gray-300'
+                          : 'border-gray-300'
+                    }`}
+                  />
+                  {animationStep === 1 && version === 'b' && (
+                    <div className="absolute -right-1 -top-1 h-5 w-5 bg-blue-500 rounded-full flex items-center justify-center animate-pulse">
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* Contact Phone Field */}
+              <div className="mb-3">
+                <div className="flex justify-between items-center mb-1">
+                  <label className="block text-xs font-medium text-gray-700">
+                    Contact Phone
+                  </label>
+                </div>
+                <input
+                  type="text"
+                  value="555-123-4567"
+                  readOnly
+                  className="w-full text-xs px-2 py-1 border border-gray-300 rounded-md"
+                />
+              </div>
+              
+              {/* Buttons */}
+              {animationStep >= 2 && (
+                <div className="flex justify-start space-x-3 mt-4">
+                  <button className="px-2 py-1 text-xs border border-gray-300 rounded">
+                    Cancel
+                  </button>
+                  <button className="px-2 py-1 text-xs bg-blue-600 text-white rounded">
+                    Save
+                  </button>
+                </div>
+              )}
+            </>
+          )}
+        </div>
+        
+        {/* Step indicator */}
+        <div className="absolute inset-x-0 bottom-0 h-2 bg-gray-100">
+          <div 
+            className="h-full bg-blue-500 transition-all duration-300 ease-in-out"
+            style={{ width: `${(animationStep / (totalSteps - 1)) * 100}%` }}
+          ></div>
+        </div>
+      </div>
+      
+      {/* Step description */}
+      <p className="mt-4 text-sm text-gray-600 text-center font-medium">
+        {getStepDescription()}
+      </p>
+      
+      {/* Navigation buttons */}
+      <div className="mt-4 flex items-center justify-center gap-4">
+        <button 
+          className={`px-4 py-2 rounded-lg font-medium flex items-center ${
+            animationStep > 0 
+              ? 'bg-gray-100 hover:bg-gray-200 text-gray-700 cursor-pointer' 
+              : 'bg-gray-100 text-gray-400'
+          }`}
+          onClick={prevAnimationStep}
+          disabled={animationStep === 0}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1"><polyline points="15 18 9 12 15 6"></polyline></svg>
+          Previous
+        </button>
+        
+        <button 
+          className={`px-4 py-2 rounded-lg font-medium flex items-center ${
+            animationStep < totalSteps - 1 
+              ? 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer' 
+              : 'bg-gray-100 text-gray-400'
+          }`}
+          onClick={nextAnimationStep}
+          disabled={animationStep === totalSteps - 1}
+        >
+          Next
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1"><polyline points="9 18 15 12 9 6"></polyline></svg>
+        </button>
+      </div>
+    </div>
+  );
+} 

@@ -7,7 +7,7 @@ export interface OrderValidation {
   contactEmail: string;
   deliveryInstructions: string;
   hasErrors: boolean;
-  errors: Record<string, string>;
+  errors: string[];
 }
 
 export interface OrderValidationFormData {

@@ -8,6 +8,7 @@ interface TaskIntroModalProps {
   description: string;
   guidelines: string[];
   example?: ReactNode;
+  isExampleCompleted?: boolean;
 }
 
 export default function TaskIntroModal({ 
@@ -16,7 +17,8 @@ export default function TaskIntroModal({
   onClose,
   description,
   guidelines,
-  example
+  example,
+  isExampleCompleted = false
 }: TaskIntroModalProps) {
   if (!isOpen) return null;
   
@@ -51,14 +53,20 @@ export default function TaskIntroModal({
           )}
         </div>
         
-        <div className="flex justify-center mt-6">
-          <Button 
-            variant="primary" 
-            className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white"
-            onClick={onClose}
-          >
-            Start Task
-          </Button>
+        <div className="flex justify-center mt-6 h-14">
+          {isExampleCompleted ? (
+            <Button 
+              variant="primary" 
+              className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white"
+              onClick={onClose}
+            >
+              Start Task
+            </Button>
+          ) : (
+            <div className="text-sm text-gray-500 italic flex items-center">
+              Complete all steps to continue
+            </div>
+          )}
         </div>
       </div>
     </div>
