@@ -1,58 +1,91 @@
-import React, { useState } from "react";
-import { Button } from "@/components/ui/Button";
+import React from "react";
 import { ExperimentVersion } from "@/lib/types/experiment";
+import { useOrderValidation } from "@/lib/hooks/useOrderValidation";
+import { initialOrderValidations } from "@/lib/data/orderValidationData";
+import OrderValidationList from "./OrderValidationList";
+import OrderValidationForm from "./OrderValidationForm";
+import TaskTemplate from "@/app/components/experiment/shared/TaskTemplate";
 
 interface OrderValidationProps {
   version: ExperimentVersion;
-  embedded?: boolean;
   onComplete?: () => void;
 }
 
 export default function OrderValidationTask({ 
   version, 
-  embedded = false,
   onComplete 
 }: OrderValidationProps) {
-  const [taskStarted, setTaskStarted] = useState(embedded);
+  // Core functionality hooks
+  const {
+    orders,
+    selectedOrder,
+    selectedOrderId,
+    validatedOrdersCount,
+    formErrors,
+    handleOrderSelect,
+    submitValidation,
+  } = useOrderValidation(initialOrderValidations);
   
-  const handleStartTask = () => {
-    setTaskStarted(true);
+  // Task guidelines
+  const guidelines = [
+    "Review each order's delivery details for errors",
+    "Correct any errors in the form fields",
+    "Validate all orders to complete the task"
+  ];
+  
+  // Check if task is completed
+  const taskCompleted = validatedOrdersCount === orders.length;
+  
+  // Handle canceling order selection
+  const handleCancelOrderSelection = () => {
+    handleOrderSelect('');
   };
-  
-  const handleComplete = () => {
-    if (onComplete) onComplete();
-  };
-  
-  if (!taskStarted) {
-    return (
-      <div className="p-4 min-h-[400px] flex flex-col">
-        <h2 className="text-xl font-bold mb-4">Order Validation Task</h2>
-        <p className="mb-4">
-          In this task, you will review and validate delivery details before orders are processed.
-        </p>
-        <div className="mt-auto">
-          <Button onClick={handleStartTask}>Start Task</Button>
-        </div>
-      </div>
-    );
-  }
   
   return (
-    <div className="p-4 min-h-[400px] flex flex-col">
-      <h2 className="text-xl font-bold mb-4">Order Validation Task</h2>
-      <p className="mb-4">
-        This is a placeholder for the Order Validation task. 
-        You'll implement the full functionality later.
-      </p>
-      <div className="mt-auto text-center">
-        <Button 
-          variant="primary" 
-          className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg"
-          onClick={handleComplete}
-        >
-          Complete Validation Task
-        </Button>
+    <TaskTemplate
+      version={version}
+      taskType="validation"
+      title="Order Validation Task"
+      description="In this task, you'll review and validate delivery details before orders are processed."
+      guidelines={guidelines}
+      progressCount={validatedOrdersCount}
+      totalCount={orders.length}
+      isTaskCompleted={taskCompleted}
+      onComplete={onComplete}
+    >
+      <div className="flex flex-col lg:flex-row gap-6">
+        <div className="lg:w-2/8">
+          <OrderValidationList
+            orders={orders}
+            selectedOrderId={selectedOrderId}
+            onOrderSelect={handleOrderSelect}
+          />
+        </div>
+        
+        <div className="lg:w-6/8">
+          {selectedOrder ? (
+            <OrderValidationForm
+              order={selectedOrder}
+              version={version}
+              formErrors={formErrors}
+              onSubmit={submitValidation}
+              onCancel={handleCancelOrderSelection}
+            />
+          ) : (
+            <div className="bg-gray-50 rounded-lg border border-gray-200 p-6 h-full flex flex-col items-center justify-center text-center">
+              <div className="text-gray-500 mb-4">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                <h3 className="text-lg font-medium text-gray-700">No Order Selected</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Select an order from the list to validate its delivery details
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
-    </div>
+    </TaskTemplate>
   );
 } 

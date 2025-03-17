@@ -151,9 +151,7 @@ export default function TaskInstructions({ version, onStartTask }: TaskInstructi
           onComplete={onStartTask}
           title="Example: How to Assign Orders"
           steps={orderAssignmentSteps}
-          customContent={({ animationStep, totalSteps }) => (
-            <OrderAssignmentExample version={version} animationStep={animationStep} totalSteps={totalSteps} />
-          )}
+          customContent={<OrderAssignmentExample version={version} />}
         />
       )}
     </div>

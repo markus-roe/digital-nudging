@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/Button";
 import { ExperimentVersion } from "@/lib/types/experiment";
 import { FiSearch, FiHelpCircle, FiBell, FiSettings, FiUser } from 'react-icons/fi';
 import { Card } from '@/components/ui/Card';
+import ExperimentOnboarding from "./ExperimentOnboarding";
 
 interface ERPDashboardProps {
   version: ExperimentVersion;
@@ -27,20 +28,8 @@ export default function ERPDashboard({
   onTaskChange,
   taskProgress
 }: ERPDashboardProps) {
-  // Registration and introduction state
-  const [registrationCompleted, setRegistrationCompleted] = useState(false);
-  const [introStep, setIntroStep] = useState(0); // Start at 0 for registration
   const [isMobile, setIsMobile] = useState(false);
   
-  // Registration form state
-  const [email, setEmail] = useState('');
-  const [age, setAge] = useState('');
-  const [gender, setGender] = useState('');
-  const [experience, setExperience] = useState('');
-  const [education, setEducation] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [error, setError] = useState('');
-
   // Check if device has sufficient screen width for the study
   useEffect(() => {
     const checkDeviceCompatibility = () => {
@@ -57,45 +46,6 @@ export default function ERPDashboard({
     // Clean up
     return () => window.removeEventListener('resize', checkDeviceCompatibility);
   }, []);
-
-  // Handle registration submission
-  const handleRegistrationSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-    setError('');
-
-    try {
-      // Call API to register participant
-      const response = await fetch('/api/register', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          email,
-          demographics: {
-            age,
-            gender,
-            experience,
-            education
-          }
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to register');
-      }
-
-      // Move to introduction steps
-      setRegistrationCompleted(true);
-      setIntroStep(1);
-    } catch (err) {
-      console.error(err);
-      setError('An error occurred. Please try again.');
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   // Render warning for devices with insufficient screen width
   if (isMobile) {
@@ -119,168 +69,7 @@ export default function ERPDashboard({
 
   // Render registration and introduction screens
   if (!introCompleted) {
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <main className="flex items-center justify-center min-h-screen">
-          <div className="container mx-auto p-6 max-w-4xl">
-            {!registrationCompleted && introStep === 0 ? (
-              <Card className="p-6 shadow-md w-full">
-                <h1 className="text-2xl font-bold mb-6 text-center">Experiment Registration</h1>
-                
-                <p className="mb-6 text-gray-600">
-                  Thank you for participating in our study on ERP interfaces. Please complete this form to begin.
-                  Your email will only be used for the giveaway and will not be shared with third parties.
-                </p>
-                
-                {error && (
-                  <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
-                    {error}
-                  </div>
-                )}
-                
-                <form onSubmit={handleRegistrationSubmit} className="space-y-4" suppressHydrationWarning>
-                  <div>
-                    <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                      Email (for giveaway participation)
-                    </label>
-                    <input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                      placeholder="your.email@example.com"
-                      suppressHydrationWarning
-                    />
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="age" className="block text-sm font-medium text-gray-700 mb-1">
-                      Age Group
-                    </label>
-                    <select
-                      id="age"
-                      value={age}
-                      onChange={(e) => setAge(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md cursor-pointer"
-                      suppressHydrationWarning
-                    >
-                      <option value="">Select age group</option>
-                      <option value="18-24">18-24</option>
-                      <option value="25-34">25-34</option>
-                      <option value="35-44">35-44</option>
-                      <option value="45-54">45-54</option>
-                      <option value="55+">55+</option>
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="gender" className="block text-sm font-medium text-gray-700 mb-1">
-                      Gender
-                    </label>
-                    <select
-                      id="gender"
-                      value={gender}
-                      onChange={(e) => setGender(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md cursor-pointer"
-                      suppressHydrationWarning
-                    >
-                      <option value="">Select gender</option>
-                      <option value="male">Male</option>
-                      <option value="female">Female</option>
-                      <option value="non-binary">Non-binary</option>
-                      <option value="prefer-not-to-say">Prefer not to say</option>
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="experience" className="block text-sm font-medium text-gray-700 mb-1">
-                      Experience with ERP Systems
-                    </label>
-                    <select
-                      id="experience"
-                      value={experience}
-                      onChange={(e) => setExperience(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md cursor-pointer"
-                      suppressHydrationWarning
-                    >
-                      <option value="">Select experience level</option>
-                      <option value="none">No experience</option>
-                      <option value="beginner">Beginner (less than 1 year)</option>
-                      <option value="intermediate">Intermediate (1-3 years)</option>
-                      <option value="advanced">Advanced (3+ years)</option>
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label htmlFor="education" className="block text-sm font-medium text-gray-700 mb-1">
-                      Highest Education Level
-                    </label>
-                    <select
-                      id="education"
-                      value={education}
-                      onChange={(e) => setEducation(e.target.value)}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md cursor-pointer"
-                      suppressHydrationWarning
-                    >
-                      <option value="">Select education level</option>
-                      <option value="high-school">High School</option>
-                      <option value="bachelors">Bachelor's Degree</option>
-                      <option value="masters">Master's Degree</option>
-                      <option value="phd">PhD or Doctorate</option>
-                      <option value="other">Other</option>
-                    </select>
-                  </div>
-                  
-                  <div className="pt-4 flex justify-center">
-                    <Button
-                      type="submit"
-                      disabled={isSubmitting}
-                      className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md"
-                    >
-                      {isSubmitting ? 'Submitting...' : 'Continue'}
-                    </Button>
-                  </div>
-                </form>
-              </Card>
-            ) : (
-              <div className="bg-white rounded-lg shadow-md p-8">
-                <h1 className="text-2xl font-bold mb-6 text-gray-800">
-                  Welcome to DeliverEase ERP System
-                </h1>
-                
-                  <div className="space-y-4">
-                    <h2 className="text-xl font-semibold">Introduction</h2>
-                    <p>
-                      You'll be working with our order delivery management system to process customer orders.
-                      Your role involves three main tasks that follow the natural order processing workflow:
-                    </p>
-                    <ol className="list-decimal pl-6 space-y-2">
-                      <li>Validating order details to ensure accuracy</li>
-                      <li>Assigning validated orders to appropriate drivers</li>
-                      <li>Scheduling delivery times for assigned orders</li>
-                    </ol>
-                    <p>
-                      This simulates a typical day in the life of an order management specialist.
-                    </p>
-                  </div>
-                
-                
-                <div className="mt-8 flex justify-center">
-                  <Button
-                    variant="primary"
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded"
-                    onClick={onIntroComplete}
-                  >
-                    Start
-                  </Button>
-                </div>
-              </div>
-            )}
-          </div>
-        </main>
-      </div>
-    );
+    return <ExperimentOnboarding onIntroComplete={onIntroComplete} />;
   }
 
   // Render main dashboard with tabs

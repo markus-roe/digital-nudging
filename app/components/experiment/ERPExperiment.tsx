@@ -62,7 +62,6 @@ export default function ERPExperiment({ version, participantId }: ERPExperimentP
         <OrderValidationTask 
           version={version} 
           onComplete={handleValidationComplete}
-          embedded={true}
         />
       )}
       
@@ -76,7 +75,6 @@ export default function ERPExperiment({ version, participantId }: ERPExperimentP
       {currentTask === "scheduling" && (
         <DeliverySchedulingTask 
           version={version}
-          embedded={true}
           onComplete={handleSchedulingComplete}
         />
       )}

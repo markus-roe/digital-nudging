@@ -2,7 +2,7 @@
 export type ExperimentVersion = 'a' | 'b';
 
 // Experiment task types
-export type ExperimentTask = 'order-assignment' | 'task-2' | 'task-3';
+export type ExperimentTask = 'order-validation' | 'order-assignment' | 'task-3';
 
 // Experiment configuration interface
 export interface ExperimentConfig {
@@ -11,11 +11,11 @@ export interface ExperimentConfig {
 }
 
 // Task-specific props interfaces
-export interface OrderAssignmentProps {
+export interface OrderValidationProps {
   version: ExperimentVersion;
 }
 
-export interface Task2Props {
+export interface OrderAssignmentProps {
   version: ExperimentVersion;
 }
 

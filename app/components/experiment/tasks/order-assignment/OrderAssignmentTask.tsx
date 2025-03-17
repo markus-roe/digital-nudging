@@ -1,13 +1,11 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { Button } from '@/components/ui/Button';
+import React from "react";
 import { initialOrders, initialDrivers } from '@/lib/data/orderAssignmentData';
-import VersionTaskHeader from '@/app/components/experiment/shared/VersionTaskHeader';
-import VersionOrdersTable from '@/app/components/experiment/shared/VersionOrdersTable';
+import VersionOrdersTable from '@/app/components/experiment/tasks/order-assignment/VersionOrdersTable';
 import DriversPanel from '@/app/components/experiment/tasks/order-assignment/DriversPanel';
-import { useTaskTimer } from '@/lib/hooks/useTaskTimer';
 import { useOrderAssignment } from '@/lib/hooks/useOrderAssignment';
 import { useHesitationTracker } from '@/lib/hooks/useHesitationTracker';
 import { OrderAssignmentProps } from '@/lib/types/experiment';
+import TaskTemplate from '@/app/components/experiment/shared/TaskTemplate';
 import OrderAssignmentExample from './OrderAssignmentExample';
 
 interface ExtendedOrderAssignmentProps extends OrderAssignmentProps {
@@ -18,14 +16,6 @@ export default function OrderAssignmentTask({
   version, 
   onComplete 
 }: ExtendedOrderAssignmentProps) {
-  // Task state
-  const [showIntroModal, setShowIntroModal] = useState<boolean>(true);
-  const [animationStep, setAnimationStep] = useState<number>(0);
-  const [taskStarted, setTaskStarted] = useState<boolean>(false);
-  const [taskFinished, setTaskFinished] = useState<boolean>(false);
-  const TIME_LIMIT = 180; // 3 minute time limit
-  const totalAnimationSteps = 4;
-  
   // Core functionality hooks
   const { 
     orders, 
@@ -40,53 +30,20 @@ export default function OrderAssignmentTask({
     unassignOrder
   } = useOrderAssignment(initialOrders, initialDrivers);
   
-  // Timer hook
-  const {
-    startTime,
-    timeRemaining,
-    formatTime,
-    startTimer,
-    stopTimer
-  } = useTaskTimer(TIME_LIMIT);
-  
   // Hesitation tracking hook
   const {
-    selectionStartTime,
-    hesitationTimes,
-    totalHesitationTime,
-    averageHesitationTime,
     startHesitationTracking,
     recordHesitationTime
   } = useHesitationTracker();
   
-  // Start the task and timer when user dismisses the intro modal
-  useEffect(() => {
-    if (taskStarted && !startTime) {
-      startTimer();
-    }
-  }, [taskStarted, startTime, startTimer]);
-  
-  // Handle animation navigation
-  const nextAnimationStep = () => {
-    if (animationStep < totalAnimationSteps - 1) {
-      setAnimationStep(animationStep + 1);
-    }
-  };
-  
-  const prevAnimationStep = () => {
-    if (animationStep > 0) {
-      setAnimationStep(animationStep - 1);
-    }
-  };
-  
-  // Handle starting the task after viewing the intro
-  const handleStartTask = () => {
-    setShowIntroModal(false);
-    setTaskStarted(true);
-  };
+  // Task guidelines
+  const guidelines = [
+    "<strong>Match orders to drivers in the same zone</strong> when possible for efficient delivery",
+    "<strong>Process high priority orders first</strong>, followed by medium and low priority"
+  ];
   
   // Track hesitation time when an order is selected
-  useEffect(() => {
+  React.useEffect(() => {
     if (selectedOrder) {
       startHesitationTracking();
     }
@@ -94,14 +51,6 @@ export default function OrderAssignmentTask({
   
   // Check if task is completed
   const taskCompleted = Object.keys(assignments).length === orders.length;
-  
-  // Automatically stop timer when task is completed
-  useEffect(() => {
-    if (taskCompleted && timeRemaining > 0 && !taskFinished) {
-      stopTimer();
-      setTaskFinished(true);
-    }
-  }, [taskCompleted, timeRemaining, taskFinished, stopTimer]);
   
   // Handle driver selection and assignment
   const handleDriverSelect = (driverId: string) => {
@@ -111,30 +60,24 @@ export default function OrderAssignmentTask({
     }
   };
   
-  // Handle task completion
-  const handleTaskComplete = () => {
-    if (!taskFinished) {
-      stopTimer();
-      setTaskFinished(true);
-    }
-    
-    if (onComplete) {
-      onComplete();
-    }
-  };
-  
-  // Render the component with or without the modal
   return (
-    <div className="relative min-h-[400px]">
-      <VersionTaskHeader 
-        assignedOrdersCount={assignedOrdersCount} 
-        totalOrders={orders.length} 
-        timeRemaining={timeRemaining} 
-        formatTime={formatTime}
-        version={version}
-      />
-
-      <div className={`flex flex-col lg:flex-row gap-6 ${showIntroModal ? 'opacity-50 pointer-events-none' : ''} select-none`}>
+    <TaskTemplate
+      version={version}
+      taskType="assignment"
+      title="Driver Assignment Task"
+      description="In this task, you'll assign orders to drivers based on matching delivery zone."
+      guidelines={guidelines}
+      progressCount={assignedOrdersCount}
+      totalCount={orders.length}
+      isTaskCompleted={taskCompleted}
+      onComplete={onComplete}
+      example={
+        <OrderAssignmentExample 
+          version={version} 
+        />
+      }
+    >
+      <div className="flex flex-col lg:flex-row gap-6">
         <VersionOrdersTable 
           orders={orders}
           selectedOrder={selectedOrder}
@@ -151,103 +94,6 @@ export default function OrderAssignmentTask({
           onDriverSelect={handleDriverSelect}
         />
       </div>
-      
-      {taskCompleted && !showIntroModal && (
-        <div className="mt-6 text-center">
-          <Button 
-            variant="primary" 
-            className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 text-lg rounded-lg shadow-md transition-all duration-200 transform hover:scale-105"
-            onClick={handleTaskComplete}
-          >
-            Complete Assignment Task
-          </Button>
-        </div>
-      )}
-
-      {/* Modal overlay */}
-      {showIntroModal && (
-        <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full shadow-xl mx-4">
-            <h2 className="text-xl font-bold mb-4 text-gray-800">Driver Assignment Task</h2>
-            
-            <div className="mb-6">
-              <p className="mb-4">
-                In this task, you'll assign orders to drivers based on matching delivery zone.
-              </p>
-              <p className="mb-4">
-                <strong>Follow these guidelines:</strong>
-              </p>
-              
-              <ul className="list-disc pl-6 mb-4 space-y-2">
-                <li><strong>Match orders to drivers in the same zone</strong> when possible for efficient delivery</li>
-                <li><strong>Process high priority orders first</strong>, followed by medium and low priority</li>
-              </ul>
-              
-              {/* Animation example */}
-              <div className="mt-6 mb-4">
-                <h3 className="text-lg font-medium mb-3">Watch how it works:</h3>
-                <div className="flex justify-center">
-                  <OrderAssignmentExample 
-                    version={version} 
-                    animationStep={animationStep} 
-                    totalSteps={totalAnimationSteps} 
-                  />
-                </div>
-                <p className="mt-4 text-sm text-gray-600 text-center font-medium">
-                  {animationStep === 0 && "Step 1: Select an order from the list"}
-                  {animationStep === 1 && "Step 2: Identify the matching zone between order and driver"}
-                  {animationStep === 2 && "Step 3: Click on the driver to assign the order"}
-                  {animationStep === 3 && "Step 4: The order is now assigned to the driver"}
-                </p>
-              </div>
-              
-  
-            </div>
-            
-            {/* Navigation buttons */}
-            <div className="mt-4 flex items-center justify-center gap-4">
-              <button 
-                className={`px-4 py-2 rounded-lg font-medium flex items-center ${
-                  animationStep > 0 
-                    ? 'bg-gray-100 hover:bg-gray-200 text-gray-700 cursor-pointer' 
-                    : 'bg-gray-100 text-gray-400'
-                }`}
-                onClick={prevAnimationStep}
-                disabled={animationStep === 0}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                Previous
-              </button>
-              
-              <button 
-                className={`px-4 py-2 rounded-lg font-medium flex items-center ${
-                  animationStep < totalAnimationSteps - 1 
-                    ? 'bg-blue-600 hover:bg-blue-700 text-white cursor-pointer' 
-                    : 'bg-gray-100 text-gray-400'
-                }`}
-                onClick={nextAnimationStep}
-                disabled={animationStep === totalAnimationSteps - 1}
-              >
-                Next
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1"><polyline points="9 18 15 12 9 6"></polyline></svg>
-              </button>
-            </div>
-            <div className="mt-6 h-14 flex justify-center">
-              {animationStep === totalAnimationSteps - 1 ? (
-                <Button 
-                  className="bg-blue-600 hover:bg-blue-500 text-white px-10 py-3 text-lg rounded-xl font-medium transition-all duration-200 flex items-center gap-2"
-                  onClick={handleStartTask}
-                >
-                  <span>Start Task</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-                </Button>
-              ) : (
-                <></>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+    </TaskTemplate>
   );
 }
