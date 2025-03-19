@@ -19,7 +19,7 @@ export function Table({ children, className = '' }: TableProps) {
 
 export function TableHeader({ children, className = '' }: TableProps) {
   return (
-    <thead className={`bg-gray-50 dark:bg-gray-700 ${className}`}>
+    <thead className={`bg-gray-50 ${className}`}>
       {children}
     </thead>
   );
@@ -27,7 +27,7 @@ export function TableHeader({ children, className = '' }: TableProps) {
 
 export function TableBody({ children, className = '' }: TableProps) {
   return (
-    <tbody className={`bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700 ${className}`}>
+    <tbody className={`bg-white divide-y divide-gray-200 ${className}`}>
       {children}
     </tbody>
   );
