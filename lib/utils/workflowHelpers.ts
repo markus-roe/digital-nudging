@@ -1,5 +1,8 @@
 import { WorkflowStep } from '../data/workflowSteps';
 
+// Development mode flag - set to true to make all tasks accessible
+export const DEV_MODE = true;
+
 type TaskProgress = {
   validation: boolean;
   assignment: boolean;
@@ -11,6 +14,9 @@ export const isStepDisabled = (
   currentTask: "validation" | "assignment" | "scheduling" | null,
   taskProgress: TaskProgress
 ): boolean => {
+  // In development mode, no steps are disabled
+  if (DEV_MODE) return false;
+  
   if (step.id === 'validation') {
     return currentTask !== 'validation' && !taskProgress.validation;
   } else if (step.id === 'assignment') {
@@ -25,6 +31,9 @@ export const canChangeToStep = (
   currentTask: "validation" | "assignment" | "scheduling" | null,
   taskProgress: TaskProgress
 ): boolean => {
+  // In development mode, can always change to any step
+  if (DEV_MODE) return true;
+  
   if (step.id === 'validation') {
     return currentTask === 'validation' || taskProgress.validation;
   } else if (step.id === 'assignment') {
