@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { ExperimentVersion } from "@/lib/types/experiment";
-import { FiSearch, FiHelpCircle, FiBell, FiSettings, FiUser } from 'react-icons/fi';
+import { FiHelpCircle, FiBell, FiSettings, FiUser } from 'react-icons/fi';
 import ExperimentOnboarding from "./ExperimentOnboarding";
-import StepperNavItem from './StepperNavItem';
-import SidebarNavItem from './SidebarNavItem';
+import NavItem from './NavItem';
 import { workflowSteps, WorkflowStep } from '@/lib/data/workflowSteps';
 import { isStepDisabled, canChangeToStep } from '@/lib/utils/workflowHelpers';
 
@@ -70,27 +69,43 @@ export default function ERPDashboard({
     return <ExperimentOnboarding onIntroComplete={onIntroComplete} />;
   }
 
+  // Shared function to render workflow navigation items
+  const renderWorkflowNavItems = (variant: 'stepper' | 'sidebar') => {
+    return workflowSteps.map((step: WorkflowStep, index: number) => {
+      const commonProps = {
+        key: step.id,
+        stepNumber: step.number,
+        title: step.title,
+        description: step.description,
+        isActive: currentTask === step.id,
+        isCompleted: taskProgress[step.id],
+        isDisabled: isStepDisabled(step, currentTask, taskProgress),
+        onClick: () => {
+          if (canChangeToStep(step, currentTask, taskProgress)) {
+            onTaskChange(step.id);
+          }
+        },
+        variant,
+      };
+
+      if (variant === 'stepper') {
+        return (
+          <NavItem
+            {...commonProps}
+            showRightBorder={index < workflowSteps.length - 1}
+          />
+        );
+      }
+
+      return <NavItem {...commonProps} />;
+    });
+  };
+
   const StepperNav = () => (
     <div className="bg-gray-100 border-b border-gray-200">
       <div className="max-w-full mx-auto">
         <div className="flex">
-          {workflowSteps.map((step: WorkflowStep, index: number) => (
-            <StepperNavItem
-              key={step.id}
-              stepNumber={step.number}
-              title={step.title}
-              description={step.description}
-              isActive={currentTask === step.id}
-              isCompleted={taskProgress[step.id]}
-              isDisabled={isStepDisabled(step, currentTask, taskProgress)}
-              onClick={() => {
-                if (canChangeToStep(step, currentTask, taskProgress)) {
-                  onTaskChange(step.id);
-                }
-              }}
-              showRightBorder={index < workflowSteps.length - 1}
-            />
-          ))}
+          {renderWorkflowNavItems('stepper')}
         </div>
       </div>
     </div>
@@ -103,22 +118,7 @@ export default function ERPDashboard({
       </div>
       <nav className="flex-1">
         <ul>
-          {workflowSteps.map((step: WorkflowStep) => (
-            <SidebarNavItem
-              key={step.id}
-              stepNumber={step.number}
-              title={step.title}
-              description={step.description}
-              isActive={currentTask === step.id}
-              isCompleted={taskProgress[step.id]}
-              isDisabled={isStepDisabled(step, currentTask, taskProgress)}
-              onClick={() => {
-                if (canChangeToStep(step, currentTask, taskProgress)) {
-                  onTaskChange(step.id);
-                }
-              }}
-            />
-          ))}
+          {renderWorkflowNavItems('sidebar')}
         </ul>
       </nav>
       <div className="p-4 border-t border-gray-200">
