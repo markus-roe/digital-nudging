@@ -73,7 +73,6 @@ export default function ERPDashboard({
   const renderWorkflowNavItems = (variant: 'stepper' | 'sidebar') => {
     return workflowSteps.map((step: WorkflowStep, index: number) => {
       const commonProps = {
-        key: step.id,
         stepNumber: step.number,
         title: step.title,
         description: step.description,
@@ -91,13 +90,14 @@ export default function ERPDashboard({
       if (variant === 'stepper') {
         return (
           <NavItem
+            key={step.id}
             {...commonProps}
             showRightBorder={index < workflowSteps.length - 1}
           />
         );
       }
 
-      return <NavItem {...commonProps} />;
+      return <NavItem key={step.id} {...commonProps} />;
     });
   };
 
