@@ -1,22 +1,80 @@
-import React from "react";
-import { ExperimentVersion } from "@/lib/types/experiment";
+import React, { useEffect, useContext } from "react";
+import { ExperimentVersion, DeliverySchedulingProps } from "@/lib/types/experiment";
 import TaskTemplate from "@/app/components/experiment/shared/TaskTemplate";
+import OrdersSchedulingPanel from "./OrdersSchedulingPanel";
+import TimeSlotsPanel from "./TimeSlotsPanel";
+import { useDeliveryScheduling } from "@/lib/hooks/useDeliveryScheduling";
+import { useHesitationTracker } from "@/lib/hooks/useHesitationTracker";
+import { 
+  initialOrders, 
+  timeSlots, 
+  initialDriverWorkloads
+} from "@/lib/data/deliverySchedulingData";
+import { ExampleCompletionContext } from "@/app/components/experiment/shared/TaskTemplate";
 
-interface DeliverySchedulingProps {
-  version: ExperimentVersion;
+interface ExtendedDeliverySchedulingProps extends DeliverySchedulingProps {
   onComplete?: () => void;
 }
 
 export default function DeliverySchedulingTask({ 
   version, 
   onComplete 
-}: DeliverySchedulingProps) {
+}: ExtendedDeliverySchedulingProps) {
+  // Access the example completion context directly
+  const { setExampleCompleted } = useContext(ExampleCompletionContext);
+  
+  // Core functionality hooks
+  const {
+    orders,
+    timeSlots: availableTimeSlots,
+    selectedOrder,
+    scheduledOrdersCount,
+    totalOrdersCount,
+    allOrdersScheduled,
+    preferenceErrorsCount,
+    workloadErrorsCount,
+    handleOrderSelect,
+    scheduleOrderToTimeSlot,
+    unscheduleOrder,
+    isPreferredTimeSlot,
+    getDriverWorkload,
+    getDriverTimeSlots
+  } = useDeliveryScheduling(
+    initialOrders,
+    timeSlots,
+    initialDriverWorkloads
+  );
+  
+  // Hesitation tracking hook
+  const {
+    startHesitationTracking,
+    recordHesitationTime
+  } = useHesitationTracker();
+  
   // Task guidelines
   const guidelines = [
-    "Schedule delivery time slots for assigned orders",
-    "Balance operational efficiency and customer preferences",
+    "<strong>Schedule delivery time slots</strong> for orders that have already been assigned to drivers",
+    "<strong>Consider customer preferences</strong> when selecting time slots",
     "Complete all scheduling decisions to finish the task"
-  ];
+  ].filter(Boolean); // Remove empty strings
+  
+  // Track hesitation time when an order is selected
+  useEffect(() => {
+    if (selectedOrder) {
+      startHesitationTracking();
+    }
+  }, [selectedOrder, startHesitationTracking]);
+  
+  // Set example as completed since there's no example implementation
+  useEffect(() => {
+    setExampleCompleted(true);
+  }, [setExampleCompleted]);
+  
+  // Handle time slot selection and scheduling
+  const handleScheduleToTimeSlot = (orderId: string, timeSlotId: string) => {
+    scheduleOrderToTimeSlot(orderId, timeSlotId);
+    recordHesitationTime(orderId);
+  };
   
   return (
     <TaskTemplate
@@ -25,23 +83,35 @@ export default function DeliverySchedulingTask({
       title="Delivery Scheduling Task"
       description="In this task, you'll schedule delivery time slots for orders that have already been assigned to drivers."
       guidelines={guidelines}
-      progressCount={0}
-      totalCount={10}
-      isTaskCompleted={true} // For placeholder, set to true to enable completion
+      progressCount={scheduledOrdersCount}
+      totalCount={totalOrdersCount}
+      isTaskCompleted={allOrdersScheduled}
       onComplete={onComplete}
+      example={null}
     >
-      <div className="flex flex-col lg:flex-row gap-6">
-        <div className="bg-gray-50 rounded-lg border border-gray-200 p-6 h-full flex flex-col items-center justify-center text-center w-full">
-          <div className="text-gray-500 mb-4">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <h3 className="text-lg font-medium text-gray-700">Delivery Scheduling Task</h3>
-            <p className="mt-1 text-sm text-gray-500">
-              This is a placeholder for the Delivery Scheduling task.
-              You'll implement the full functionality later.
-            </p>
-          </div>
+      {/* Main task interface */}
+      <div className="flex flex-col lg:flex-row gap-6 select-none">
+        <div className="lg:w-2/8">
+          <OrdersSchedulingPanel
+            orders={orders}
+            selectedOrderId={selectedOrder}
+            onOrderSelect={handleOrderSelect}
+            version={version}
+            timeSlots={availableTimeSlots}
+          />
+        </div>
+        
+        <div className="lg:w-6/8">
+          <TimeSlotsPanel
+            timeSlots={availableTimeSlots}
+            orders={orders}
+            selectedOrderId={selectedOrder}
+            onSchedule={handleScheduleToTimeSlot}
+            onUnschedule={unscheduleOrder}
+            getDriverWorkload={getDriverWorkload}
+            getDriverTimeSlots={getDriverTimeSlots}
+            version={version}
+          />
         </div>
       </div>
     </TaskTemplate>

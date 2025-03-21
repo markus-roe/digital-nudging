@@ -22,6 +22,8 @@ export default function TaskIntroModal({
 }: TaskIntroModalProps) {
   if (!isOpen) return null;
   
+  const showStartButton = isExampleCompleted || !example;
+  
   return (
     <div className="absolute inset-0 bg-black/10 backdrop-blur-[2px] flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 max-w-2xl w-full shadow-xl mx-4">
@@ -54,7 +56,7 @@ export default function TaskIntroModal({
         </div>
         
         <div className="flex justify-center mt-6 h-14">
-          {isExampleCompleted ? (
+          {showStartButton ? (
             <Button 
               variant="primary" 
               className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white"

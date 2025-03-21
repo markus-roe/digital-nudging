@@ -1,5 +1,6 @@
 export interface OrderValidation {
   id: string;
+  orderNumber?: string;
   customer: string;
   address: string;
   contactName: string;
