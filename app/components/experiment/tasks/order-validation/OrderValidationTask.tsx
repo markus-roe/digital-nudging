@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ExperimentVersion } from "@/lib/types/experiment";
 import { useOrderValidation } from "@/lib/hooks/useOrderValidation";
 import { initialOrderValidations } from "@/lib/data/orderValidationData";
@@ -7,6 +7,7 @@ import OrderValidationList from "./OrderValidationList";
 import OrderValidationForm from "./OrderValidationForm";
 import TaskTemplate from "@/app/components/experiment/shared/TaskTemplate";
 import OrderValidationExample from "./OrderValidationExample";
+import { useHesitationTracker } from "@/lib/hooks/useHesitationTracker";
 
 interface OrderValidationProps {
   version: ExperimentVersion;
@@ -31,6 +32,12 @@ export default function OrderValidationTask({
   // Track current form data
   const [currentFormData, setCurrentFormData] = useState<OrderValidationFormData | null>(null);
   
+  // Add hesitation tracking
+  const {
+    startHesitationTracking,
+    recordHesitationTime
+  } = useHesitationTracker();
+  
   // Task guidelines
   const guidelines = [
     "Review each order's delivery details for errors",
@@ -41,9 +48,25 @@ export default function OrderValidationTask({
   // Check if task is completed
   const taskCompleted = validatedOrdersCount === orders.length;
   
+  // Track hesitation time when an order is selected
+  useEffect(() => {
+    if (selectedOrderId) {
+      startHesitationTracking();
+    }
+  }, [selectedOrderId, startHesitationTracking]);
+  
   // Handle form data changes
   const handleFormDataChange = (formData: OrderValidationFormData) => {
     setCurrentFormData(formData);
+  };
+  
+  // Wrap submit validation to include hesitation tracking
+  const handleSubmitValidation = (orderId: string, formData: OrderValidationFormData) => {
+    // Record hesitation time before submitting
+    recordHesitationTime(orderId);
+    
+    // Submit the validation
+    return submitValidation(orderId, formData);
   };
 
   return (
@@ -76,12 +99,11 @@ export default function OrderValidationTask({
         <div className="lg:w-6/8">
           {selectedOrder ? (
             <>
-           
               <OrderValidationForm
                 order={selectedOrder}
                 version={version}
                 formErrors={formErrors}
-                onSubmit={submitValidation}
+                onSubmit={handleSubmitValidation}
                 onFormDataChange={handleFormDataChange}
               />
             </>

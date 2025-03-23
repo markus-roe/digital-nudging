@@ -20,7 +20,7 @@ export const useDeliveryScheduling = (
   const [orders, setOrders] = useState<ScheduledOrder[]>(initialOrders);
   const [timeSlots] = useState<TimeSlot[]>(initialTimeSlots);
   const [driverWorkloads] = useState<DriverScheduleInfo[]>(initialDriverWorkloads);
-  const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
+  const [selectedOrder, setSelectedOrder] = useState<string | null>(initialOrders[0].id);
   const [schedulingErrors, setSchedulingErrors] = useState<SchedulingError[]>([]);
   
   // Get order by ID

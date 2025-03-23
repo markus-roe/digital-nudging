@@ -9,7 +9,7 @@ export interface ScheduledOrder {
   orderNumber: string;
   driverId: string;
   driverName: string;
-  customerName: string;
+  customer: string;
   priority: 'High' | 'Medium' | 'Low';
   scheduledTimeSlotId: string | null;
   preferredTimeRange: string; // Direct preferred time range (e.g., "8:00 - 12:00")
@@ -37,7 +37,7 @@ export const initialOrders: ScheduledOrder[] = [
     orderNumber: '1',
     driverId: 'driver-1',
     driverName: 'John Smith',
-    customerName: 'Alice Johnson',
+    customer: 'Acme Corp',
     priority: 'High',
     scheduledTimeSlotId: null,
     preferredTimeRange: '8:00 - 12:00'
@@ -47,7 +47,7 @@ export const initialOrders: ScheduledOrder[] = [
     orderNumber: '2',
     driverId: 'driver-1',
     driverName: 'John Smith',
-    customerName: 'Bob Williams',
+    customer: 'Widget Inc',
     priority: 'Medium',
     scheduledTimeSlotId: null,
     preferredTimeRange: '10:00 - 14:00'
@@ -57,7 +57,7 @@ export const initialOrders: ScheduledOrder[] = [
     orderNumber: '3',
     driverId: 'driver-2',
     driverName: 'Sarah Davis',
-    customerName: 'Charlie Brown',
+    customer: 'ABC Company',
     priority: 'Low',
     scheduledTimeSlotId: null,
     preferredTimeRange: '14:00 - 18:00'
@@ -67,17 +67,17 @@ export const initialOrders: ScheduledOrder[] = [
     orderNumber: '4',
     driverId: 'driver-2',
     driverName: 'Sarah Davis',
-    customerName: 'David Miller',
+    customer: 'XYZ Ltd',
     priority: 'High',
     scheduledTimeSlotId: null,
-    preferredTimeRange: '8:00 - 10:00'
+    preferredTimeRange: '12:00 - 14:00'
   },
   {
     id: 'so-5',
     orderNumber: '5',
     driverId: 'driver-3',
     driverName: 'Michael Wilson',
-    customerName: 'Emma Garcia',
+    customer: 'Tech Solutions',
     priority: 'Medium',
     scheduledTimeSlotId: null,
     preferredTimeRange: '12:00 - 16:00'
@@ -87,7 +87,7 @@ export const initialOrders: ScheduledOrder[] = [
     orderNumber: '6',
     driverId: 'driver-3',
     driverName: 'Michael Wilson',
-    customerName: 'Frank Martinez',
+    customer: 'Global Enterprises',
     priority: 'Low',
     scheduledTimeSlotId: null,
     preferredTimeRange: '10:00 - 14:00'
@@ -97,7 +97,7 @@ export const initialOrders: ScheduledOrder[] = [
     orderNumber: '7',
     driverId: 'driver-4',
     driverName: 'Lisa Taylor',
-    customerName: 'Grace Lee',
+    customer: 'Local Shop',
     priority: 'High',
     scheduledTimeSlotId: null,
     preferredTimeRange: '8:00 - 12:00'
@@ -107,7 +107,7 @@ export const initialOrders: ScheduledOrder[] = [
     orderNumber: '8',
     driverId: 'driver-4',
     driverName: 'Lisa Taylor',
-    customerName: 'Henry Clark',
+    customer: 'Big Corporation',
     priority: 'Medium',
     scheduledTimeSlotId: null,
     preferredTimeRange: '14:00 - 18:00'

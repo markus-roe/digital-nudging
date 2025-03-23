@@ -1,5 +1,5 @@
 import React, { useEffect, useContext } from "react";
-import { ExperimentVersion, DeliverySchedulingProps } from "@/lib/types/experiment";
+import { DeliverySchedulingProps } from "@/lib/types/experiment";
 import TaskTemplate from "@/app/components/experiment/shared/TaskTemplate";
 import OrdersSchedulingPanel from "./OrdersSchedulingPanel";
 import TimeSlotsPanel from "./TimeSlotsPanel";
@@ -31,14 +31,10 @@ export default function DeliverySchedulingTask({
     scheduledOrdersCount,
     totalOrdersCount,
     allOrdersScheduled,
-    preferenceErrorsCount,
-    workloadErrorsCount,
     handleOrderSelect,
     scheduleOrderToTimeSlot,
     unscheduleOrder,
-    isPreferredTimeSlot,
-    getDriverWorkload,
-    getDriverTimeSlots
+    getDriverWorkload
   } = useDeliveryScheduling(
     initialOrders,
     timeSlots,
@@ -75,6 +71,14 @@ export default function DeliverySchedulingTask({
     scheduleOrderToTimeSlot(orderId, timeSlotId);
     recordHesitationTime(orderId);
   };
+
+  // Only allow selecting orders that haven't been scheduled yet
+  const handleOrderSelection = (orderId: string) => {
+    const order = orders.find(o => o.id === orderId);
+    if (order && order.scheduledTimeSlotId === null) {
+      handleOrderSelect(orderId);
+    }
+  };
   
   return (
     <TaskTemplate
@@ -95,9 +99,8 @@ export default function DeliverySchedulingTask({
           <OrdersSchedulingPanel
             orders={orders}
             selectedOrderId={selectedOrder}
-            onOrderSelect={handleOrderSelect}
+            onOrderSelect={handleOrderSelection}
             version={version}
-            timeSlots={availableTimeSlots}
           />
         </div>
         
@@ -109,7 +112,6 @@ export default function DeliverySchedulingTask({
             onSchedule={handleScheduleToTimeSlot}
             onUnschedule={unscheduleOrder}
             getDriverWorkload={getDriverWorkload}
-            getDriverTimeSlots={getDriverTimeSlots}
             version={version}
           />
         </div>

@@ -53,14 +53,15 @@ export default function TaskHeader({
                 </span>
               </span>
             </li>
+            <li>Complete all assignments to finish the task</li>
           </>
         );
       case 'scheduling':
         return (
           <>
-            <li>Schedule delivery time slots for assigned orders</li>
-            <li>Balance operational efficiency and customer preferences</li>
-            <li>Complete all scheduling decisions to finish the task</li>
+            <li>Assign orders to time slots with the most available capacity</li>
+            <li>Choose slots within the customer's preferred time range</li>
+            <li>Schedule all orders to complete the task</li>
           </>
         );
     }
@@ -77,8 +78,22 @@ export default function TaskHeader({
         return 'scheduled';
     }
   };
+  
+  // Get task title based on type
+  const getTaskTitle = () => {
+    switch (taskType) {
+      case 'validation':
+        return 'Order Validation';
+      case 'assignment':
+        return 'Driver Assignment';
+      case 'scheduling':
+        return 'Delivery Scheduling';
+    }
+  };
 
   return (
+    <div className="pl-3 pr-3 pb-3">
+    <h3 className="text-xl font-semibold text-gray-800 mb-2">{getTaskTitle()}</h3>
     <div className="bg-white p-4 rounded-lg mb-6 border border-gray-200 shadow-sm">
       <div className="flex flex-wrap gap-6 justify-between items-center">
         <div className="flex-1">
@@ -100,6 +115,7 @@ export default function TaskHeader({
           </div>
         </div>
       </div>
+    </div>
     </div>
   );
 }

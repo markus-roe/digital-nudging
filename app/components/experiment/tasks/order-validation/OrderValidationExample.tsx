@@ -60,7 +60,7 @@ export default function OrderValidationExample({ version, onComplete }: OrderVal
     <div className="flex flex-col items-center">
       <div className="relative w-full max-w-2xl h-72 border border-gray-200 rounded-lg bg-white overflow-hidden shadow-md select-none">
         {/* Left side - Orders list */}
-        <div className="absolute left-0 top-0 w-1/3 h-full border-r border-gray-200 p-3">
+        <div className="absolute left-0 top-0 w-3/8 h-full border-r border-gray-200 p-3">
           <div className="bg-gray-100 p-2 text-sm font-medium mb-3 rounded">Orders Pending Validation</div>
           <div className={`p-3 border rounded mb-2 ${
             animationStep >= 1 
@@ -98,7 +98,7 @@ export default function OrderValidationExample({ version, onComplete }: OrderVal
         </div>
         
         {/* Right side - Validation Form */}
-        <div className="absolute right-0 top-0 w-2/3 h-full p-3 overflow-hidden">
+        <div className="absolute right-0 top-0 w-5/8 h-full p-3 overflow-hidden">
           {animationStep === 0 ? (
             <div className="flex flex-col items-center justify-center h-full">
               <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">

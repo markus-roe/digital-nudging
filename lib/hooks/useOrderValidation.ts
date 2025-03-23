@@ -4,7 +4,7 @@ import { validateOrderData } from '@/lib/utils/orderValidationUtils';
 
 export function useOrderValidation(initialOrders: OrderValidation[]) {
   const [orders, setOrders] = useState<OrderValidation[]>(initialOrders);
-  const [selectedOrderId, setSelectedOrderId] = useState<string>('');
+  const [selectedOrderId, setSelectedOrderId] = useState<string>(initialOrders[0].id);
   const [validatedOrderIds, setValidatedOrderIds] = useState<Set<string>>(new Set());
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   

@@ -61,7 +61,7 @@ export default function OrderAssignmentExample({ version }: OrderAssignmentExamp
         {/* Left side - Orders table */}
         <div className="absolute left-0 top-0 w-2/3 h-full border-r border-gray-200 p-3">
           <div className="bg-gray-100 p-2 text-sm font-medium mb-3 rounded">Orders</div>
-          <div className={`flex items-center p-2 mb-2 rounded ${animationStep >= 1 && animationStep < 3 ? 'bg-blue-100' : ''} ${animationStep >= 3 ? 'opacity-60' : ''} transition-all duration-300`}>
+          <div className={`flex items-center p-2 mb-2 rounded ${animationStep >= 1 && animationStep < 3 ? 'bg-blue-100' : ''} ${animationStep >= 3 ? 'opacity-60' : ''} transition-all duration-300 border-b border-gray-200`}>
             <div className="w-5 h-5 mr-3">
               <input 
                 type="checkbox" 

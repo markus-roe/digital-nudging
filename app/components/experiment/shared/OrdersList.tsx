@@ -9,6 +9,7 @@ export interface OrderItem {
   status?: 'Pending' | 'Validated' | 'Assigned' | 'Scheduled';
   isCompleted?: boolean;
   additionalInfo?: string;
+  highlightTimeRange?: boolean;
 }
 
 interface OrdersListProps {
@@ -16,7 +17,6 @@ interface OrdersListProps {
   selectedOrderId: string | null;
   onOrderSelect: (orderId: string) => void;
   title: string;
-  showBadge?: boolean;
 }
 
 export default function OrdersList({
@@ -24,34 +24,47 @@ export default function OrdersList({
   selectedOrderId,
   onOrderSelect,
   title,
-  showBadge = false
 }: OrdersListProps) {
   
-  // Get priority badge if enabled
-  const getPriorityBadge = (priority?: string) => {
-    if (!showBadge || !priority) return null;
-    
-    const priorityClasses = {
-      High: 'bg-red-100 text-red-800',
-      Medium: 'bg-amber-100 text-amber-800',
-      Low: 'bg-gray-100 text-gray-800'
-    };
-    
-    const dotClasses = {
-      High: 'bg-red-500',
-      Medium: 'bg-amber-500',
-      Low: 'bg-gray-500'
-    };
-    
-    const bgClass = priorityClasses[priority as keyof typeof priorityClasses] || priorityClasses.Low;
-    const dotClass = dotClasses[priority as keyof typeof dotClasses] || dotClasses.Low;
+  // Base badge style for all badges - use a standardized badge style
+  const baseBadgeClass = "inline-flex items-center px-2 py-0.5 text-xs font-medium rounded border";
+  
+  // Get time range badge
+  const getTimeRangeBadge = (timeRange?: string) => {
+    if (!timeRange) return null;
     
     return (
-      <span className={`inline-flex items-center px-2 py-0.5 ${bgClass} text-xs font-medium rounded-full whitespace-nowrap mr-2`}>
-        <span className={`w-1.5 h-1.5 rounded-full ${dotClass} mr-1`}></span>
-        {priority}
+      <span className={`${baseBadgeClass} bg-blue-50 text-blue-800 border-blue-200`}>
+        Preferred: {timeRange}
       </span>
     );
+  };
+  
+  // Get status badge
+  const getStatusBadge = (status: string) => {
+    if (status === 'Scheduled') {
+      return (
+        <span className={`${baseBadgeClass} bg-green-50 text-green-800 border-green-200`}>
+          <span className="w-1.5 h-1.5 rounded-full bg-green-500 mr-1"></span>
+          Scheduled
+        </span>
+      );
+    } else if (status === 'Validated') {
+      return (
+        <span className={`${baseBadgeClass} bg-green-50 text-green-800 border-green-200`}>
+          <span className="w-1.5 h-1.5 rounded-full bg-green-500 mr-1"></span>
+          Validated
+        </span>
+      );
+    } else if (status === 'Pending') {
+      return (
+        <span className={`${baseBadgeClass} bg-amber-50 text-amber-700 border-amber-200`}>
+          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 mr-1"></span>
+          Pending
+        </span>
+      );
+    }
+    return null;
   };
   
   return (
@@ -84,13 +97,14 @@ export default function OrdersList({
                   <div className="flex flex-col">
                     <div className="font-medium text-gray-800">Order #{order.orderNumber || order.id}</div>
                     <div className="text-sm text-gray-600">{order.customer}</div>
-                    {order.additionalInfo && (
+                    {order.additionalInfo && !order.highlightTimeRange && (
                       <div className="text-xs text-blue-600">{order.additionalInfo}</div>
                     )}
                   </div>
                   
                   <div className="flex items-center ml-2 flex-shrink-0 space-x-2">
-                    {showBadge && getPriorityBadge(order.priority)}
+                    {order.status && getStatusBadge(order.status)}
+                    {order.additionalInfo && order.highlightTimeRange && !order.status && getTimeRangeBadge(order.additionalInfo)}
                   </div>
                 </div>
               </div>

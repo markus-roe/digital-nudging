@@ -263,15 +263,6 @@ export default function ERPDashboard({
             {/* Main content */}
             <div className="flex-1 p-6 overflow-hidden">
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 h-full">
-                <div className="mb-4 pb-4 border-b border-gray-200">
-                  <h2 className="text-xl font-semibold text-gray-800">
-                    {currentTask && workflowSteps.find(step => step.id === currentTask)?.title}
-                  </h2>
-                  <p className="text-sm text-gray-500">
-                    {currentTask && workflowSteps.find(step => step.id === currentTask)?.description}
-                  </p>
-                </div>
-                
                 {children}
               </div>
             </div>
