@@ -9,6 +9,7 @@ interface TaskHeaderProps {
   timeRemaining: number;
   formatTime: (seconds: number) => string;
   version: ExperimentVersion;
+  initialTime?: number;
 }
 
 export default function TaskHeader({
@@ -17,7 +18,8 @@ export default function TaskHeader({
   totalCount,
   timeRemaining,
   formatTime,
-  version
+  version,
+  initialTime = 300 // Default 5 minutes (300 seconds)
 }: TaskHeaderProps) {
   // Task-specific instructions
   const getInstructions = () => {
@@ -91,11 +93,21 @@ export default function TaskHeader({
     }
   };
 
+  // Calculate percentage of time remaining
+  const timePercentage = Math.max(0, Math.min(100, (timeRemaining / initialTime) * 100));
+  
+  // Determine color based on time remaining
+  const getTimerColor = () => {
+    if (timeRemaining < 30) return 'bg-red-500';
+    if (timeRemaining < 60) return 'bg-amber-500';
+    return 'bg-blue-500';
+  };
+
   return (
     <div className="pl-3 pr-3 pb-3">
     <h3 className="text-xl font-semibold text-gray-800 mb-2">{getTaskTitle()}</h3>
-    <div className="bg-white p-4 rounded-lg mb-6 border border-gray-200 shadow-sm">
-      <div className="flex flex-wrap gap-6 justify-between items-center">
+    <div className="bg-white p-4 rounded-lg mb-6 border border-gray-200 shadow-sm relative overflow-hidden">
+      <div className="flex flex-wrap gap-6 justify-between items-center mb-5">
         <div className="flex-1">
           <p className="font-medium text-sm text-gray-700">Task Instructions:</p>
           <ul className="text-sm list-disc pl-5 mt-1 space-y-1 text-gray-600">
@@ -103,17 +115,27 @@ export default function TaskHeader({
           </ul>
         </div>
         
-        <div className="flex gap-6 flex-wrap">
+        <div className="flex-shrink-0">
           <div className="text-md bg-blue-50 px-3 py-1 rounded-lg">
             <span className="font-semibold text-blue-700">{progressCount}/{totalCount}</span> 
             <span className="text-gray-600"> {getProgressLabel()}</span>
           </div>
-          <div className="text-md bg-gray-100 px-3 py-1 rounded-lg">
-            <span className={`font-mono font-semibold ${timeRemaining < 30 ? 'text-red-600 animate-pulse' : 'text-gray-800'}`}>
-              ⏱️ {formatTime(timeRemaining)}
-            </span>
-          </div>
         </div>
+      </div>
+      
+      {/* Timer display above progress bar */}
+      <div className="absolute bottom-3 right-4">
+        <span className={`font-mono font-semibold text-md ${timeRemaining < 30 ? 'text-red-600' : 'text-gray-700'}`}>
+          ⏱️ {formatTime(timeRemaining)}
+        </span>
+      </div>
+      
+      {/* Full-width progress bar at bottom of container */}
+      <div className="absolute bottom-0 left-0 right-0 h-2">
+        <div 
+          className={`h-full ${getTimerColor()} ${timeRemaining < 30 ? 'animate-pulse' : ''} transition-all duration-1000 ease-linear animate-pulse`} 
+          style={{ width: `${timePercentage}%` }}
+        ></div>
       </div>
     </div>
     </div>

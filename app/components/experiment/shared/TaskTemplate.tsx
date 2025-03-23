@@ -115,6 +115,7 @@ export default function TaskTemplate({
           timeRemaining={timeRemaining}
           formatTime={formatTime}
           version={version}
+          initialTime={TIME_LIMIT}
         />
 
         <div className={`${showIntroModal ? 'opacity-50 pointer-events-none' : ''}`}>
