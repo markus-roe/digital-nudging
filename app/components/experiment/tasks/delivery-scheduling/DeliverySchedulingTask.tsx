@@ -1,4 +1,4 @@
-import React, { useEffect, useContext } from "react";
+import React, { useEffect } from "react";
 import { DeliverySchedulingProps } from "@/lib/types/experiment";
 import TaskTemplate from "@/app/components/experiment/shared/TaskTemplate";
 import OrdersSchedulingPanel from "./OrdersSchedulingPanel";
@@ -10,7 +10,7 @@ import {
   timeSlots, 
   initialDriverWorkloads
 } from "@/lib/data/deliverySchedulingData";
-import { ExampleCompletionContext } from "@/app/components/experiment/shared/TaskTemplate";
+import DeliverySchedulingExample from "./DeliverySchedulingExample";
 
 interface ExtendedDeliverySchedulingProps extends DeliverySchedulingProps {
   onComplete?: () => void;
@@ -20,9 +20,6 @@ export default function DeliverySchedulingTask({
   version, 
   onComplete 
 }: ExtendedDeliverySchedulingProps) {
-  // Access the example completion context directly
-  const { setExampleCompleted } = useContext(ExampleCompletionContext);
-  
   // Core functionality hooks
   const {
     orders,
@@ -61,11 +58,6 @@ export default function DeliverySchedulingTask({
     }
   }, [selectedOrder, startHesitationTracking]);
   
-  // Set example as completed since there's no example implementation
-  useEffect(() => {
-    setExampleCompleted(true);
-  }, [setExampleCompleted]);
-  
   // Handle time slot selection and scheduling
   const handleScheduleToTimeSlot = (orderId: string, timeSlotId: string) => {
     scheduleOrderToTimeSlot(orderId, timeSlotId);
@@ -91,7 +83,11 @@ export default function DeliverySchedulingTask({
       totalCount={totalOrdersCount}
       isTaskCompleted={allOrdersScheduled}
       onComplete={onComplete}
-      example={null}
+      example={
+        <DeliverySchedulingExample 
+          version={version} 
+        />
+      }
     >
       {/* Main task interface */}
       <div className="flex flex-col lg:flex-row gap-6 select-none">

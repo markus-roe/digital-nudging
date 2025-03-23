@@ -83,7 +83,6 @@ export default function OrderValidationTask({
       example={
         <OrderValidationExample 
           version={version} 
-          onComplete={onComplete}
         />
       }
     >
