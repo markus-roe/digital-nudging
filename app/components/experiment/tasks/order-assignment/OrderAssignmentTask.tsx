@@ -38,8 +38,9 @@ export default function OrderAssignmentTask({
   
   // Task guidelines
   const guidelines = [
-    "<strong>Match orders to drivers in the same zone</strong> when possible for efficient delivery",
-    "<strong>Process high priority orders first</strong>, followed by medium and low priority"
+    "Match orders to drivers in the same zone when possible for efficient delivery",
+    "Process high priority orders first, followed by medium and low priority",
+    "Complete all assignments to finish the task"
   ];
   
   // Track hesitation time when an order is selected

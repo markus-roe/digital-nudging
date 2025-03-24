@@ -46,8 +46,8 @@ export default function DeliverySchedulingTask({
   
   // Task guidelines
   const guidelines = [
-    "<strong>Schedule delivery time slots</strong> for orders that have already been assigned to drivers",
-    "<strong>Consider customer preferences</strong> when selecting time slots",
+    "Schedule delivery time slots for orders",
+    "Consider customer preferences when selecting time slots",
     "Complete all scheduling decisions to finish the task"
   ].filter(Boolean); // Remove empty strings
   
@@ -77,7 +77,7 @@ export default function DeliverySchedulingTask({
       version={version}
       taskType="scheduling"
       title="Delivery Scheduling Task"
-      description="In this task, you'll schedule delivery time slots for orders that have already been assigned to drivers."
+      description="In this task, you'll schedule delivery time slots for orders."
       guidelines={guidelines}
       progressCount={scheduledOrdersCount}
       totalCount={totalOrdersCount}
@@ -91,7 +91,7 @@ export default function DeliverySchedulingTask({
     >
       {/* Main task interface */}
       <div className="flex flex-col lg:flex-row gap-6 select-none">
-        <div className="lg:w-2/8">
+        <div className="w-full lg:w-1/3">
           <OrdersSchedulingPanel
             orders={orders}
             selectedOrderId={selectedOrder}
@@ -100,7 +100,7 @@ export default function DeliverySchedulingTask({
           />
         </div>
         
-        <div className="lg:w-6/8">
+        <div className="w-full lg:w-2/3">
           <TimeSlotsPanel
             timeSlots={availableTimeSlots}
             orders={orders}

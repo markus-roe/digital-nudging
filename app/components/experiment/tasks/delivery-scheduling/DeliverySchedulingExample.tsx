@@ -9,8 +9,9 @@ export default function DeliverySchedulingExample({ version }: DeliverySchedulin
   // Define steps for the animation
   const steps = [
     "Step 1: Review the available time slots and their workloads",
-    "Step 2: Click on the time slot with the lowest workload (10:00 - 12:00)",
-    "Step 3: The order is now scheduled for delivery"
+    "Step 2: Check the order's preferred delivery window (08:00 - 12:00)",
+    "Step 3: Click on the time slot with the lowest workload",
+    "Step 4: The order is now scheduled for delivery"
   ];
 
   // Render the content for the specific example
@@ -27,21 +28,25 @@ export default function DeliverySchedulingExample({ version }: DeliverySchedulin
           
           {/* Order #1 */}
           <div className={`p-3 border rounded mb-2 ${
-            animationStep === 2
+            animationStep === 3
               ? 'bg-green-50 border-green-200 opacity-60'
-              : 'bg-blue-100 border-blue-200'
+              : animationStep === 1
+                ? 'bg-blue-100 border-blue-300'
+                : 'bg-blue-100 border-blue-200'
           } transition-colors duration-300`}>
             <div className="font-medium">Order #1</div>
             <div className="text-sm text-gray-600">Acme Corp</div>
-            {animationStep < 2 && (
+            {animationStep < 3 && (
               <div className="mt-1">
-                <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded border bg-blue-50 text-blue-800 border-blue-200">
-                <span className="h-1.5"></span>
-                  Preferred: 08:00 - 12:00
-                </span>
+                <span className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded border bg-blue-50 border-blue-200 text-blue-800 ${
+                  animationStep === 1 && 'ring-2 ring-blue-400' ||
+                  animationStep === 2 && 'bg-blue-100 text-blue-800 '
+                }`}>
+                08:00 - 12:00
+              </span>
               </div>
             )}
-            {animationStep === 2 && (
+            {animationStep === 3 && (
               <div className="mt-1">
                 <span className="inline-flex items-center px-2 py-0.5 bg-green-100 text-green-800 text-xs font-medium rounded border border-green-200">
                   <span className="w-1.5 h-1.5 mr-1 rounded-full bg-green-500"></span>
@@ -57,7 +62,7 @@ export default function DeliverySchedulingExample({ version }: DeliverySchedulin
             <div className="text-sm text-gray-600">Widget Inc</div>
             <div className="mt-1">
               <span className="inline-flex items-center px-2 py-0.5 text-xs font-medium rounded border bg-blue-50 text-blue-800 border-blue-200">
-                Preferred: 10:00 - 12:00
+                10:00 - 12:00
               </span>
             </div>
           </div>
@@ -72,7 +77,9 @@ export default function DeliverySchedulingExample({ version }: DeliverySchedulin
             
             <div className="grid grid-cols-3 gap-2">
               {/* 08:00 - 10:00 Slot */}
-              <div className={`p-2 border border-gray-200 rounded`}>
+              <div className={`p-2 border border-gray-200 ${
+                animationStep === 1 ? 'ring-2 ring-blue-400' : 'border-gray-200'
+              } rounded`}>
                 <div className="text-sm font-medium">08:00 - 10:00</div>
                 <div className="text-xs text-gray-500 mt-1">
                   {version === 'a' ? (
@@ -92,20 +99,18 @@ export default function DeliverySchedulingExample({ version }: DeliverySchedulin
               </div>
               
               {/* 10:00 - 12:00 Slot */}
-              <div className={`p-2 border ${
-                animationStep === 1
-                  ? 'bg-blue-50 border-blue-300' 
-                  : 'border-gray-200'
-              } rounded ${animationStep === 1 ? 'ring-2 ring-blue-400' : ''}`}>
+              <div className={`p-2 border border-gray-200 ${
+                animationStep === 1 && 'ring-2 ring-blue-400'
+              } rounded ${animationStep === 2 ? 'ring-2 ring-blue-400' : ''}`}>
                 <div className="text-sm font-medium">10:00 - 12:00</div>
                 <div className="text-xs text-gray-500 mt-1">
                   {version === 'a' ? (
-                  <div>
+                  <div className={`${animationStep === 2 && 'animate-pulse'}`}>
                       <div className="text-xs font-medium text-gray-600">Workload:</div>
                       <span className="font-medium text-gray-600">1/5 capacity</span>
                   </div>
                   ) : (
-                    <div>
+                    <div className={`${animationStep === 2 && 'animate-pulse'}`}>
                       <div className="text-xs font-medium text-gray-600">Workload:</div>
                       <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden mt-1 mb-3">
                         <div className="h-2 rounded-full bg-blue-500" style={{ width: '20%' }}></div>
@@ -114,8 +119,8 @@ export default function DeliverySchedulingExample({ version }: DeliverySchedulin
                   )}
                 </div>
                 
-                {/* Show scheduled order in time slot after step 2 */}
-                {animationStep === 2 && (
+                {/* Show scheduled order in time slot after step 3 */}
+                {animationStep === 3 && (
                   <div className="mt-2 text-xs px-2 py-1 rounded bg-blue-100 border border-blue-200">
                     <div className="flex justify-between items-center">
                       <span>Order #1</span>

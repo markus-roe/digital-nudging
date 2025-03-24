@@ -35,7 +35,7 @@ export default function OrdersList({
     
     return (
       <span className={`${baseBadgeClass} bg-blue-50 text-blue-800 border-blue-200`}>
-        Preferred: {timeRange}
+        {timeRange}
       </span>
     );
   };
