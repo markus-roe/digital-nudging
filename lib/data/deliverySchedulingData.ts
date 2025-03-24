@@ -25,7 +25,7 @@ export interface DriverScheduleInfo {
 export const timeSlots: TimeSlot[] = [
   { id: 'ts-1', time: '8:00 - 10:00', isAvailable: true },
   { id: 'ts-2', time: '10:00 - 12:00', isAvailable: true },
-  { id: 'ts-3', time: '12:00 - 14:00', isAvailable: true },
+  { id: 'ts-3', time: '12:00 - 16:00', isAvailable: true },
   { id: 'ts-4', time: '14:00 - 16:00', isAvailable: true },
   { id: 'ts-5', time: '16:00 - 18:00', isAvailable: true },
 ];
@@ -70,7 +70,7 @@ export const initialOrders: ScheduledOrder[] = [
     customer: 'XYZ Ltd',
     priority: 'High',
     scheduledTimeSlotId: null,
-    preferredTimeRange: '12:00 - 14:00'
+    preferredTimeRange: '12:00 - 16:00'
   },
   {
     id: 'so-5',
