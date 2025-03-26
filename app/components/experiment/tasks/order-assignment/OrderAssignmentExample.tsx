@@ -1,12 +1,10 @@
 import React from 'react';
 import { getVersionPriorityBadgeClass } from '@/lib/utils/orderUtils';
 import BaseAnimatedExample from '@/app/components/experiment/shared/BaseAnimatedExample';
+import { useExperiment } from '@/lib/context/ExperimentContext';
 
-interface OrderAssignmentExampleProps {
-  version: 'a' | 'b';
-}
-
-export default function OrderAssignmentExample({ version }: OrderAssignmentExampleProps) {
+export default function OrderAssignmentExample() {
+  const { version } = useExperiment();
   // Define steps for the animation
   const steps = [
     "Step 1: Select an order from the list",
@@ -28,10 +26,9 @@ export default function OrderAssignmentExample({ version }: OrderAssignmentExamp
   };
   
   // Render the content for the specific example
-  const renderContent = ({ animationStep, totalSteps, version }: { 
+  const renderContent = ({ animationStep, totalSteps }: { 
     animationStep: number, 
-    totalSteps: number, 
-    version: 'a' | 'b' 
+    totalSteps: number
   }) => {
     return (
       <div className="h-64">
@@ -118,7 +115,6 @@ export default function OrderAssignmentExample({ version }: OrderAssignmentExamp
 
   return (
     <BaseAnimatedExample
-      version={version}
       steps={steps}
       renderContent={renderContent}
     />

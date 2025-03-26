@@ -4,9 +4,9 @@ import { ExperimentVersion } from "@/lib/types/experiment";
 import { useTaskTimer } from "@/lib/hooks/useTaskTimer";
 import TaskHeader from "./TaskHeader";
 import TaskIntroModal from "./TaskIntroModal";
+import { useExperiment } from "@/lib/context/ExperimentContext";
 
 interface TaskTemplateProps {
-  version: ExperimentVersion;
   taskType: 'validation' | 'assignment' | 'scheduling';
   title: string;
   description: string;
@@ -26,7 +26,6 @@ export const ExampleCompletionContext = React.createContext({
 });
 
 export default function TaskTemplate({
-  version,
   taskType,
   title,
   description,
@@ -43,6 +42,7 @@ export default function TaskTemplate({
   const [taskStarted, setTaskStarted] = useState<boolean>(false);
   const [taskFinished, setTaskFinished] = useState<boolean>(false);
   const [isExampleCompleted, setExampleCompleted] = useState<boolean>(false);
+  const { version } = useExperiment();
   const TIME_LIMIT = 180; // 3 minute time limit
   
   // Timer hook
@@ -115,7 +115,6 @@ export default function TaskTemplate({
           timeRemaining={timeRemaining}
           formatTime={formatTime}
           guidelines={guidelines}
-          version={version}
           initialTime={TIME_LIMIT}
         />
 

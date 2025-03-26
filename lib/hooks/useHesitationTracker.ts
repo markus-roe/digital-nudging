@@ -1,8 +1,16 @@
 import { useState } from 'react';
 
-export function useHesitationTracker() {
+interface HesitationRecord {
+  orderId: string;
+  taskId: string;
+  participantId: string;
+  time: number;
+  timestamp: string;
+}
+
+export function useHesitationTracker(taskId: string, participantId: string) {
   const [selectionStartTime, setSelectionStartTime] = useState<number | null>(null);
-  const [hesitationTimes, setHesitationTimes] = useState<{orderId: string, time: number}[]>([]);
+  const [hesitationTimes, setHesitationTimes] = useState<HesitationRecord[]>([]);
   const [totalHesitationTime, setTotalHesitationTime] = useState<number>(0);
   const [averageHesitationTime, setAverageHesitationTime] = useState<number>(0);
   
@@ -16,7 +24,7 @@ export function useHesitationTracker() {
     }
   };
   
-  const recordHesitationTime = (orderId: string) => {
+  const recordHesitationTime = async (orderId: string) => {
     if (selectionStartTime) {
       const currentTime = Date.now();
       const hesitationTime = currentTime - selectionStartTime;
@@ -26,12 +34,17 @@ export function useHesitationTracker() {
       console.log(`  - Ended: ${new Date(currentTime).toISOString()}`);
       console.log(`  - Duration: ${hesitationTime}ms (${(hesitationTime / 1000).toFixed(2)}s)`);
       
+      const record: HesitationRecord = {
+        orderId,
+        taskId,
+        participantId,
+        time: hesitationTime,
+        timestamp: new Date().toISOString()
+      };
+      
       // Record this hesitation time
       setHesitationTimes(prev => {
-        const updated = [...prev, {
-          orderId,
-          time: hesitationTime
-        }];
+        const updated = [...prev, record];
         console.log(`[HesitationTracker] Total hesitations recorded: ${updated.length}`);
         return updated;
       });
@@ -52,6 +65,13 @@ export function useHesitationTracker() {
       // Reset the selection start time
       setSelectionStartTime(null);
       console.log(`[HesitationTracker] Reset tracking state`);
+      
+      // Save to backend
+      try {
+        await saveHesitationRecord(record);
+      } catch (error) {
+        console.error('[HesitationTracker] Failed to save hesitation record:', error);
+      }
     } else {
       console.warn(`[HesitationTracker] Attempted to record hesitation for order ${orderId}, but no tracking was in progress`);
     }
@@ -65,4 +85,20 @@ export function useHesitationTracker() {
     startHesitationTracking,
     recordHesitationTime
   };
+}
+
+async function saveHesitationRecord(record: HesitationRecord) {
+  const response = await fetch('/api/experiment/hesitation', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(record),
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to save hesitation record');
+  }
+  
+  return response.json();
 } 

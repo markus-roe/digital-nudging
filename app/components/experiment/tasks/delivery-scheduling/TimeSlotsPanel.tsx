@@ -4,6 +4,7 @@ import {
   ScheduledOrder
 } from '@/lib/data/deliverySchedulingData';
 import { ExperimentVersion } from '@/lib/types/experiment';
+import { useExperiment } from '@/lib/context/ExperimentContext';
 
 interface TimeSlotsPanelProps {
   timeSlots: TimeSlot[];
@@ -12,7 +13,6 @@ interface TimeSlotsPanelProps {
   onSchedule: (orderId: string, timeSlotId: string) => void;
   onUnschedule: (orderId: string) => void;
   getDriverWorkload: (driverId: string, timeSlotId: string) => number;
-  version: ExperimentVersion;
 }
 
 export default function TimeSlotsPanel({
@@ -22,8 +22,8 @@ export default function TimeSlotsPanel({
   onSchedule,
   onUnschedule,
   getDriverWorkload,
-  version
 }: TimeSlotsPanelProps) {
+  const { version } = useExperiment();
   // Get selected order details
   const selectedOrder = selectedOrderId 
     ? orders.find(order => order.id === selectedOrderId) 

@@ -1,20 +1,17 @@
 import React from 'react';
 import { ScheduledOrder } from '@/lib/data/deliverySchedulingData';
 import OrdersList, { OrderItem } from '@/app/components/experiment/shared/OrdersList';
-import { ExperimentVersion } from '@/lib/types/experiment';
 
 interface OrdersSchedulingPanelProps {
   orders: ScheduledOrder[];
   selectedOrderId: string | null;
   onOrderSelect: (orderId: string) => void;
-  version: ExperimentVersion;
 }
 
 export default function OrdersSchedulingPanel({
   orders,
   selectedOrderId,
   onOrderSelect,
-  version
 }: OrdersSchedulingPanelProps) {
   // Transform orders to match OrderItem interface
   const orderItems: OrderItem[] = orders.map(order => {

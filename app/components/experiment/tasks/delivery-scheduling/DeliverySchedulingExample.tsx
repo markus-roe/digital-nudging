@@ -1,11 +1,10 @@
 import React from 'react';
 import BaseAnimatedExample from '@/app/components/experiment/shared/BaseAnimatedExample';
+import { useExperiment } from '@/lib/context/ExperimentContext';
 
-interface DeliverySchedulingExampleProps {
-  version: 'a' | 'b';
-}
 
-export default function DeliverySchedulingExample({ version }: DeliverySchedulingExampleProps) {
+export default function DeliverySchedulingExample() {
+  const { version } = useExperiment();
   // Define steps for the animation
   const steps = [
     "Step 1: Review the available time slots and their workloads",
@@ -15,10 +14,9 @@ export default function DeliverySchedulingExample({ version }: DeliverySchedulin
   ];
 
   // Render the content for the specific example
-  const renderContent = ({ animationStep, totalSteps, version }: { 
+  const renderContent = ({ animationStep, totalSteps }: { 
     animationStep: number, 
-    totalSteps: number, 
-    version: 'a' | 'b' 
+    totalSteps: number
   }) => {
     return (
       <div className="h-72">
@@ -157,7 +155,6 @@ export default function DeliverySchedulingExample({ version }: DeliverySchedulin
 
   return (
     <BaseAnimatedExample
-      version={version}
       steps={steps}
       renderContent={renderContent}
     />

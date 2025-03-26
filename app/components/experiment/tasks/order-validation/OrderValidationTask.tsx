@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { ExperimentVersion } from "@/lib/types/experiment";
 import { useOrderValidation } from "@/lib/hooks/useOrderValidation";
 import { initialOrderValidations } from "@/lib/data/orderValidationData";
 import { OrderValidationFormData } from "@/lib/types/orderValidation";
@@ -8,16 +7,15 @@ import OrderValidationForm from "./OrderValidationForm";
 import TaskTemplate from "@/app/components/experiment/shared/TaskTemplate";
 import OrderValidationExample from "./OrderValidationExample";
 import { useHesitationTracker } from "@/lib/hooks/useHesitationTracker";
+import { useExperiment } from "@/lib/context/ExperimentContext";
 
 interface OrderValidationProps {
-  version: ExperimentVersion;
   onComplete?: () => void;
 }
 
-export default function OrderValidationTask({ 
-  version, 
-  onComplete 
-}: OrderValidationProps) {
+export default function OrderValidationTask({ onComplete }: OrderValidationProps) {
+  const { participantId } = useExperiment();
+  
   // Core functionality hooks
   const {
     orders,
@@ -32,11 +30,11 @@ export default function OrderValidationTask({
   // Track current form data
   const [currentFormData, setCurrentFormData] = useState<OrderValidationFormData | null>(null);
   
-  // Add hesitation tracking
+  // Add hesitation tracking with task and participant IDs
   const {
     startHesitationTracking,
     recordHesitationTime
-  } = useHesitationTracker();
+  } = useHesitationTracker('order-validation', participantId);
   
   // Task guidelines
   const guidelines = [
@@ -71,7 +69,6 @@ export default function OrderValidationTask({
 
   return (
     <TaskTemplate
-      version={version}
       taskType="validation"
       title="Order Validation Task"
       description="In this task, you'll review and validate delivery details before orders are processed."
@@ -80,11 +77,7 @@ export default function OrderValidationTask({
       totalCount={orders.length}
       isTaskCompleted={taskCompleted}
       onComplete={onComplete}
-      example={
-        <OrderValidationExample 
-          version={version} 
-        />
-      }
+      example={<OrderValidationExample />}
     >
       <div className="flex flex-col lg:flex-row gap-6 select-none">
         <div className="lg:w-2/8">
@@ -100,7 +93,6 @@ export default function OrderValidationTask({
             <>
               <OrderValidationForm
                 order={selectedOrder}
-                version={version}
                 formErrors={formErrors}
                 onSubmit={handleSubmitValidation}
                 onFormDataChange={handleFormDataChange}

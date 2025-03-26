@@ -1,5 +1,4 @@
 import React, { useEffect } from "react";
-import { DeliverySchedulingProps } from "@/lib/types/experiment";
 import TaskTemplate from "@/app/components/experiment/shared/TaskTemplate";
 import OrdersSchedulingPanel from "./OrdersSchedulingPanel";
 import TimeSlotsPanel from "./TimeSlotsPanel";
@@ -11,15 +10,15 @@ import {
   initialDriverWorkloads
 } from "@/lib/data/deliverySchedulingData";
 import DeliverySchedulingExample from "./DeliverySchedulingExample";
+import { useExperiment } from "@/lib/context/ExperimentContext";
 
-interface ExtendedDeliverySchedulingProps extends DeliverySchedulingProps {
+interface ExtendedDeliverySchedulingProps {
   onComplete?: () => void;
 }
 
-export default function DeliverySchedulingTask({ 
-  version, 
-  onComplete 
-}: ExtendedDeliverySchedulingProps) {
+export default function DeliverySchedulingTask({ onComplete }: ExtendedDeliverySchedulingProps) {
+  const { participantId } = useExperiment();
+  
   // Core functionality hooks
   const {
     orders,
@@ -38,11 +37,11 @@ export default function DeliverySchedulingTask({
     initialDriverWorkloads
   );
   
-  // Hesitation tracking hook
+  // Hesitation tracking hook with task and participant IDs
   const {
     startHesitationTracking,
     recordHesitationTime
-  } = useHesitationTracker();
+  } = useHesitationTracker('delivery-scheduling', participantId);
   
   // Task guidelines
   const guidelines = [
@@ -74,7 +73,6 @@ export default function DeliverySchedulingTask({
   
   return (
     <TaskTemplate
-      version={version}
       taskType="scheduling"
       title="Delivery Scheduling Task"
       description="In this task, you'll schedule delivery time slots for orders."
@@ -83,11 +81,7 @@ export default function DeliverySchedulingTask({
       totalCount={totalOrdersCount}
       isTaskCompleted={allOrdersScheduled}
       onComplete={onComplete}
-      example={
-        <DeliverySchedulingExample 
-          version={version} 
-        />
-      }
+      example={<DeliverySchedulingExample />}
     >
       {/* Main task interface */}
       <div className="flex flex-col lg:flex-row gap-6 select-none">
@@ -96,7 +90,6 @@ export default function DeliverySchedulingTask({
             orders={orders}
             selectedOrderId={selectedOrder}
             onOrderSelect={handleOrderSelection}
-            version={version}
           />
         </div>
         
@@ -108,7 +101,6 @@ export default function DeliverySchedulingTask({
             onSchedule={handleScheduleToTimeSlot}
             onUnschedule={unscheduleOrder}
             getDriverWorkload={getDriverWorkload}
-            version={version}
           />
         </div>
       </div>

@@ -2,13 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
 import { OrderValidation, OrderValidationFormData } from '@/lib/types/orderValidation';
-import { ExperimentVersion } from '@/lib/types/experiment';
 import { validateOrderData } from '@/lib/utils/orderValidationUtils';
 import { VALIDATION_MESSAGES } from '@/lib/constants/validationMessages';
+import { useExperiment } from '@/lib/context/ExperimentContext';
 
 interface OrderValidationFormProps {
   order: OrderValidation;
-  version: ExperimentVersion;
   formErrors: Record<string, string>;
   onSubmit: (orderId: string, formData: OrderValidationFormData) => boolean;
   onFormDataChange?: (formData: OrderValidationFormData) => void;
@@ -16,11 +15,11 @@ interface OrderValidationFormProps {
 
 export default function OrderValidationForm({
   order,
-  version,
   formErrors: initialFormErrors,
   onSubmit,
   onFormDataChange
 }: OrderValidationFormProps) {
+  const { version } = useExperiment();
   const [formData, setFormData] = useState<OrderValidationFormData>({
     address: order.address,
     contactName: order.contactName,

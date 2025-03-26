@@ -4,6 +4,7 @@ import { Card, CardHeader, CardContent } from '@/components/ui/Card';
 import { Order, Assignment } from '@/lib/types/orderAssignment';
 import { getZoneColor, getVersionPriorityBadgeClass } from '@/lib/utils/orderUtils';
 import { ExperimentVersion } from '@/lib/types/experiment';
+import { useExperiment } from '@/lib/context/ExperimentContext';
 
 interface VersionOrdersTableProps {
   orders: Order[];
@@ -11,7 +12,6 @@ interface VersionOrdersTableProps {
   assignments: Record<string, Assignment>;
   onOrderSelect: (orderId: string) => void;
   onUnassignOrder: (orderId: string) => void;
-  version: ExperimentVersion;
 }
 
 export default function VersionOrdersTable({ 
@@ -19,9 +19,11 @@ export default function VersionOrdersTable({
   selectedOrder, 
   assignments, 
   onOrderSelect,
-  onUnassignOrder,
-  version
+  onUnassignOrder
 }: VersionOrdersTableProps) {
+
+  const { version } = useExperiment();
+  
   return (
     <div className={`lg:w-2/3 transition-[opacity] duration-150 ${selectedOrder ? 'opacity-90' : 'opacity-100'}`}>
       <Card className="h-full shadow-sm">
