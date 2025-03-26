@@ -38,8 +38,8 @@ export default function OrderAssignmentTask({
   
   // Task guidelines
   const guidelines = [
-    "Match orders to drivers in the same zone when possible for efficient delivery",
-    "Process high priority orders first, followed by medium and low priority",
+    "Match drivers to their zones",
+    "Process by priority",
     "Complete all assignments to finish the task"
   ];
   

@@ -85,7 +85,7 @@ export default function DeliverySchedulingExample({ version }: DeliverySchedulin
                   {version === 'a' ? (
                     <div>
                       <div className="text-xs font-medium text-gray-600">Workload:</div>
-                      <span className="font-medium text-gray-600">2/5 capacity</span>
+                      <span className="font-medium text-gray-600">2 of 5 slots used</span>
                     </div>
                   ) : (
                     <div>
@@ -107,13 +107,13 @@ export default function DeliverySchedulingExample({ version }: DeliverySchedulin
                   {version === 'a' ? (
                   <div className={`${animationStep === 2 && 'animate-pulse'}`}>
                       <div className="text-xs font-medium text-gray-600">Workload:</div>
-                      <span className="font-medium text-gray-600">1/5 capacity</span>
+                      <span className="font-medium text-gray-600">{animationStep === 3 ? '2' : '1'} of 5 slots used</span>
                   </div>
                   ) : (
                     <div className={`${animationStep === 2 && 'animate-pulse'}`}>
                       <div className="text-xs font-medium text-gray-600">Workload:</div>
                       <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden mt-1 mb-3">
-                        <div className="h-2 rounded-full bg-blue-500" style={{ width: '20%' }}></div>
+                        <div className="h-2 rounded-full bg-blue-500" style={ { width: animationStep === 3 ? '40%' : '20%' }}></div>
                       </div>
                     </div>
                   )}
@@ -136,7 +136,7 @@ export default function DeliverySchedulingExample({ version }: DeliverySchedulin
                   {version === 'a' ? (
                     <div>
                       <div className="text-xs font-medium text-gray-600">Workload:</div>
-                      <span className="font-medium text-gray-600">4/5 capacity</span>
+                      <span className="font-medium text-gray-600">4 of 5 slots used</span>
                     </div>
                   ) : (
                     <div>

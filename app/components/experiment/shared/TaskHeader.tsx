@@ -10,6 +10,7 @@ interface TaskHeaderProps {
   formatTime: (seconds: number) => string;
   version: ExperimentVersion;
   initialTime?: number;
+  guidelines?: string[];
 }
 
 export default function TaskHeader({
@@ -19,51 +20,49 @@ export default function TaskHeader({
   timeRemaining,
   formatTime,
   version,
-  initialTime = 300 // Default 5 minutes (300 seconds)
+  initialTime = 300, // Default 5 minutes (300 seconds)
+  guidelines
 }: TaskHeaderProps) {
   // Task-specific instructions
   const getInstructions = () => {
     switch (taskType) {
-      case 'validation':
-        return (
-          <>
-            <li>Review each order's delivery details</li>
-            <li>Correct any errors in the form fields</li>
-            <li>Validate orders to complete the task</li>
-          </>
-        );
       case 'assignment':
         return (
           <>
-            <li>Match drivers to their zones</li>
-            <li>
-              Process by priority: 
-              <span className="inline-flex gap-1 ml-1 items-center">
-                <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${getVersionPriorityBadgeClass('High', version)}`}>
-                  <span className={`w-1.5 h-1.5 mr-1 rounded-full ${version === 'a' ? 'bg-gray-500' : 'bg-red-500'}`}></span>
-                  High
-                </span>
-                <span className="text-gray-500">→</span>
-                <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${getVersionPriorityBadgeClass('Medium', version)}`}>
-                  <span className={`w-1.5 h-1.5 mr-1 rounded-full ${version === 'a' ? 'bg-gray-500' : 'bg-amber-500'}`}></span>
-                  Medium
-                </span>
-                <span className="text-gray-500">→</span>
-                <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${getVersionPriorityBadgeClass('Low', version)}`}>
-                  <span className={`w-1.5 h-1.5 mr-1 rounded-full bg-gray-500`}></span>
-                  Low
-                </span>
-              </span>
-            </li>
-            <li>Complete all assignments to finish the task</li>
+            {guidelines?.map((guideline, index) => {
+              if (guideline.includes('Process by priority')) {
+                return (
+                  <li key={index}>
+                    Process by priority: 
+                    <span className="inline-flex gap-1 ml-1 items-center">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${getVersionPriorityBadgeClass('High', version)}`}>
+                        <span className={`w-1.5 h-1.5 mr-1 rounded-full ${version === 'a' ? 'bg-gray-500' : 'bg-red-500'}`}></span>
+                        High
+                      </span>
+                      <span className="text-gray-500">→</span>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${getVersionPriorityBadgeClass('Medium', version)}`}>
+                        <span className={`w-1.5 h-1.5 mr-1 rounded-full ${version === 'a' ? 'bg-gray-500' : 'bg-amber-500'}`}></span>
+                        Medium
+                      </span>
+                      <span className="text-gray-500">→</span>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${getVersionPriorityBadgeClass('Low', version)}`}>
+                        <span className={`w-1.5 h-1.5 mr-1 rounded-full bg-gray-500`}></span>
+                        Low
+                      </span>
+                    </span>
+                  </li>
+                );
+              }
+              return <li key={index}>{guideline}</li>;
+            })}
           </>
         );
-      case 'scheduling':
+      default:
         return (
           <>
-            <li>Assign orders to time slots with the most available capacity</li>
-            <li>Choose slots within the customer's preferred time range</li>
-            <li>Schedule all orders to complete the task</li>
+            {guidelines?.map((guideline, index) => (
+              <li key={index}>{guideline}</li>
+            ))}
           </>
         );
     }

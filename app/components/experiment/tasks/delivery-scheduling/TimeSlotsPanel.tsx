@@ -128,7 +128,7 @@ export default function TimeSlotsPanel({
                       {version === 'a' && (
                       <div className="flex justify-end items-center text-xs">
                       <span className="text-gray-500">
-                          <span className="font-semibold">{Math.round(workload / 20)}/5</span> capacity used
+                          <span className="font-semibold">{Math.round(workload / 20)}/5</span> slots used
                         </span>
                       </div>
                       )}

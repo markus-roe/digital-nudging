@@ -114,6 +114,7 @@ export default function TaskTemplate({
           totalCount={totalCount}
           timeRemaining={timeRemaining}
           formatTime={formatTime}
+          guidelines={guidelines}
           version={version}
           initialTime={TIME_LIMIT}
         />

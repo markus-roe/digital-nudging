@@ -46,10 +46,10 @@ export default function DeliverySchedulingTask({
   
   // Task guidelines
   const guidelines = [
-    "Schedule delivery time slots for orders",
-    "Consider customer preferences when selecting time slots",
-    "Complete all scheduling decisions to finish the task"
-  ].filter(Boolean); // Remove empty strings
+    "Choose slots within the customer's preferred time range",
+    "Assign orders to time slots with the least slots used",
+    "Schedule all orders to complete the task"
+  ].filter(Boolean);
   
   // Track hesitation time when an order is selected
   useEffect(() => {
