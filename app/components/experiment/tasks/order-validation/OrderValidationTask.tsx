@@ -1,39 +1,38 @@
-import React, { useState, useEffect } from "react";
-import { useOrderValidation } from "@/lib/hooks/useOrderValidation";
+import React, { useEffect } from "react";
 import { initialOrderValidations } from "@/lib/data/orderValidationData";
-import { OrderValidationFormData } from "@/lib/types/orderValidation";
 import OrderValidationList from "./OrderValidationList";
 import OrderValidationForm from "./OrderValidationForm";
 import TaskTemplate from "@/app/components/experiment/shared/TaskTemplate";
 import OrderValidationExample from "./OrderValidationExample";
 import { useHesitationTracker } from "@/lib/hooks/useHesitationTracker";
 import { useExperiment } from "@/lib/context/ExperimentContext";
+import { OrderValidationProvider, useOrderValidationContext } from "@/lib/context/OrderValidationContext";
 
 interface OrderValidationProps {
   onComplete?: () => void;
 }
 
 export default function OrderValidationTask({ onComplete }: OrderValidationProps) {
-  const { participantId } = useExperiment();
-  
-  // Core functionality hooks
-  const {
+  return (
+    <OrderValidationProvider initialOrders={initialOrderValidations}>
+      <OrderValidationTaskContent onComplete={onComplete} />
+    </OrderValidationProvider>
+  );
+}
+
+function OrderValidationTaskContent({ onComplete }: OrderValidationProps) {
+  const { 
     orders,
     selectedOrder,
-    selectedOrderId,
     validatedOrdersCount,
-    formErrors,
-    handleOrderSelect,
-    submitValidation
-  } = useOrderValidation(initialOrderValidations);
-
-  // Track current form data
-  const [currentFormData, setCurrentFormData] = useState<OrderValidationFormData | null>(null);
+    handleOrderSelect
+  } = useOrderValidationContext();
+  
+  const { participantId } = useExperiment();
   
   // Add hesitation tracking with task and participant IDs
   const {
     startHesitationTracking,
-    recordHesitationTime
   } = useHesitationTracker('order-validation', participantId);
   
   // Task guidelines
@@ -48,24 +47,11 @@ export default function OrderValidationTask({ onComplete }: OrderValidationProps
   
   // Track hesitation time when an order is selected
   useEffect(() => {
-    if (selectedOrderId) {
+    if (selectedOrder) {
       startHesitationTracking();
     }
-  }, [selectedOrderId, startHesitationTracking]);
+  }, [selectedOrder, startHesitationTracking]);
   
-  // Handle form data changes
-  const handleFormDataChange = (formData: OrderValidationFormData) => {
-    setCurrentFormData(formData);
-  };
-  
-  // Wrap submit validation to include hesitation tracking
-  const handleSubmitValidation = (orderId: string, formData: OrderValidationFormData) => {
-    // Record hesitation time before submitting
-    recordHesitationTime(orderId);
-    
-    // Submit the validation
-    return submitValidation(orderId, formData);
-  };
 
   return (
     <TaskTemplate
@@ -80,23 +66,14 @@ export default function OrderValidationTask({ onComplete }: OrderValidationProps
       example={<OrderValidationExample />}
     >
       <div className="flex flex-col lg:flex-row gap-6 select-none">
-        <div className="lg:w-2/8">
-          <OrderValidationList
-            orders={orders}
-            selectedOrderId={selectedOrderId}
-            onOrderSelect={handleOrderSelect}
-          />
+        <div className="lg:w-1/3">
+          <OrderValidationList />
         </div>
         
-        <div className="lg:w-6/8">
+        <div className="lg:w-2/3">
           {selectedOrder ? (
             <>
-              <OrderValidationForm
-                order={selectedOrder}
-                formErrors={formErrors}
-                onSubmit={handleSubmitValidation}
-                onFormDataChange={handleFormDataChange}
-              />
+              <OrderValidationForm />
             </>
           ) : (
             <div className="bg-gray-50 rounded-lg border border-gray-200 p-6 h-full flex flex-col items-center justify-center text-center">

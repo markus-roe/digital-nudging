@@ -1,31 +1,21 @@
 import React from 'react';
 import { Table, TableHeader, TableBody, TableRow, TableCell, TableHeaderCell } from '@/components/ui/Table';
 import { Card, CardHeader, CardContent } from '@/components/ui/Card';
-import { Order, Assignment } from '@/lib/types/orderAssignment';
-import { getZoneColor, getVersionPriorityBadgeClass } from '@/lib/utils/orderUtils';
-import { ExperimentVersion } from '@/lib/types/experiment';
-import { useExperiment } from '@/lib/context/ExperimentContext';
+import { getZoneColor } from '@/lib/utils/orderUtils';
+import { useOrderAssignmentContext } from '@/lib/context/OrderAssignmentContext';
+import PriorityBadge from '@/app/components/experiment/shared/PriorityBadge';
 
-interface VersionOrdersTableProps {
-  orders: Order[];
-  selectedOrder: string | null;
-  assignments: Record<string, Assignment>;
-  onOrderSelect: (orderId: string) => void;
-  onUnassignOrder: (orderId: string) => void;
-}
-
-export default function VersionOrdersTable({ 
-  orders, 
-  selectedOrder, 
-  assignments, 
-  onOrderSelect,
-  onUnassignOrder
-}: VersionOrdersTableProps) {
-
-  const { version } = useExperiment();
+export default function VersionOrdersTable() {
+  const { 
+    orders, 
+    selectedOrderId, 
+    assignments, 
+    handleOrderSelect,
+    handleUnassignOrder
+  } = useOrderAssignmentContext();
   
   return (
-    <div className={`lg:w-2/3 transition-[opacity] duration-150 ${selectedOrder ? 'opacity-90' : 'opacity-100'}`}>
+    <div className={`lg:w-2/3 transition-[opacity] duration-150 ${selectedOrderId ? 'opacity-90' : 'opacity-100'}`}>
       <Card className="h-full shadow-sm">
         <CardHeader className="border-b border-gray-200">
           <div className="flex justify-between items-center">
@@ -60,22 +50,7 @@ export default function VersionOrdersTable({
               {orders.map((order) => {
                 const orderZone = order.zone;
                 const zoneColors = getZoneColor(orderZone);
-                const priorityBadgeClass = getVersionPriorityBadgeClass(order.priority, version);
-                const isSelected = selectedOrder === order.id;
-                
-                // Define dot color based on priority
-                const getPriorityDotColor = (priority: string, version: ExperimentVersion) => {
-                  if (version === 'a') return 'bg-gray-500';
-                  
-                  switch(priority) {
-                    case 'High': return 'bg-red-500';
-                    case 'Medium': return 'bg-amber-500';
-                    case 'Low': return 'bg-gray-500';
-                    default: return 'bg-gray-500';
-                  }
-                };
-                
-                const priorityDotColor = getPriorityDotColor(order.priority, version);
+                const isSelected = selectedOrderId === order.id;
                 
                 return (
                   <TableRow 
@@ -93,7 +68,7 @@ export default function VersionOrdersTable({
                     isSelected={isSelected}
                     onClick={() => {
                       if (!assignments[order.id]) {
-                        onOrderSelect(order.id);
+                        handleOrderSelect(order.id);
                       }
                     }}
                   >
@@ -105,7 +80,7 @@ export default function VersionOrdersTable({
                             checked={isSelected}
                             onChange={() => {
                               if (!assignments[order.id]) {
-                                onOrderSelect(order.id);
+                                handleOrderSelect(order.id);
                               }
                             }}
                             className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
@@ -119,10 +94,7 @@ export default function VersionOrdersTable({
                       {order.customer}
                     </TableCell>
                     <TableCell>
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${priorityBadgeClass}`}>
-                        <span className={`w-1.5 h-1.5 mr-1 rounded-full ${priorityDotColor}`}></span>
-                        {order.priority}
-                      </span>
+                      <PriorityBadge priority={order.priority} />
                     </TableCell>
                     <TableCell>{order.items}</TableCell>
                     <TableCell>
@@ -147,7 +119,7 @@ export default function VersionOrdersTable({
                               stroke="currentColor"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                onUnassignOrder(order.id);
+                                handleUnassignOrder(order.id);
                               }}
                             >
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />

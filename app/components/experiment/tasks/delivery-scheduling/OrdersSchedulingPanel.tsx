@@ -1,31 +1,29 @@
 import React from 'react';
 import { ScheduledOrder } from '@/lib/data/deliverySchedulingData';
+import { useExperiment } from '@/lib/context/ExperimentContext';
+import { useDeliverySchedulingContext } from '@/lib/context/DeliverySchedulingContext';
 import OrdersList, { OrderItem } from '@/app/components/experiment/shared/OrdersList';
 
-interface OrdersSchedulingPanelProps {
-  orders: ScheduledOrder[];
-  selectedOrderId: string | null;
-  onOrderSelect: (orderId: string) => void;
-}
-
-export default function OrdersSchedulingPanel({
-  orders,
-  selectedOrderId,
-  onOrderSelect,
-}: OrdersSchedulingPanelProps) {
+export default function OrdersSchedulingPanel() {
+  const { version } = useExperiment();
+  const {
+    orders,
+    selectedOrder,
+    handleOrderSelect,
+    isPreferredTimeSlot,
+    timeSlots
+  } = useDeliverySchedulingContext();
+  
   // Transform orders to match OrderItem interface
   const orderItems: OrderItem[] = orders.map(order => {
-    const isScheduled = order.scheduledTimeSlotId !== null;
+    const isScheduled = order.scheduledTimeSlot !== null;
     
     return {
       id: order.id,
-      orderNumber: order.orderNumber,
       customer: order.customer,
-      priority: order.priority,
       status: isScheduled ? 'Scheduled' : undefined,
       isCompleted: isScheduled,
-      additionalInfo: order.preferredTimeRange,
-      highlightTimeRange: true,
+      preferredTimeRange: order.preferredTimeRange,
     };
   });
   
@@ -45,8 +43,8 @@ export default function OrdersSchedulingPanel({
   return (
     <OrdersList
       orders={orderItems}
-      selectedOrderId={selectedOrderId}
-      onOrderSelect={onOrderSelect}
+      selectedOrderId={selectedOrder}
+      onOrderSelect={handleOrderSelect}
       title="Orders Pending Scheduling"
     />
   );

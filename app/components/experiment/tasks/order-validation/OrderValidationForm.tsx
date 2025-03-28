@@ -1,216 +1,34 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Card, CardHeader, CardContent } from '@/components/ui/Card';
 import { Button } from '@/components/ui/Button';
-import { OrderValidation, OrderValidationFormData } from '@/lib/types/orderValidation';
-import { validateOrderData } from '@/lib/utils/orderValidationUtils';
-import { VALIDATION_MESSAGES } from '@/lib/constants/validationMessages';
-import { useExperiment } from '@/lib/context/ExperimentContext';
+import { useOrderValidationContext } from '@/lib/context/OrderValidationContext';
 
-interface OrderValidationFormProps {
-  order: OrderValidation;
-  formErrors: Record<string, string>;
-  onSubmit: (orderId: string, formData: OrderValidationFormData) => boolean;
-  onFormDataChange?: (formData: OrderValidationFormData) => void;
-}
+export default function OrderValidationForm() {
+  const {
+    selectedOrder,
+    formData,
+    formErrors,
+    handleFormChange,
+    handleFormSubmit,
+    getInputClass,
+    shouldShowError,
+    getErrorMessage
+  } = useOrderValidationContext();
 
-export default function OrderValidationForm({
-  order,
-  formErrors: initialFormErrors,
-  onSubmit,
-  onFormDataChange
-}: OrderValidationFormProps) {
-  const { version } = useExperiment();
-  const [formData, setFormData] = useState<OrderValidationFormData>({
-    address: order.address,
-    contactName: order.contactName,
-    contactPhone: order.contactPhone,
-    contactEmail: order.contactEmail,
-    deliveryInstructions: order.deliveryInstructions
-  });
-  
-  // Local form errors state for real-time validation
-  const [formErrors, setFormErrors] = useState<Record<string, string>>(initialFormErrors);
-  
-  // Track which fields have been validated
-  const [validatedFields, setValidatedFields] = useState<Set<string>>(new Set());
-  
-  // Track if form has been submitted (for version A)
-  const [hasSubmitted, setHasSubmitted] = useState(false);
-  
-  // Reset form data when order changes and validate immediately
-  useEffect(() => {
-    const newFormData = {
-      address: order.address,
-      contactName: order.contactName,
-      contactPhone: order.contactPhone,
-      contactEmail: order.contactEmail,
-      deliveryInstructions: order.deliveryInstructions
-    };
-    setFormData(newFormData);
-    
-    // Validate all fields immediately on load
-    if (order.hasErrors) {
-      const validationErrors = validateOrderData(newFormData);
-      setFormErrors(validationErrors);
-      
-      // Reset validated fields
-      setValidatedFields(new Set());
-    } else {
-      setFormErrors(initialFormErrors);
-    }
-    
-    // Reset submission state
-    setHasSubmitted(false);
-  }, [order, initialFormErrors]);
-  
-  // Handle input change with real-time validation
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
-    
-    // Update form data
-    const updatedFormData = {
-      ...formData,
-      [name]: value
-    };
-    
-    setFormData(updatedFormData);
-    
-    // Only validate in real-time for version B
-    if (version === 'b') {
-      // Validate the field in real-time
-      const validationErrors = validateOrderData(updatedFormData);
-      
-      // Mark this field as validated
-      setValidatedFields(prev => {
-        const newSet = new Set(prev);
-        newSet.add(name);
-        return newSet;
-      });
-      
-      // Update errors state - add or remove error for this field
-      setFormErrors(prev => {
-        const newErrors = { ...prev };
-        if (validationErrors[name]) {
-          newErrors[name] = validationErrors[name];
-        } else {
-          delete newErrors[name];
-        }
-        return newErrors;
-      });
-    }
+  if (!selectedOrder) return null;
 
-    // Notify parent of changes
-    if (onFormDataChange) {
-      onFormDataChange(updatedFormData);
-    }
-  };
-  
-  // Handle form submission
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // For version A, don't update the hasSubmitted state
-    // This prevents the momentary flash of error styling
-    if (version === 'a') {
-      // Skip setting hasSubmitted to true
-      // Just validate and submit directly
-      const validationErrors = validateOrderData(formData);
-      
-      if (Object.keys(validationErrors).length > 0) {
-        setFormErrors(validationErrors);
-        setHasSubmitted(true); // Only set this if there are errors
-        return;
-      }
-      
-      // If validation passes, submit without setting hasSubmitted
-      onSubmit(order.id, formData);
-      return;
-    }
-    
-    // For version B, continue with normal flow
-    // Validate all fields before submission
-    const validationErrors = validateOrderData(formData);
-    setHasSubmitted(true);
-    
-    if (Object.keys(validationErrors).length > 0) {
-      setFormErrors(validationErrors);
-      return;
-    }
-    
-    onSubmit(order.id, formData);
-  };
-  
-  // Get input class based on error state
-  const getInputClass = (fieldName: string): string => {
-    const baseClass = "w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500";
-    
-    // For version A, only apply error styling when explicitly showing errors
-    if (version === 'a') {
-      if (shouldShowError(fieldName)) {
-        return `${baseClass} border-red-500 bg-red-50`;
-      }
-      return `${baseClass} border-gray-300`;
-    }
-    
-    // For version B, show real-time validation
-    // If the field has been validated and has no errors, or if it's not in the error list
-    if (validatedFields.has(fieldName) && !formErrors[fieldName]) {
-      return `${baseClass} border-gray-300`;
-    }
-    
-    // If the field has an error or is in the error list for version B
-    if (formErrors[fieldName] || (order.errors.includes(fieldName) && order.hasErrors)) {
-      return `${baseClass} border-red-500 bg-red-50`;
-    }
-    
-    return `${baseClass} border-gray-300`;
-  };
-  
-  // Check if a field has an error and should show the error message
-  const shouldShowError = (fieldName: string): boolean => {
-    if (version === 'a') {
-      // For version A, only show errors after submission and if there are errors
-      // This prevents the flash of errors during transition
-      return hasSubmitted && !!formErrors[fieldName];
-    }
-    // Always show errors for version B
-    return !!formErrors[fieldName];
-  };
-
-    
-  // Get error message for a field
-  const getErrorMessage = (field: string): string => {
-    if (formErrors[field]) {
-      return formErrors[field];
-    }
-    
-    // If no current error, return the standard validation message
-    if (field === 'address') {
-      return VALIDATION_MESSAGES.address.format;
-    } else if (field === 'contactName') {
-      return VALIDATION_MESSAGES.contactName.required;
-    } else if (field === 'contactPhone') {
-      return VALIDATION_MESSAGES.contactPhone.format;
-    } else if (field === 'contactEmail') {
-      return VALIDATION_MESSAGES.contactEmail.format;
-    }
-    
-    return '';
-  };
-  
-  
   return (
     <Card className="shadow-md">
       <CardHeader className="border-b border-gray-200">
         <div className="flex justify-between items-center">
-          <span className="font-medium text-gray-800">Validate Order #{order.id} - {order.customer}</span>
+          <span className="font-medium text-gray-800">Validate Order #{selectedOrder.id} - {selectedOrder.customer}</span>
         </div>
       </CardHeader>
 
       <div className="mb-4 p-4 bg-gray-50 border border-gray-200 rounded-md">
         <h4 className="font-medium text-gray-700 mb-3">Fields requiring correction:</h4>
         <ul className="space-y-2">
-          {order.errors.map((field) => (
+          {selectedOrder.errors.map((field) => (
             <li key={field} className="flex flex-col">
               <div className="flex items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-red-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -226,7 +44,7 @@ export default function OrderValidationForm({
       <hr className="border-t border-gray-200 mb-3" />
 
       <CardContent className="">
-        <form onSubmit={handleSubmit}>
+        <form onSubmit={handleFormSubmit}>
           <div className="space-y-4">
             <div>
               <div className="flex justify-between items-center mb-1">
@@ -242,7 +60,7 @@ export default function OrderValidationForm({
                 name="address"
                 type="text"
                 value={formData.address}
-                onChange={handleChange}
+                onChange={handleFormChange}
                 className={getInputClass('address')}
                 placeholder="Street, City, Postal Code"
               />
@@ -262,7 +80,7 @@ export default function OrderValidationForm({
                 name="contactName"
                 type="text"
                 value={formData.contactName}
-                onChange={handleChange}
+                onChange={handleFormChange}
                 className={getInputClass('contactName')}
                 placeholder="Full Name"
               />
@@ -282,7 +100,7 @@ export default function OrderValidationForm({
                 name="contactPhone"
                 type="text"
                 value={formData.contactPhone}
-                onChange={handleChange}
+                onChange={handleFormChange}
                 className={getInputClass('contactPhone')}
                 placeholder="XXX-XXX-XXXX"
               />
@@ -302,7 +120,7 @@ export default function OrderValidationForm({
                 name="contactEmail"
                 type="text"
                 value={formData.contactEmail}
-                onChange={handleChange}
+                onChange={handleFormChange}
                 className={getInputClass('contactEmail')}
                 placeholder="email@example.com"
               />
@@ -316,7 +134,7 @@ export default function OrderValidationForm({
                 id="deliveryInstructions"
                 name="deliveryInstructions"
                 value={formData.deliveryInstructions}
-                onChange={handleChange}
+                onChange={handleFormChange}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 rows={3}
                 placeholder="Special delivery instructions (optional)"

@@ -118,9 +118,7 @@ export default function TaskTemplate({
           initialTime={TIME_LIMIT}
         />
 
-        <div className={`${showIntroModal ? 'opacity-50 pointer-events-none' : ''}`}>
-          {children}
-        </div>
+        {children}
         
         {isTaskCompleted && !showIntroModal && (
           <div className="mt-6 text-center">

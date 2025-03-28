@@ -5,18 +5,18 @@ export function useOrderAssignment(initialOrders: Order[], initialDrivers: Drive
   const [orders, setOrders] = useState<Order[]>(initialOrders);
   const [drivers, setDrivers] = useState<Driver[]>(initialDrivers);
   const [assignments, setAssignments] = useState<Record<string, Assignment>>({});
-  const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [sequenceErrors, setSequenceErrors] = useState(0);
   const [zoneMatchErrors, setZoneMatchErrors] = useState(0);
   const assignedOrdersCount = Object.keys(assignments).length;
   
   // Handle order selection
   const handleOrderSelect = (orderId: string) => {
-    if (selectedOrder === orderId) {
+    if (selectedOrderId === orderId) {
       // Deselecting the order
-      setSelectedOrder(null);
+      setSelectedOrderId(null);
     } else {
-      setSelectedOrder(orderId);
+      setSelectedOrderId(orderId);
     }
   };
   
@@ -48,17 +48,24 @@ export function useOrderAssignment(initialOrders: Order[], initialDrivers: Drive
       }
       
       if (sequenceError) {
-        setSequenceErrors(prev => prev + 1);
+        // setSequenceErrors(prev => prev + 1);
+        console.warn('Sequence error');
       }
       
       // Check for zone matching error
+      let zoneMatchError = false;
+
       const orderZone = order.zone;
       const driverZone = driver.location;
       
       if (orderZone !== driverZone) {
-        setZoneMatchErrors(prev => prev + 1);
+        // setZoneMatchErrors(prev => prev + 1);
+        zoneMatchError = true;
       }
       
+      if (zoneMatchError) {
+        console.warn('Zone match error');
+      }
       // Update order status
       setOrders(prevOrders => 
         prevOrders.map(o => {
@@ -80,7 +87,7 @@ export function useOrderAssignment(initialOrders: Order[], initialDrivers: Drive
       });
       
       // Clear selection
-      setSelectedOrder(null);
+      setSelectedOrderId(null);
     }
   };
   
@@ -111,12 +118,19 @@ export function useOrderAssignment(initialOrders: Order[], initialDrivers: Drive
     orders,
     drivers,
     assignments,
-    selectedOrder,
-    sequenceErrors,
-    zoneMatchErrors,
+    selectedOrder: selectedOrderId ? orders.find(o => o.id === selectedOrderId) ?? null : null,
+    selectedOrderId,
+    selectedDriver: null, // Add driver selection state if needed
     assignedOrdersCount,
     handleOrderSelect,
-    assignOrderToDriver,
-    unassignOrder
+    handleDriverSelect: (driverId: string) => {
+      if (selectedOrderId) {
+        assignOrderToDriver(selectedOrderId, driverId);
+      }
+    },
+    handleAssignOrder: assignOrderToDriver,
+    handleUnassignOrder: unassignOrder,
+    getOrderStatusClass: (order: Order) => "border-gray-300", // Add proper styling logic
+    getDriverStatusClass: (driver: Driver) => "border-gray-300" // Add proper styling logic
   };
 } 

@@ -1,16 +1,14 @@
-import React, { useEffect } from "react";
+import React from "react";
 import TaskTemplate from "@/app/components/experiment/shared/TaskTemplate";
 import OrdersSchedulingPanel from "./OrdersSchedulingPanel";
 import TimeSlotsPanel from "./TimeSlotsPanel";
-import { useDeliveryScheduling } from "@/lib/hooks/useDeliveryScheduling";
-import { useHesitationTracker } from "@/lib/hooks/useHesitationTracker";
 import { 
   initialOrders, 
   timeSlots, 
-  initialDriverWorkloads
 } from "@/lib/data/deliverySchedulingData";
 import DeliverySchedulingExample from "./DeliverySchedulingExample";
 import { useExperiment } from "@/lib/context/ExperimentContext";
+import { DeliverySchedulingProvider, useDeliverySchedulingContext } from "@/lib/context/DeliverySchedulingContext";
 
 interface ExtendedDeliverySchedulingProps {
   onComplete?: () => void;
@@ -19,7 +17,18 @@ interface ExtendedDeliverySchedulingProps {
 export default function DeliverySchedulingTask({ onComplete }: ExtendedDeliverySchedulingProps) {
   const { participantId } = useExperiment();
   
-  // Core functionality hooks
+  return (
+    <DeliverySchedulingProvider
+      initialOrders={initialOrders}
+      initialTimeSlots={timeSlots}
+      participantId={participantId}
+    >
+      <DeliverySchedulingTaskContent onComplete={onComplete} />
+    </DeliverySchedulingProvider>
+  );
+}
+
+function DeliverySchedulingTaskContent({ onComplete }: ExtendedDeliverySchedulingProps) {
   const {
     orders,
     timeSlots: availableTimeSlots,
@@ -30,46 +39,14 @@ export default function DeliverySchedulingTask({ onComplete }: ExtendedDeliveryS
     handleOrderSelect,
     scheduleOrderToTimeSlot,
     unscheduleOrder,
-    getDriverWorkload
-  } = useDeliveryScheduling(
-    initialOrders,
-    timeSlots,
-    initialDriverWorkloads
-  );
-  
-  // Hesitation tracking hook with task and participant IDs
-  const {
-    startHesitationTracking,
-    recordHesitationTime
-  } = useHesitationTracker('delivery-scheduling', participantId);
+  } = useDeliverySchedulingContext();
   
   // Task guidelines
   const guidelines = [
     "Choose slots within the customer's preferred time range",
-    "Assign orders to time slots with the least slots used",
+    "Assign orders to time slots with the least workload",
     "Schedule all orders to complete the task"
   ].filter(Boolean);
-  
-  // Track hesitation time when an order is selected
-  useEffect(() => {
-    if (selectedOrder) {
-      startHesitationTracking();
-    }
-  }, [selectedOrder, startHesitationTracking]);
-  
-  // Handle time slot selection and scheduling
-  const handleScheduleToTimeSlot = (orderId: string, timeSlotId: string) => {
-    scheduleOrderToTimeSlot(orderId, timeSlotId);
-    recordHesitationTime(orderId);
-  };
-
-  // Only allow selecting orders that haven't been scheduled yet
-  const handleOrderSelection = (orderId: string) => {
-    const order = orders.find(o => o.id === orderId);
-    if (order && order.scheduledTimeSlotId === null) {
-      handleOrderSelect(orderId);
-    }
-  };
   
   return (
     <TaskTemplate
@@ -87,20 +64,11 @@ export default function DeliverySchedulingTask({ onComplete }: ExtendedDeliveryS
       <div className="flex flex-col lg:flex-row gap-6 select-none">
         <div className="w-full lg:w-1/3">
           <OrdersSchedulingPanel
-            orders={orders}
-            selectedOrderId={selectedOrder}
-            onOrderSelect={handleOrderSelection}
           />
         </div>
         
         <div className="w-full lg:w-2/3">
           <TimeSlotsPanel
-            timeSlots={availableTimeSlots}
-            orders={orders}
-            selectedOrderId={selectedOrder}
-            onSchedule={handleScheduleToTimeSlot}
-            onUnschedule={unscheduleOrder}
-            getDriverWorkload={getDriverWorkload}
           />
         </div>
       </div>

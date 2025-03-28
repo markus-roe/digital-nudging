@@ -1,10 +1,8 @@
 import React from 'react';
-import { getVersionPriorityBadgeClass } from '@/lib/utils/orderUtils';
 import BaseAnimatedExample from '@/app/components/experiment/shared/BaseAnimatedExample';
-import { useExperiment } from '@/lib/context/ExperimentContext';
+import PriorityBadge from '@/app/components/experiment/shared/PriorityBadge';
 
 export default function OrderAssignmentExample() {
-  const { version } = useExperiment();
   // Define steps for the animation
   const steps = [
     "Step 1: Select an order from the list",
@@ -13,23 +11,8 @@ export default function OrderAssignmentExample() {
     "Step 4: The order is now assigned to the driver"
   ];
   
-  // Get priority dot color based on priority and version
-  const getPriorityDotColor = (priority: string, version: 'a' | 'b') => {
-    if (version === 'a') return 'bg-gray-500';
-    
-    switch(priority) {
-      case 'High': return 'bg-red-500';
-      case 'Medium': return 'bg-amber-500';
-      case 'Low': return 'bg-gray-500';
-      default: return 'bg-gray-500';
-    }
-  };
-  
   // Render the content for the specific example
-  const renderContent = ({ animationStep, totalSteps }: { 
-    animationStep: number, 
-    totalSteps: number
-  }) => {
+  const renderContent = ({ animationStep }: { animationStep: number }) => {
     return (
       <div className="h-64">
         {/* Left side - Orders table */}
@@ -46,10 +29,7 @@ export default function OrderAssignmentExample() {
             </div>
             <div className="flex-1 font-medium">Order #1</div>
             <div>
-              <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${getVersionPriorityBadgeClass('High', version)}`}>
-                <span className={`w-1.5 h-1.5 mr-1 rounded-full ${getPriorityDotColor('High', version)}`}></span>
-                High
-              </span>
+              <PriorityBadge priority="High" />
             </div>
             <div className="ml-3">
               <div className="relative">
@@ -67,10 +47,7 @@ export default function OrderAssignmentExample() {
             </div>
             <div className="flex-1 font-medium">Order #2</div>
             <div>
-              <span className={`inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium ${getVersionPriorityBadgeClass('Medium', version)}`}>
-                <span className={`w-1.5 h-1.5 mr-1 rounded-full ${getPriorityDotColor('Medium', version)}`}></span>
-                Medium
-              </span>
+              <PriorityBadge priority="Medium" />
             </div>
             <div className="ml-3">
               <span className="inline-block w-3 h-3 rounded-full bg-blue-500 mr-1"></span>

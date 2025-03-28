@@ -3,13 +3,11 @@ import { Card, CardHeader, CardContent } from '@/components/ui/Card';
 
 export interface OrderItem {
   id: string;
-  orderNumber: string;
   customer: string;
   priority?: 'High' | 'Medium' | 'Low';
   status?: 'Pending' | 'Validated' | 'Assigned' | 'Scheduled';
   isCompleted?: boolean;
-  additionalInfo?: string;
-  highlightTimeRange?: boolean;
+  preferredTimeRange?: { start: string; end: string };
 }
 
 interface OrdersListProps {
@@ -30,12 +28,12 @@ export default function OrdersList({
   const baseBadgeClass = "inline-flex items-center px-2 py-0.5 text-xs font-medium rounded border";
   
   // Get time range badge
-  const getTimeRangeBadge = (timeRange?: string) => {
+  const getTimeRangeBadge = (timeRange?: { start: string; end: string }) => {
     if (!timeRange) return null;
     
     return (
       <span className={`${baseBadgeClass} bg-blue-50 text-blue-800 border-blue-200`}>
-        {timeRange}
+        {timeRange.start} - {timeRange.end}
       </span>
     );
   };
@@ -95,16 +93,13 @@ export default function OrdersList({
               >
                 <div className="flex w-full items-center justify-between">
                   <div className="flex flex-col">
-                    <div className="font-medium text-gray-800">Order #{order.orderNumber || order.id}</div>
+                    <div className="font-medium text-gray-800">Order #{order.id}</div>
                     <div className="text-sm text-gray-600">{order.customer}</div>
-                    {order.additionalInfo && !order.highlightTimeRange && (
-                      <div className="text-xs text-blue-600">{order.additionalInfo}</div>
-                    )}
                   </div>
                   
                   <div className="flex items-center ml-2 flex-shrink-0 space-x-2">
                     {order.status && getStatusBadge(order.status)}
-                    {order.additionalInfo && order.highlightTimeRange && !order.status && getTimeRangeBadge(order.additionalInfo)}
+                    {order.preferredTimeRange && !order.status && getTimeRangeBadge(order.preferredTimeRange)}
                   </div>
                 </div>
               </div>

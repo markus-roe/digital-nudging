@@ -1,38 +1,40 @@
-import React from "react";
-import { initialOrders, initialDrivers } from '@/lib/data/orderAssignmentData';
-import VersionOrdersTable from '@/app/components/experiment/tasks/order-assignment/VersionOrdersTable';
-import DriversPanel from '@/app/components/experiment/tasks/order-assignment/DriversPanel';
-import { useOrderAssignment } from '@/lib/hooks/useOrderAssignment';
-import { useHesitationTracker } from '@/lib/hooks/useHesitationTracker';
-import TaskTemplate from '@/app/components/experiment/shared/TaskTemplate';
-import OrderAssignmentExample from './OrderAssignmentExample';
-import { useExperiment } from '@/lib/context/ExperimentContext';
+import React, { useEffect } from "react";
+import { initialOrders, initialDrivers } from "@/lib/data/orderAssignmentData";
+import DriversPanel from "./DriversPanel";
+import TaskTemplate from "@/app/components/experiment/shared/TaskTemplate";
+import OrderAssignmentExample from "./OrderAssignmentExample";
+import { useHesitationTracker } from "@/lib/hooks/useHesitationTracker";
+import { useExperiment } from "@/lib/context/ExperimentContext";
+import { OrderAssignmentProvider, useOrderAssignmentContext } from "@/lib/context/OrderAssignmentContext";
+import VersionOrdersTable from "./VersionOrdersTable";
 
-interface ExtendedOrderAssignmentProps {
+interface OrderAssignmentProps {
   onComplete?: () => void;
 }
 
-export default function OrderAssignmentTask({ onComplete }: ExtendedOrderAssignmentProps) {
+export default function OrderAssignmentTask({ onComplete }: OrderAssignmentProps) {
+  return (
+    <OrderAssignmentProvider 
+      initialOrders={initialOrders}
+      initialDrivers={initialDrivers}
+    >
+      <OrderAssignmentTaskContent onComplete={onComplete} />
+    </OrderAssignmentProvider>
+  );
+}
+
+function OrderAssignmentTaskContent({ onComplete }: OrderAssignmentProps) {
+  const { 
+    orders,
+    selectedOrder,
+    assignedOrdersCount,
+  } = useOrderAssignmentContext();
+  
   const { participantId } = useExperiment();
   
-  // Core functionality hooks
-  const { 
-    orders, 
-    drivers, 
-    assignments,
-    selectedOrder,
-    sequenceErrors,
-    zoneMatchErrors,
-    assignedOrdersCount,
-    handleOrderSelect,
-    assignOrderToDriver,
-    unassignOrder
-  } = useOrderAssignment(initialOrders, initialDrivers);
-  
-  // Hesitation tracking hook with task and participant IDs
+  // Add hesitation tracking with task and participant IDs
   const {
     startHesitationTracking,
-    recordHesitationTime
   } = useHesitationTracker('order-assignment', participantId);
   
   // Task guidelines
@@ -42,29 +44,21 @@ export default function OrderAssignmentTask({ onComplete }: ExtendedOrderAssignm
     "Complete all assignments to finish the task"
   ];
   
+  // Check if task is completed
+  const taskCompleted = assignedOrdersCount === orders.length;
+  
   // Track hesitation time when an order is selected
-  React.useEffect(() => {
+  useEffect(() => {
     if (selectedOrder) {
       startHesitationTracking();
     }
   }, [selectedOrder, startHesitationTracking]);
-  
-  // Check if task is completed
-  const taskCompleted = Object.keys(assignments).length === orders.length;
-  
-  // Handle driver selection and assignment
-  const handleDriverSelect = (driverId: string) => {
-    if (selectedOrder) {
-      assignOrderToDriver(selectedOrder, driverId);
-      recordHesitationTime(selectedOrder);
-    }
-  };
-  
+
   return (
     <TaskTemplate
       taskType="assignment"
-      title="Driver Assignment Task"
-      description="In this task, you'll assign orders to drivers based on matching delivery zone."
+      title="Order Assignment Task"
+      description="In this task, you'll assign delivery orders to available drivers based on priority levels and zones."
       guidelines={guidelines}
       progressCount={assignedOrdersCount}
       totalCount={orders.length}
@@ -72,21 +66,9 @@ export default function OrderAssignmentTask({ onComplete }: ExtendedOrderAssignm
       onComplete={onComplete}
       example={<OrderAssignmentExample />}
     >
-      <div className="flex flex-col lg:flex-row gap-6">
-        <VersionOrdersTable 
-          orders={orders}
-          selectedOrder={selectedOrder}
-          assignments={assignments}
-          onOrderSelect={handleOrderSelect}
-          onUnassignOrder={unassignOrder}
-        />
-        
-        <DriversPanel 
-          drivers={drivers}
-          selectedOrder={selectedOrder}
-          assignments={assignments}
-          onDriverSelect={handleDriverSelect}
-        />
+      <div className="flex flex-col lg:flex-row gap-6 select-none">
+          <VersionOrdersTable />
+          <DriversPanel />
       </div>
     </TaskTemplate>
   );
