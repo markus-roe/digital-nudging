@@ -5,7 +5,6 @@ import {
   TimeRange,
   TimeSlotWorkload
 } from '@/lib/data/deliverySchedulingData';
-import { useHesitationTracker } from './useHesitationTracker';
 
 export const useDeliveryScheduling = (
   initialOrders: ScheduledOrder[],
@@ -17,18 +16,6 @@ export const useDeliveryScheduling = (
   const [timeSlots] = useState<TimeSlot[]>(initialTimeSlots);
   const [selectedOrder, setSelectedOrder] = useState<string | null>(initialOrders[0].id);
   
-  // Hesitation tracking
-  const {
-    startHesitationTracking,
-    recordHesitationTime
-  } = useHesitationTracker('delivery-scheduling', participantId);
-  
-  // Track hesitation time when an order is selected
-  useEffect(() => {
-    if (selectedOrder) {
-      startHesitationTracking();
-    }
-  }, [selectedOrder, startHesitationTracking]);
   
   // Get order by ID
   const getOrderById = useCallback((orderId: string) => {
@@ -119,12 +106,9 @@ export const useDeliveryScheduling = (
       console.warn('High workload error');
     }
     
-    // Record hesitation time
-    recordHesitationTime(orderId);
-    
     // Clear selection
     setSelectedOrder(null);
-  }, [getOrderById, isPreferredTimeSlot, timeSlots, recordHesitationTime]);
+  }, [getOrderById, isPreferredTimeSlot, timeSlots]);
   
   // Unschedule an order
   const unscheduleOrder = useCallback((orderId: string) => {

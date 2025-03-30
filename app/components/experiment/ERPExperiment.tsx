@@ -8,12 +8,37 @@ import { ExperimentProvider, useExperiment } from "@/lib/context/ExperimentConte
 
 interface ERPExperimentProps {
   version: ExperimentVersion;
-  participantId: string;
 }
 
 function ExperimentContent() {
   const [introCompleted, setIntroCompleted] = useState(false);
-  const { currentTask, setCurrentTask, taskProgress, setTaskProgress } = useExperiment();
+  const { currentTask, setCurrentTask, taskProgress, setTaskProgress, setParticipantId } = useExperiment();
+  
+  // // Initialize participant on component mount
+  // useEffect(() => {
+  //   const initializeParticipant = async () => {
+  //     try {
+  //       const response = await fetch('/api/register', {
+  //         method: 'POST',
+  //         headers: {
+  //           'Content-Type': 'application/json',
+  //         },
+  //         body: JSON.stringify({})
+  //       });
+
+  //       if (!response.ok) {
+  //         throw new Error('Failed to initialize participant');
+  //       }
+
+  //       const data = await response.json();
+  //       setParticipantId(data.participantId);
+  //     } catch (error) {
+  //       console.error('Failed to initialize participant:', error);
+  //     }
+  //   };
+
+  //   initializeParticipant();
+  // }, [setParticipantId]);
   
   // Task completion handlers
   const handleValidationComplete = () => {
@@ -67,9 +92,9 @@ function ExperimentContent() {
   );
 }
 
-export default function ERPExperiment({ version, participantId }: ERPExperimentProps) {
+export default function ERPExperiment({ version }: ERPExperimentProps) {
   return (
-    <ExperimentProvider version={version} participantId={participantId}>
+    <ExperimentProvider version={version}>
       <ExperimentContent />
     </ExperimentProvider>
   );

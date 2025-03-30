@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Button } from "@/components/ui/Button";
-
+import { useExperiment } from "@/lib/context/ExperimentContext";
 interface ExperimentOnboardingProps {
   onIntroComplete: () => void;
 }
@@ -8,7 +8,7 @@ interface ExperimentOnboardingProps {
 export default function ExperimentOnboarding({ onIntroComplete }: ExperimentOnboardingProps) {
   // Registration and introduction state
   const [registrationCompleted, setRegistrationCompleted] = useState(false);
-  
+  const { setParticipantId } = useExperiment();
   // Registration form state
   const [email, setEmail] = useState('');
   const [age, setAge] = useState('');
@@ -46,6 +46,12 @@ export default function ExperimentOnboarding({ onIntroComplete }: ExperimentOnbo
         throw new Error('Failed to register');
       }
 
+      const data = await response.json();
+      
+      // Store participantId in localStorage for persistence
+      localStorage.setItem('participantId', data.participantId);
+      setParticipantId(data.participantId);
+      
       // Move to introduction steps
       setRegistrationCompleted(true);
     } catch (err) {

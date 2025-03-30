@@ -1,10 +1,10 @@
 import React, { useState, useEffect, ReactNode } from "react";
 import { Button } from "@/components/ui/Button";
-import { ExperimentVersion } from "@/lib/types/experiment";
 import { useTaskTimer } from "@/lib/hooks/useTaskTimer";
 import TaskHeader from "./TaskHeader";
 import TaskIntroModal from "./TaskIntroModal";
-import { useExperiment } from "@/lib/context/ExperimentContext";
+import { useActionLogger } from "@/lib/hooks/useActionLogger";
+import { ActionType } from "@/lib/types/logging";
 
 interface TaskTemplateProps {
   taskType: 'validation' | 'assignment' | 'scheduling';
@@ -38,11 +38,11 @@ export default function TaskTemplate({
   example
 }: TaskTemplateProps) {
   // Task state
+  const { logAction } = useActionLogger();
   const [showIntroModal, setShowIntroModal] = useState<boolean>(true);
   const [taskStarted, setTaskStarted] = useState<boolean>(false);
   const [taskFinished, setTaskFinished] = useState<boolean>(false);
   const [isExampleCompleted, setExampleCompleted] = useState<boolean>(false);
-  const { version } = useExperiment();
   const TIME_LIMIT = 180; // 3 minute time limit
   
   // Timer hook
@@ -63,6 +63,7 @@ export default function TaskTemplate({
   
   // Handle starting the task after viewing the intro
   const handleStartTask = () => {
+    logAction(ActionType.TASK_START, 0);
     setShowIntroModal(false);
     setTaskStarted(true);
   };

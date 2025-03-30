@@ -3,7 +3,8 @@ import { ExperimentVersion } from '@/lib/types/experiment';
 
 interface ExperimentContextType {
   version: ExperimentVersion;
-  participantId: string;
+  participantId: string | null;
+  setParticipantId: (id: string) => void;
   currentTask: "validation" | "assignment" | "scheduling" | null;
   taskProgress: {
     validation: boolean;
@@ -19,11 +20,9 @@ const ExperimentContext = createContext<ExperimentContextType | undefined>(undef
 export function ExperimentProvider({ 
   children, 
   version, 
-  participantId 
 }: { 
   children: React.ReactNode;
   version: ExperimentVersion;
-  participantId: string;
 }) {
   const [currentTask, setCurrentTask] = React.useState<"validation" | "assignment" | "scheduling" | null>(null);
   const [taskProgress, setTaskProgress] = React.useState({
@@ -31,12 +30,14 @@ export function ExperimentProvider({
     assignment: false,
     scheduling: false
   });
+  const [participantId, setParticipantId] = React.useState<string | null>(null);
 
   return (
     <ExperimentContext.Provider 
       value={{ 
         version, 
         participantId,
+        setParticipantId,
         currentTask,
         taskProgress,
         setCurrentTask,

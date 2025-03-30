@@ -1,7 +1,10 @@
 import { useState } from 'react';
 import { Order, Driver, Assignment } from '@/lib/types/orderAssignment';
+import { useActionLogger } from '@/lib/hooks/useActionLogger';
+import { ActionType } from '@/lib/types/logging';
 
 export function useOrderAssignment(initialOrders: Order[], initialDrivers: Driver[]) {
+  const { logAction } = useActionLogger();
   const [orders, setOrders] = useState<Order[]>(initialOrders);
   const [drivers, setDrivers] = useState<Driver[]>(initialDrivers);
   const [assignments, setAssignments] = useState<Record<string, Assignment>>({});
@@ -17,11 +20,13 @@ export function useOrderAssignment(initialOrders: Order[], initialDrivers: Drive
       setSelectedOrderId(null);
     } else {
       setSelectedOrderId(orderId);
+      logAction(ActionType.ORDER_SELECT, 0);
     }
   };
   
   // Assign order to driver
   const assignOrderToDriver = (orderId: string, driverId: string) => {
+    const startTime = Date.now();
     const order = orders.find(o => o.id === orderId);
     const driver = drivers.find(d => d.id === driverId);
     
@@ -48,7 +53,6 @@ export function useOrderAssignment(initialOrders: Order[], initialDrivers: Drive
       }
       
       if (sequenceError) {
-        // setSequenceErrors(prev => prev + 1);
         console.warn('Sequence error');
       }
       
@@ -59,13 +63,23 @@ export function useOrderAssignment(initialOrders: Order[], initialDrivers: Drive
       const driverZone = driver.location;
       
       if (orderZone !== driverZone) {
-        // setZoneMatchErrors(prev => prev + 1);
         zoneMatchError = true;
       }
       
       if (zoneMatchError) {
         console.warn('Zone match error');
       }
+
+      let errors = 0;
+      if (sequenceError) errors++;
+      if (zoneMatchError) errors++;
+
+      // Log the case submission with proper action type
+      logAction(
+        ActionType.CASE_SUBMIT,
+        errors
+      );
+
       // Update order status
       setOrders(prevOrders => 
         prevOrders.map(o => {

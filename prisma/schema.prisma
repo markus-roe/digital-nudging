@@ -7,3 +7,47 @@ datasource db {
   url       = env("DATABASE_URL")
   directUrl = env("DIRECT_URL")
 }
+
+enum Version {
+  A
+  B
+}
+
+enum ActionType {
+  TASK_START
+  TASK_END
+  CASE_START
+  CASE_SUBMIT
+  CASE_ERROR
+  ORDER_SELECT
+}
+
+enum TaskType {
+  ORDER_ASSIGNMENT
+  ORDER_VALIDATION
+  DELIVERY_SCHEDULING
+}
+
+model Participant {
+  id            String      @id @default(cuid())
+  email         String?
+  age           String?
+  gender        String?
+  experience    String?
+  education     String?
+  version       Version
+  createdAt     DateTime    @default(now())
+  actionLogs    ActionLog[]
+}
+
+model ActionLog {
+  id            String      @id @default(cuid())
+  participantId String
+  participant   Participant @relation(fields: [participantId], references: [id])
+  action        ActionType
+  task          TaskType
+  errorCount    Int?
+  timestamp     DateTime    @default(now())
+
+  @@index([participantId])
+}

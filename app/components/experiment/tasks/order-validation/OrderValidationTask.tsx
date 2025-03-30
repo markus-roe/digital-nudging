@@ -4,7 +4,6 @@ import OrderValidationList from "./OrderValidationList";
 import OrderValidationForm from "./OrderValidationForm";
 import TaskTemplate from "@/app/components/experiment/shared/TaskTemplate";
 import OrderValidationExample from "./OrderValidationExample";
-import { useHesitationTracker } from "@/lib/hooks/useHesitationTracker";
 import { useExperiment } from "@/lib/context/ExperimentContext";
 import { OrderValidationProvider, useOrderValidationContext } from "@/lib/context/OrderValidationContext";
 
@@ -28,13 +27,6 @@ function OrderValidationTaskContent({ onComplete }: OrderValidationProps) {
     handleOrderSelect
   } = useOrderValidationContext();
   
-  const { participantId } = useExperiment();
-  
-  // Add hesitation tracking with task and participant IDs
-  const {
-    startHesitationTracking,
-  } = useHesitationTracker('order-validation', participantId);
-  
   // Task guidelines
   const guidelines = [
     "Review each order's delivery details for errors",
@@ -44,13 +36,6 @@ function OrderValidationTaskContent({ onComplete }: OrderValidationProps) {
   
   // Check if task is completed
   const taskCompleted = validatedOrdersCount === orders.length;
-  
-  // Track hesitation time when an order is selected
-  useEffect(() => {
-    if (selectedOrder) {
-      startHesitationTracking();
-    }
-  }, [selectedOrder, startHesitationTracking]);
   
 
   return (

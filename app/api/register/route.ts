@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { v4 as uuidv4 } from 'uuid';
-import { ExperimentTask } from '@/lib/types/experiment';
+import { prisma } from '@/lib/prisma';
 
 export async function POST(request: NextRequest) {
   try {
@@ -14,17 +13,21 @@ export async function POST(request: NextRequest) {
     //   );
     // }
     
-    const participantId = uuidv4();
+    const version = Math.random() < 0.5 ? 'A' : 'B';
     
-    const task: ExperimentTask = 'order-assignment';
-    
-    const version = Math.random() < 0.5 ? 'a' : 'b';
-    
-    console.log(`Assigned participant to ${task} version ${version}`);
+    const participant = await prisma.participant.create({
+      data: {
+        email,
+        age: demographics.age,
+        gender: demographics.gender,
+        experience: demographics.experience,
+        education: demographics.education,
+        version,
+      }
+    });
     
     return NextResponse.json({
-      participantId,
-      task,
+      participantId: participant.id,
       version,
     });
   } catch (error) {

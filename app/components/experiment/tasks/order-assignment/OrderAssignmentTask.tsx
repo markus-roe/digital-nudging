@@ -3,7 +3,6 @@ import { initialOrders, initialDrivers } from "@/lib/data/orderAssignmentData";
 import DriversPanel from "./DriversPanel";
 import TaskTemplate from "@/app/components/experiment/shared/TaskTemplate";
 import OrderAssignmentExample from "./OrderAssignmentExample";
-import { useHesitationTracker } from "@/lib/hooks/useHesitationTracker";
 import { useExperiment } from "@/lib/context/ExperimentContext";
 import { OrderAssignmentProvider, useOrderAssignmentContext } from "@/lib/context/OrderAssignmentContext";
 import VersionOrdersTable from "./VersionOrdersTable";
@@ -30,13 +29,6 @@ function OrderAssignmentTaskContent({ onComplete }: OrderAssignmentProps) {
     assignedOrdersCount,
   } = useOrderAssignmentContext();
   
-  const { participantId } = useExperiment();
-  
-  // Add hesitation tracking with task and participant IDs
-  const {
-    startHesitationTracking,
-  } = useHesitationTracker('order-assignment', participantId);
-  
   // Task guidelines
   const guidelines = [
     "Match drivers to their zones",
@@ -46,13 +38,7 @@ function OrderAssignmentTaskContent({ onComplete }: OrderAssignmentProps) {
   
   // Check if task is completed
   const taskCompleted = assignedOrdersCount === orders.length;
-  
-  // Track hesitation time when an order is selected
-  useEffect(() => {
-    if (selectedOrder) {
-      startHesitationTracking();
-    }
-  }, [selectedOrder, startHesitationTracking]);
+
 
   return (
     <TaskTemplate
