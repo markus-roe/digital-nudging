@@ -10,10 +10,7 @@ const TASK_TYPE_MAP: Record<string, TaskType> = {
 export function useActionLogger() {
   const { participantId, currentTask } = useExperiment();
 
-  const logAction = async (
-    action: ActionType,
-    errorCount?: number
-  ) => {
+  const logAction = async (action: ActionType, orderId?: string) => {
     // Skip logging if participantId is null
     if (!participantId) {
       console.warn('Skipping action log - no valid participantId');
@@ -33,7 +30,7 @@ export function useActionLogger() {
           participantId,
           action,
           task: taskType,
-          errorCount,
+          orderId,
           timestamp: new Date(),
         }),
       });
@@ -42,7 +39,34 @@ export function useActionLogger() {
     }
   };
 
-  return { logAction };
-} 
+  // Specific action logging methods
+  const logTaskStart = () => {
+    return logAction(ActionType.TASK_START);
+  };
+
+  const logTaskEnd = () => {
+    return logAction(ActionType.TASK_END);
+  };
+
+  const logCaseStart = (orderId: string) => {
+    return logAction(ActionType.CASE_START, orderId);
+  };
+
+  const logCaseSubmit = (orderId: string) => {
+    return logAction(ActionType.CASE_SUBMIT, orderId);
+  };
+
+  const logOrderSelect = (orderId: string) => {
+    return logAction(ActionType.ORDER_SELECT, orderId);
+  };
+
+  return {
+    logTaskStart,
+    logTaskEnd,
+    logCaseStart,
+    logCaseSubmit,
+    logOrderSelect
+  };
+}
 
 export default useActionLogger;

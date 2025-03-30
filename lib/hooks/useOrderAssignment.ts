@@ -1,16 +1,15 @@
 import { useState } from 'react';
 import { Order, Driver, Assignment } from '@/lib/types/orderAssignment';
 import { useActionLogger } from '@/lib/hooks/useActionLogger';
-import { ActionType } from '@/lib/types/logging';
+import { useErrorLogger } from '@/lib/hooks/useErrorLogger';
 
 export function useOrderAssignment(initialOrders: Order[], initialDrivers: Driver[]) {
-  const { logAction } = useActionLogger();
+  const { logOrderSelect, logCaseSubmit } = useActionLogger();
+  const { logSequenceError, logZoneMatchError } = useErrorLogger();
   const [orders, setOrders] = useState<Order[]>(initialOrders);
   const [drivers, setDrivers] = useState<Driver[]>(initialDrivers);
   const [assignments, setAssignments] = useState<Record<string, Assignment>>({});
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
-  const [sequenceErrors, setSequenceErrors] = useState(0);
-  const [zoneMatchErrors, setZoneMatchErrors] = useState(0);
   const assignedOrdersCount = Object.keys(assignments).length;
   
   // Handle order selection
@@ -20,13 +19,12 @@ export function useOrderAssignment(initialOrders: Order[], initialDrivers: Drive
       setSelectedOrderId(null);
     } else {
       setSelectedOrderId(orderId);
-      logAction(ActionType.ORDER_SELECT, 0);
+      logOrderSelect(orderId);
     }
   };
   
   // Assign order to driver
   const assignOrderToDriver = (orderId: string, driverId: string) => {
-    const startTime = Date.now();
     const order = orders.find(o => o.id === orderId);
     const driver = drivers.find(d => d.id === driverId);
     
@@ -44,41 +42,27 @@ export function useOrderAssignment(initialOrders: Order[], initialDrivers: Drive
         !assignments[o.id]
       );
       
-      let sequenceError = false;
+      let hasErrors = false;
       
       if (order.priority === 'Low' && (highPriorityPending || mediumPriorityPending)) {
-        sequenceError = true;
+        logSequenceError(orderId);
+        hasErrors = true;
       } else if (order.priority === 'Medium' && highPriorityPending) {
-        sequenceError = true;
-      }
-      
-      if (sequenceError) {
-        console.warn('Sequence error');
+        logSequenceError(orderId);
+        hasErrors = true;
       }
       
       // Check for zone matching error
-      let zoneMatchError = false;
-
       const orderZone = order.zone;
       const driverZone = driver.location;
       
       if (orderZone !== driverZone) {
-        zoneMatchError = true;
-      }
-      
-      if (zoneMatchError) {
-        console.warn('Zone match error');
+        logZoneMatchError(orderId);
+        hasErrors = true;
       }
 
-      let errors = 0;
-      if (sequenceError) errors++;
-      if (zoneMatchError) errors++;
-
-      // Log the case submission with proper action type
-      logAction(
-        ActionType.CASE_SUBMIT,
-        errors
-      );
+      // Log the case submission
+      logCaseSubmit(orderId);
 
       // Update order status
       setOrders(prevOrders => 

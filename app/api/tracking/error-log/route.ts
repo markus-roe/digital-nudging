@@ -1,13 +1,13 @@
 import { prisma } from '@/lib/prisma';
 
 export async function POST(request: Request) {
-  const { participantId, action, task, orderId, timestamp } = await request.json();
+  const { participantId, errorType, task, orderId, timestamp } = await request.json();
   
   try {
-    await prisma.actionLog.create({
+    await prisma.errorLog.create({
       data: {
         participantId,
-        action,
+        errorType,
         task,
         orderId,
         timestamp,
@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     
     return Response.json({ success: true });
   } catch (error) {
-    console.error('Failed to log action:', error);
+    console.error('Failed to log error:', error);
     return Response.json({ success: false }, { status: 500 });
   }
 } 

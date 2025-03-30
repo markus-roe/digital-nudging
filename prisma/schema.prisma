@@ -28,6 +28,13 @@ enum TaskType {
   DELIVERY_SCHEDULING
 }
 
+enum ErrorType {
+  SEQUENCE_ERROR
+  ZONE_MATCH_ERROR
+  VALIDATION_ERROR
+  SCHEDULING_ERROR
+}
+
 model Participant {
   id            String      @id @default(cuid())
   email         String?
@@ -38,6 +45,7 @@ model Participant {
   version       Version
   createdAt     DateTime    @default(now())
   actionLogs    ActionLog[]
+  errorLogs     ErrorLog[]
 }
 
 model ActionLog {
@@ -46,7 +54,19 @@ model ActionLog {
   participant   Participant @relation(fields: [participantId], references: [id])
   action        ActionType
   task          TaskType
-  errorCount    Int?
+  orderId       String?
+  timestamp     DateTime    @default(now())
+
+  @@index([participantId])
+}
+
+model ErrorLog {
+  id            String      @id @default(cuid())
+  participantId String
+  participant   Participant @relation(fields: [participantId], references: [id])
+  errorType     ErrorType
+  task          TaskType
+  orderId       String
   timestamp     DateTime    @default(now())
 
   @@index([participantId])

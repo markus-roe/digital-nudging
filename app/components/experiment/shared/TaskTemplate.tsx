@@ -38,7 +38,7 @@ export default function TaskTemplate({
   example
 }: TaskTemplateProps) {
   // Task state
-  const { logAction } = useActionLogger();
+  const { logTaskStart } = useActionLogger();
   const [showIntroModal, setShowIntroModal] = useState<boolean>(true);
   const [taskStarted, setTaskStarted] = useState<boolean>(false);
   const [taskFinished, setTaskFinished] = useState<boolean>(false);
@@ -63,7 +63,7 @@ export default function TaskTemplate({
   
   // Handle starting the task after viewing the intro
   const handleStartTask = () => {
-    logAction(ActionType.TASK_START, 0);
+    logTaskStart();
     setShowIntroModal(false);
     setTaskStarted(true);
   };
