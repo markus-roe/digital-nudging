@@ -1,11 +1,10 @@
 import React from 'react';
 import BaseAnimatedExample from '@/app/components/experiment/shared/BaseAnimatedExample';
+import { useExperiment } from '@/lib/context/ExperimentContext';
 
-interface OrderValidationExampleProps {
-  version: 'a' | 'b';
-}
 
-export default function OrderValidationExample({ version }: OrderValidationExampleProps) {
+export default function OrderValidationExample() {
+  const { version } = useExperiment();
   // Define steps for the animation
   const steps = [
     "Step 1: Select an order from the list to validate",
@@ -15,13 +14,10 @@ export default function OrderValidationExample({ version }: OrderValidationExamp
   ];
 
   // Render the content for the specific example
-  const renderContent = ({ animationStep, totalSteps, version }: { 
+  const renderContent = ({ animationStep, totalSteps }: { 
     animationStep: number, 
-    totalSteps: number, 
-    version: 'a' | 'b' 
+    totalSteps: number
   }) => {
-    // Show validation status based on the current step
-    const showAsValidated = animationStep === totalSteps - 1;
     
     return (
       <div className="h-72">
@@ -163,7 +159,6 @@ export default function OrderValidationExample({ version }: OrderValidationExamp
 
   return (
     <BaseAnimatedExample
-      version={version}
       steps={steps}
       renderContent={renderContent}
     />

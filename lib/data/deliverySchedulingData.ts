@@ -1,163 +1,140 @@
+export interface TimeRange {
+  start: string;  // Format: "HH:mm"
+  end: string;    // Format: "HH:mm"
+}
+
 export interface TimeSlot {
   id: string;
-  time: string;
-  isAvailable: boolean;
+  start: string;  // Format: "HH:mm"
+  end: string;    // Format: "HH:mm"
+}
+
+export interface TimeSlotWorkload {
+  timeSlotId: string;
+  workload: number;  // percentage
 }
 
 export interface ScheduledOrder {
   id: string;
-  orderNumber: string;
-  driverId: string;
-  driverName: string;
   customer: string;
-  priority: 'High' | 'Medium' | 'Low';
-  scheduledTimeSlotId: string | null;
-  preferredTimeRange: string; // Direct preferred time range (e.g., "8:00 - 12:00")
-}
-
-export interface DriverScheduleInfo {
-  driverId: string;
-  driverName: string;
-  timeSlotWorkloads: Record<string, number>; // timeSlotId -> workload (0-100)
+  scheduledTimeSlot: TimeSlot | null;
+  preferredTimeRange: TimeRange;
+  timeSlotWorkloads: TimeSlotWorkload[];
 }
 
 // Available time slots
 export const timeSlots: TimeSlot[] = [
-  { id: 'ts-1', time: '8:00 - 10:00', isAvailable: true },
-  { id: 'ts-2', time: '10:00 - 12:00', isAvailable: true },
-  { id: 'ts-3', time: '12:00 - 16:00', isAvailable: true },
-  { id: 'ts-4', time: '14:00 - 16:00', isAvailable: true },
-  { id: 'ts-5', time: '16:00 - 18:00', isAvailable: true },
+  { id: 'ts-1', start: '8:00', end: '10:00' },
+  { id: 'ts-2', start: '10:00', end: '12:00' },
+  { id: 'ts-3', start: '12:00', end: '14:00' },
+  { id: 'ts-4', start: '14:00', end: '16:00' },
+  { id: 'ts-5', start: '16:00', end: '18:00' },
 ];
 
-// Initial assigned orders that need scheduling (with simplified preferred time ranges)
+// Initial assigned orders that need scheduling
 export const initialOrders: ScheduledOrder[] = [
   {
-    id: 'so-1',
-    orderNumber: '1',
-    driverId: 'driver-1',
-    driverName: 'John Smith',
+    id: '1',
     customer: 'Acme Corp',
-    priority: 'High',
-    scheduledTimeSlotId: null,
-    preferredTimeRange: '8:00 - 12:00'
+    scheduledTimeSlot: null,
+    preferredTimeRange: { start: '8:00', end: '12:00' },
+    timeSlotWorkloads: [
+      { timeSlotId: 'ts-1', workload: 10 },
+      { timeSlotId: 'ts-2', workload: 30 },
+      { timeSlotId: 'ts-3', workload: 60 },
+      { timeSlotId: 'ts-4', workload: 80 },
+      { timeSlotId: 'ts-5', workload: 50 }
+    ],
   },
   {
-    id: 'so-2',
-    orderNumber: '2',
-    driverId: 'driver-1',
-    driverName: 'John Smith',
+    id: '2',
     customer: 'Widget Inc',
-    priority: 'Medium',
-    scheduledTimeSlotId: null,
-    preferredTimeRange: '10:00 - 14:00'
+    scheduledTimeSlot: null,
+    preferredTimeRange: { start: '10:00', end: '14:00' },
+    timeSlotWorkloads: [
+      { timeSlotId: 'ts-1', workload: 70 },
+      { timeSlotId: 'ts-2', workload: 20 },
+      { timeSlotId: 'ts-3', workload: 40 },
+      { timeSlotId: 'ts-4', workload: 30 },
+      { timeSlotId: 'ts-5', workload: 60 }
+    ],
   },
   {
-    id: 'so-3',
-    orderNumber: '3',
-    driverId: 'driver-2',
-    driverName: 'Sarah Davis',
+    id: '3',
     customer: 'ABC Company',
-    priority: 'Low',
-    scheduledTimeSlotId: null,
-    preferredTimeRange: '14:00 - 18:00'
+    scheduledTimeSlot: null,
+    preferredTimeRange: { start: '14:00', end: '18:00' },
+    timeSlotWorkloads: [
+      { timeSlotId: 'ts-1', workload: 50 },
+      { timeSlotId: 'ts-2', workload: 80 },
+      { timeSlotId: 'ts-3', workload: 30 },
+      { timeSlotId: 'ts-4', workload: 20 },
+      { timeSlotId: 'ts-5', workload: 90 }
+    ],
   },
   {
-    id: 'so-4',
-    orderNumber: '4',
-    driverId: 'driver-2',
-    driverName: 'Sarah Davis',
+    id: '4',
     customer: 'XYZ Ltd',
-    priority: 'High',
-    scheduledTimeSlotId: null,
-    preferredTimeRange: '12:00 - 16:00'
+    scheduledTimeSlot: null,
+    preferredTimeRange: { start: '12:00', end: '16:00' },
+    timeSlotWorkloads: [
+      { timeSlotId: 'ts-1', workload: 40 },
+      { timeSlotId: 'ts-2', workload: 60 },
+      { timeSlotId: 'ts-3', workload: 70 },
+      { timeSlotId: 'ts-4', workload: 50 },
+      { timeSlotId: 'ts-5', workload: 10 }
+    ],
   },
   {
-    id: 'so-5',
-    orderNumber: '5',
-    driverId: 'driver-3',
-    driverName: 'Michael Wilson',
+    id: '5',
     customer: 'Tech Solutions',
-    priority: 'Medium',
-    scheduledTimeSlotId: null,
-    preferredTimeRange: '12:00 - 16:00'
+    scheduledTimeSlot: null,
+    preferredTimeRange: { start: '12:00', end: '16:00' },
+    timeSlotWorkloads: [
+      { timeSlotId: 'ts-1', workload: 40 },
+      { timeSlotId: 'ts-2', workload: 60 },
+      { timeSlotId: 'ts-3', workload: 70 },
+      { timeSlotId: 'ts-4', workload: 50 },
+      { timeSlotId: 'ts-5', workload: 10 }
+    ],
   },
   {
-    id: 'so-6',
-    orderNumber: '6',
-    driverId: 'driver-3',
-    driverName: 'Michael Wilson',
+    id: '6',
     customer: 'Global Enterprises',
-    priority: 'Low',
-    scheduledTimeSlotId: null,
-    preferredTimeRange: '10:00 - 14:00'
+    scheduledTimeSlot: null,
+    preferredTimeRange: { start: '10:00', end: '14:00' },
+    timeSlotWorkloads: [
+      { timeSlotId: 'ts-1', workload: 40 },
+      { timeSlotId: 'ts-2', workload: 60 },
+      { timeSlotId: 'ts-3', workload: 70 },
+      { timeSlotId: 'ts-4', workload: 50 },
+      { timeSlotId: 'ts-5', workload: 10 }
+    ],
   },
   {
-    id: 'so-7',
-    orderNumber: '7',
-    driverId: 'driver-4',
-    driverName: 'Lisa Taylor',
+    id: '7',
     customer: 'Local Shop',
-    priority: 'High',
-    scheduledTimeSlotId: null,
-    preferredTimeRange: '8:00 - 12:00'
+    scheduledTimeSlot: null,
+    preferredTimeRange: { start: '8:00', end: '12:00' },
+    timeSlotWorkloads: [
+      { timeSlotId: 'ts-1', workload: 40 },
+      { timeSlotId: 'ts-2', workload: 60 },
+      { timeSlotId: 'ts-3', workload: 70 },
+      { timeSlotId: 'ts-4', workload: 50 },
+      { timeSlotId: 'ts-5', workload: 10 }
+    ],
   },
   {
-    id: 'so-8',
-    orderNumber: '8',
-    driverId: 'driver-4',
-    driverName: 'Lisa Taylor',
+    id: '8',
     customer: 'Big Corporation',
-    priority: 'Medium',
-    scheduledTimeSlotId: null,
-    preferredTimeRange: '14:00 - 18:00'
+    scheduledTimeSlot: null,
+    preferredTimeRange: { start: '14:00', end: '18:00' },
+    timeSlotWorkloads: [
+      { timeSlotId: 'ts-1', workload: 40 },
+      { timeSlotId: 'ts-2', workload: 60 },
+      { timeSlotId: 'ts-3', workload: 70 },
+      { timeSlotId: 'ts-4', workload: 50 },
+      { timeSlotId: 'ts-5', workload: 10 }
+    ],
   },
 ];
-
-// Initial driver workloads for each time slot (for version B's nudging)
-export const initialDriverWorkloads: DriverScheduleInfo[] = [
-  {
-    driverId: 'driver-1',
-    driverName: 'John Smith',
-    timeSlotWorkloads: {
-      'ts-1': 10, // 10% workload - Low (green)
-      'ts-2': 30, // 30% workload - Low (green)
-      'ts-3': 60, // 60% workload - Moderate (yellow)
-      'ts-4': 80, // 80% workload - High (red)
-      'ts-5': 50, // 50% workload - Moderate (yellow)
-    }
-  },
-  {
-    driverId: 'driver-2',
-    driverName: 'Sarah Davis',
-    timeSlotWorkloads: {
-      'ts-1': 70, // 70% workload - Moderate (yellow)
-      'ts-2': 20, // 20% workload - Low (green)
-      'ts-3': 40, // 40% workload - Moderate (yellow)
-      'ts-4': 30, // 30% workload - Low (green)
-      'ts-5': 60, // 60% workload - Moderate (yellow)
-    }
-  },
-  {
-    driverId: 'driver-3',
-    driverName: 'Michael Wilson',
-    timeSlotWorkloads: {
-      'ts-1': 50, // 50% workload - Moderate (yellow)
-      'ts-2': 80, // 80% workload - High (red)
-      'ts-3': 30, // 30% workload - Low (green)
-      'ts-4': 20, // 20% workload - Low (green)
-      'ts-5': 90, // 90% workload - High (red)
-    }
-  },
-  {
-    driverId: 'driver-4',
-    driverName: 'Lisa Taylor',
-    timeSlotWorkloads: {
-      'ts-1': 40, // 40% workload - Moderate (yellow)
-      'ts-2': 60, // 60% workload - Moderate (yellow)
-      'ts-3': 70, // 70% workload - Moderate (yellow)
-      'ts-4': 50, // 50% workload - Moderate (yellow)
-      'ts-5': 10, // 10% workload - Low (green)
-    }
-  },
-]; 

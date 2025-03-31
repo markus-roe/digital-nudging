@@ -1,12 +1,12 @@
 import React, { useState, useEffect, ReactNode } from "react";
 import { Button } from "@/components/ui/Button";
-import { ExperimentVersion } from "@/lib/types/experiment";
 import { useTaskTimer } from "@/lib/hooks/useTaskTimer";
 import TaskHeader from "./TaskHeader";
 import TaskIntroModal from "./TaskIntroModal";
+import { useActionLogger } from "@/lib/hooks/useActionLogger";
+import { ActionType } from "@/lib/types/logging";
 
 interface TaskTemplateProps {
-  version: ExperimentVersion;
   taskType: 'validation' | 'assignment' | 'scheduling';
   title: string;
   description: string;
@@ -26,7 +26,6 @@ export const ExampleCompletionContext = React.createContext({
 });
 
 export default function TaskTemplate({
-  version,
   taskType,
   title,
   description,
@@ -39,6 +38,7 @@ export default function TaskTemplate({
   example
 }: TaskTemplateProps) {
   // Task state
+  const { logTaskStart } = useActionLogger();
   const [showIntroModal, setShowIntroModal] = useState<boolean>(true);
   const [taskStarted, setTaskStarted] = useState<boolean>(false);
   const [taskFinished, setTaskFinished] = useState<boolean>(false);
@@ -63,6 +63,7 @@ export default function TaskTemplate({
   
   // Handle starting the task after viewing the intro
   const handleStartTask = () => {
+    logTaskStart();
     setShowIntroModal(false);
     setTaskStarted(true);
   };
@@ -115,13 +116,10 @@ export default function TaskTemplate({
           timeRemaining={timeRemaining}
           formatTime={formatTime}
           guidelines={guidelines}
-          version={version}
           initialTime={TIME_LIMIT}
         />
 
-        <div className={`${showIntroModal ? 'opacity-50 pointer-events-none' : ''}`}>
-          {children}
-        </div>
+        {children}
         
         {isTaskCompleted && !showIntroModal && (
           <div className="mt-6 text-center">

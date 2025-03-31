@@ -1,6 +1,6 @@
 import React from 'react';
-import { ExperimentVersion } from '@/lib/types/experiment';
 import { getVersionPriorityBadgeClass } from '@/lib/utils/orderUtils';
+import { useExperiment } from '@/lib/context/ExperimentContext';
 
 interface TaskHeaderProps {
   taskType: 'validation' | 'assignment' | 'scheduling';
@@ -8,7 +8,6 @@ interface TaskHeaderProps {
   totalCount: number;
   timeRemaining: number;
   formatTime: (seconds: number) => string;
-  version: ExperimentVersion;
   initialTime?: number;
   guidelines?: string[];
 }
@@ -19,10 +18,10 @@ export default function TaskHeader({
   totalCount,
   timeRemaining,
   formatTime,
-  version,
   initialTime = 300, // Default 5 minutes (300 seconds)
   guidelines
 }: TaskHeaderProps) {
+  const { version } = useExperiment();
   // Task-specific instructions
   const getInstructions = () => {
     switch (taskType) {

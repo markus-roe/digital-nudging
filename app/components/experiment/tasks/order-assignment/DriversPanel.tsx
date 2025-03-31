@@ -1,8 +1,8 @@
 import React from 'react';
 import { Card, CardHeader, CardContent } from '@/components/ui/Card';
-import { Driver, Assignment } from '@/lib/types/orderAssignment';
 import { getZoneColor } from '@/lib/utils/orderUtils';
 import { FaTruck, FaShuttleVan, FaCar, FaMotorcycle } from 'react-icons/fa';
+import { useOrderAssignmentContext } from '@/lib/context/OrderAssignmentContext';
 
 // Helper function to get vehicle icon based on driver ID
 const getVehicleInfo = (driverId: string) => {
@@ -18,19 +18,14 @@ const getVehicleInfo = (driverId: string) => {
   return vehicleTypes[index];
 };
 
-interface DriversPanelProps {
-  drivers: Driver[];
-  selectedOrder: string | null;
-  assignments: Record<string, Assignment>;
-  onDriverSelect: (driverId: string) => void;
-}
+export default function DriversPanel() {
+  const { 
+    drivers, 
+    selectedOrder, 
+    assignments,
+    handleDriverSelect
+  } = useOrderAssignmentContext();
 
-export default function DriversPanel({ 
-  drivers, 
-  selectedOrder, 
-  assignments,
-  onDriverSelect
-}: DriversPanelProps) {
   return (
     <div className={`lg:w-1/3 transition-all duration-300 ${selectedOrder ? 'opacity-100' : 'opacity-50'}`}>
       <Card className="h-full shadow-sm">
@@ -65,7 +60,7 @@ export default function DriversPanel({
                   className={cardClass}
                   onClick={() => {
                     if (selectedOrder) {
-                      onDriverSelect(driver.id);
+                      handleDriverSelect(driver.id);
                     }
                   }}
                 >
