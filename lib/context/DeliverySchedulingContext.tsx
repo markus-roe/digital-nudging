@@ -33,17 +33,14 @@ export function DeliverySchedulingProvider({
   children, 
   initialOrders,
   initialTimeSlots,
-  participantId 
 }: { 
   children: ReactNode; 
   initialOrders: ScheduledOrder[];
   initialTimeSlots: TimeSlot[];
-  participantId: string;
 }) {
   const schedulingState = useDeliveryScheduling(
     initialOrders,
     initialTimeSlots,
-    participantId
   );
   
   return (

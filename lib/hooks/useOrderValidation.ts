@@ -3,6 +3,8 @@ import { OrderValidation, OrderValidationFormData } from '@/lib/types/orderValid
 import { validateOrderData } from '@/lib/utils/orderValidationUtils';
 import { VALIDATION_MESSAGES } from '@/lib/constants/validationMessages';
 import { ExperimentVersion } from '../types/experiment';
+import { useActionLogger } from '@/lib/hooks/useActionLogger';
+import { useErrorLogger } from '@/lib/hooks/useErrorLogger';
 
 interface UseOrderValidationProps {
   initialOrders: OrderValidation[];
@@ -10,6 +12,8 @@ interface UseOrderValidationProps {
 }
 
 export function useOrderValidation({ initialOrders, version }: UseOrderValidationProps) {
+  const { logOrderSelect, logCaseSubmit } = useActionLogger();
+  const { logValidationError } = useErrorLogger();
   const [orders, setOrders] = useState<OrderValidation[]>(initialOrders);
   const [selectedOrderId, setSelectedOrderId] = useState<string>(initialOrders[0].id);
   const [validatedOrderIds, setValidatedOrderIds] = useState<Set<string>>(new Set());
@@ -38,8 +42,9 @@ export function useOrderValidation({ initialOrders, version }: UseOrderValidatio
       const firstOrderWithErrors = orders.find(order => order.hasErrors);
       const firstOrderId = firstOrderWithErrors ? firstOrderWithErrors.id : orders[0].id;
       setSelectedOrderId(firstOrderId);
+      logOrderSelect(firstOrderId);
     }
-  }, [orders, selectedOrderId]);
+  }, [orders, selectedOrderId, logOrderSelect]);
 
   // Reset form data when order changes
   useEffect(() => {
@@ -69,7 +74,8 @@ export function useOrderValidation({ initialOrders, version }: UseOrderValidatio
   const handleOrderSelect = useCallback((orderId: string) => {
     setSelectedOrderId(orderId);
     setFormErrors({});
-  }, []);
+    logOrderSelect(orderId);
+  }, [logOrderSelect]);
   
   // Handle form changes
   const handleFormChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -104,7 +110,6 @@ export function useOrderValidation({ initialOrders, version }: UseOrderValidatio
     }
   }, [formData, version]);
 
-
     // Find the next unvalidated order
     const findNextUnvalidatedOrder = useCallback((currentOrderId: string) => {
       const currentIndex = orders.findIndex(order => order.id === currentOrderId);
@@ -134,6 +139,7 @@ export function useOrderValidation({ initialOrders, version }: UseOrderValidatio
     if (Object.keys(validationErrors).length > 0) {
       console.warn('Validation errors:', validationErrors);
       setFormErrors(validationErrors);
+      logValidationError(selectedOrderId);
       return;
     }
     
@@ -161,13 +167,16 @@ export function useOrderValidation({ initialOrders, version }: UseOrderValidatio
     // Clear form errors
     setFormErrors({});
     
+    // Log successful case submission
+    logCaseSubmit(selectedOrderId);
     
     // Find the next unvalidated order and select it
     const nextOrderId = findNextUnvalidatedOrder(selectedOrderId);
     if (nextOrderId) {
       setSelectedOrderId(nextOrderId);
+      logOrderSelect(nextOrderId);
     }
-  }, [formData, selectedOrderId, findNextUnvalidatedOrder]);
+  }, [formData, selectedOrderId, findNextUnvalidatedOrder, logCaseSubmit, logOrderSelect, logValidationError]);
 
   const shouldShowError = useCallback((fieldName: string): boolean => {
     if (version === 'a') {

@@ -7,7 +7,6 @@ import {
   timeSlots, 
 } from "@/lib/data/deliverySchedulingData";
 import DeliverySchedulingExample from "./DeliverySchedulingExample";
-import { useExperiment } from "@/lib/context/ExperimentContext";
 import { DeliverySchedulingProvider, useDeliverySchedulingContext } from "@/lib/context/DeliverySchedulingContext";
 
 interface ExtendedDeliverySchedulingProps {
@@ -15,13 +14,11 @@ interface ExtendedDeliverySchedulingProps {
 }
 
 export default function DeliverySchedulingTask({ onComplete }: ExtendedDeliverySchedulingProps) {
-  const { participantId } = useExperiment();
   
   return (
     <DeliverySchedulingProvider
       initialOrders={initialOrders}
       initialTimeSlots={timeSlots}
-      participantId={participantId}
     >
       <DeliverySchedulingTaskContent onComplete={onComplete} />
     </DeliverySchedulingProvider>

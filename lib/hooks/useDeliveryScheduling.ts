@@ -2,20 +2,28 @@ import { useState, useCallback, useEffect } from 'react';
 import { 
   ScheduledOrder, 
   TimeSlot,
-  TimeRange,
-  TimeSlotWorkload
 } from '@/lib/data/deliverySchedulingData';
+import { useActionLogger } from '@/lib/hooks/useActionLogger';
+import { useErrorLogger } from '@/lib/hooks/useErrorLogger';
 
 export const useDeliveryScheduling = (
   initialOrders: ScheduledOrder[],
   initialTimeSlots: TimeSlot[],
-  participantId: string
 ) => {
+  const { logOrderSelect, logCaseSubmit } = useActionLogger();
+  const { logSchedulingError } = useErrorLogger();
+
   // State
   const [orders, setOrders] = useState<ScheduledOrder[]>(initialOrders);
   const [timeSlots] = useState<TimeSlot[]>(initialTimeSlots);
   const [selectedOrder, setSelectedOrder] = useState<string | null>(initialOrders[0].id);
   
+  // Initialize first order selection
+  useEffect(() => {
+    if (initialOrders.length > 0) {
+      logOrderSelect(initialOrders[0].id);
+    }
+  }, [initialOrders, logOrderSelect]);
   
   // Get order by ID
   const getOrderById = useCallback((orderId: string) => {
@@ -53,9 +61,15 @@ export const useDeliveryScheduling = (
   const handleOrderSelect = useCallback((orderId: string) => {
     const order = orders.find(o => o.id === orderId);
     if (order && order.scheduledTimeSlot === null) {
-      setSelectedOrder(prevSelected => prevSelected === orderId ? null : orderId);
+      setSelectedOrder(prevSelected => {
+        const newSelected = prevSelected === orderId ? null : orderId;
+        if (newSelected) {
+          logOrderSelect(newSelected);
+        }
+        return newSelected;
+      });
     }
-  }, [orders]);
+  }, [orders, logOrderSelect]);
   
   // Schedule order to a time slot
   const scheduleOrderToTimeSlot = useCallback((orderId: string, timeSlot: TimeSlot) => {
@@ -92,10 +106,12 @@ export const useDeliveryScheduling = (
 
     if (!isPreferred) {
       preferenceMismatchError = true;
+      logSchedulingError(orderId);
     }
     
     if (isPreferred && !isOptimalWorkload) {
       highWorkloadError = true;
+      logSchedulingError(orderId);
     }
 
     if (preferenceMismatchError) {
@@ -106,9 +122,12 @@ export const useDeliveryScheduling = (
       console.warn('High workload error');
     }
     
+    // Log successful case submission
+    logCaseSubmit(orderId);
+    
     // Clear selection
     setSelectedOrder(null);
-  }, [getOrderById, isPreferredTimeSlot, timeSlots]);
+  }, [getOrderById, isPreferredTimeSlot, timeSlots, logCaseSubmit, logSchedulingError]);
   
   // Unschedule an order
   const unscheduleOrder = useCallback((orderId: string) => {
