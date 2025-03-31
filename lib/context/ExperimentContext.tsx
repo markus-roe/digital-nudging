@@ -3,7 +3,7 @@ import { ExperimentVersion } from '@/lib/types/experiment';
 
 interface ExperimentContextType {
   version: ExperimentVersion;
-  participantId: string | null;
+  participantId: string;
   setParticipantId: (id: string) => void;
   currentTask: "validation" | "assignment" | "scheduling" | null;
   taskProgress: {
@@ -30,7 +30,7 @@ export function ExperimentProvider({
     assignment: false,
     scheduling: false
   });
-  const [participantId, setParticipantId] = React.useState<string | null>(null);
+  const [participantId, setParticipantId] = React.useState<string>("");
 
   return (
     <ExperimentContext.Provider 
