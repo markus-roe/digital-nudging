@@ -1,11 +1,10 @@
 import React from 'react';
 import BaseAnimatedExample from '@/app/components/experiment/shared/BaseAnimatedExample';
+import { useExperiment } from '@/lib/context/ExperimentContext';
 
-interface DeliverySchedulingExampleProps {
-  version: 'a' | 'b';
-}
 
-export default function DeliverySchedulingExample({ version }: DeliverySchedulingExampleProps) {
+export default function DeliverySchedulingExample() {
+  const { version } = useExperiment();
   // Define steps for the animation
   const steps = [
     "Step 1: Review the available time slots and their workloads",
@@ -15,10 +14,9 @@ export default function DeliverySchedulingExample({ version }: DeliverySchedulin
   ];
 
   // Render the content for the specific example
-  const renderContent = ({ animationStep, totalSteps, version }: { 
+  const renderContent = ({ animationStep, totalSteps }: { 
     animationStep: number, 
-    totalSteps: number, 
-    version: 'a' | 'b' 
+    totalSteps: number
   }) => {
     return (
       <div className="h-72">
@@ -85,13 +83,13 @@ export default function DeliverySchedulingExample({ version }: DeliverySchedulin
                   {version === 'a' ? (
                     <div>
                       <div className="text-xs font-medium text-gray-600">Workload:</div>
-                      <span className="font-medium text-gray-600">2 of 5 slots used</span>
+                      <span className="font-medium text-gray-600">20% utilized</span>
                     </div>
                   ) : (
                     <div>
                       <div className="text-xs font-medium text-gray-600">Workload:</div>
                       <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden my-1">
-                        <div className="h-2 rounded-full bg-blue-500" style={{ width: '40%' }}></div>
+                        <div className="h-2 rounded-full bg-blue-500" style={{ width: '20%' }}></div>
                       </div>
                     </div>
                   )}
@@ -107,13 +105,13 @@ export default function DeliverySchedulingExample({ version }: DeliverySchedulin
                   {version === 'a' ? (
                   <div className={`${animationStep === 2 && 'animate-pulse'}`}>
                       <div className="text-xs font-medium text-gray-600">Workload:</div>
-                      <span className="font-medium text-gray-600">{animationStep === 3 ? '2' : '1'} of 5 slots used</span>
+                      <span className="font-medium text-gray-600">{animationStep === 3 ? '20%' : '10%'} utilized</span>
                   </div>
                   ) : (
                     <div className={`${animationStep === 2 && 'animate-pulse'}`}>
                       <div className="text-xs font-medium text-gray-600">Workload:</div>
                       <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden mt-1 mb-3">
-                        <div className="h-2 rounded-full bg-blue-500" style={ { width: animationStep === 3 ? '40%' : '20%' }}></div>
+                        <div className="h-2 rounded-full bg-blue-500" style={ { width: animationStep === 3 ? '20%' : '10%' }}></div>
                       </div>
                     </div>
                   )}
@@ -136,13 +134,13 @@ export default function DeliverySchedulingExample({ version }: DeliverySchedulin
                   {version === 'a' ? (
                     <div>
                       <div className="text-xs font-medium text-gray-600">Workload:</div>
-                      <span className="font-medium text-gray-600">4 of 5 slots used</span>
+                      <span className="font-medium text-gray-600">40% utilized</span>
                     </div>
                   ) : (
                     <div>
                       <div className="text-xs font-medium text-gray-600">Workload:</div>
                       <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden my-1">
-                        <div className="h-2 rounded-full bg-blue-500" style={{ width: '80%' }}></div>
+                        <div className="h-2 rounded-full bg-blue-500" style={{ width: '40%' }}></div>
                       </div>
                     </div>
                   )}
@@ -157,7 +155,6 @@ export default function DeliverySchedulingExample({ version }: DeliverySchedulin
 
   return (
     <BaseAnimatedExample
-      version={version}
       steps={steps}
       renderContent={renderContent}
     />

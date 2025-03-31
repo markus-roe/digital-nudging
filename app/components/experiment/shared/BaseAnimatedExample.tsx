@@ -2,18 +2,15 @@ import React, { useState, useContext, useEffect, ReactNode } from 'react';
 import { ExampleCompletionContext } from '@/app/components/experiment/shared/TaskTemplate';
 
 export interface AnimatedExampleProps {
-  version: 'a' | 'b';
   steps: string[];
   renderContent: (props: {
     animationStep: number;
     totalSteps: number;
-    version: 'a' | 'b';
   }) => ReactNode;
   onComplete?: () => void;
 }
 
 export default function BaseAnimatedExample({ 
-  version, 
   steps, 
   renderContent,
   onComplete 
@@ -52,7 +49,7 @@ export default function BaseAnimatedExample({
     <div className="flex flex-col items-center">
       <div className="relative w-full max-w-2xl border border-gray-200 rounded-lg bg-white overflow-hidden shadow-md select-none">
         {/* Content area - rendered by the specific example implementation */}
-        {renderContent({ animationStep, totalSteps, version })}
+        {renderContent({ animationStep, totalSteps })}
         
         {/* Step indicator */}
         <div className="absolute inset-x-0 bottom-0 h-2 bg-gray-100">

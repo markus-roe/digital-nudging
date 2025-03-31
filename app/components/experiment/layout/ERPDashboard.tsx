@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import { ExperimentVersion } from "@/lib/types/experiment";
 import { FiHelpCircle, FiBell, FiSettings, FiUser } from 'react-icons/fi';
 import ExperimentOnboarding from "./ExperimentOnboarding";
 import NavItem from './NavItem';
@@ -7,7 +6,6 @@ import { workflowSteps, WorkflowStep } from '@/lib/data/workflowSteps';
 import { isStepDisabled, canChangeToStep } from '@/lib/utils/workflowHelpers';
 
 interface ERPDashboardProps {
-  version: ExperimentVersion;
   children?: React.ReactNode;
   introCompleted: boolean;
   onIntroComplete: () => void;
@@ -21,7 +19,6 @@ interface ERPDashboardProps {
 }
 
 export default function ERPDashboard({
-  version,
   children,
   introCompleted,
   onIntroComplete,

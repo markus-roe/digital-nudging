@@ -19,12 +19,8 @@ function ERPPageContent() {
   const version = (versionParam.toLowerCase() === "a" || versionParam.toLowerCase() === "b" 
     ? versionParam.toLowerCase() 
     : "a") as ExperimentVersion;
-  const participantId = searchParams.get("participantId") || "unknown";
   
   return (
-    <ERPExperiment 
-      version={version} 
-      participantId={participantId} 
-    />
+    <ERPExperiment version={version} />
   );
 } 

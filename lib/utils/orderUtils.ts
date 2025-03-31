@@ -1,3 +1,5 @@
+import { ExperimentVersion } from '@/lib/types/experiment';
+
 export const getZoneColor = (zone: string) => {
   switch(zone) {
     case 'North Zone':
@@ -32,6 +34,8 @@ export const getZoneColor = (zone: string) => {
       };
   }
 };
+
+const grayBadgeClass = 'bg-gray-100 text-gray-700 border border-gray-200';
   
 export const getPriorityBadgeClass = (priority: string) => {
   switch(priority) {
@@ -39,17 +43,15 @@ export const getPriorityBadgeClass = (priority: string) => {
       return 'bg-red-100 text-red-800 border border-red-200';
     case 'Medium':
       return 'bg-amber-50 text-amber-700 border border-amber-200';
-    case 'Low':
-      return 'bg-gray-100 text-gray-700 border border-gray-200';
     default:
-      return 'bg-gray-100 text-gray-700 border border-gray-200';
+      return grayBadgeClass;
   }
 };
 
-export const getVersionPriorityBadgeClass = (priority: string, version: 'a' | 'b') => {
+export const getVersionPriorityBadgeClass = (priority: string, version: ExperimentVersion) => {
   // Version A: No color nudging - all priorities have the same styling
   if (version === 'a') {
-    return 'bg-gray-100 text-gray-800 border border-gray-200';
+    return grayBadgeClass;
   }
   
   // Version B: With color nudging - different colors for different priorities
