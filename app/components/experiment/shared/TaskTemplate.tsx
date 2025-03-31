@@ -4,7 +4,7 @@ import { useTaskTimer } from "@/lib/hooks/useTaskTimer";
 import TaskHeader from "./TaskHeader";
 import TaskIntroModal from "./TaskIntroModal";
 import { useActionLogger } from "@/lib/hooks/useActionLogger";
-import { ActionType } from "@/lib/types/logging";
+import { useErrorLogger } from "@/lib/hooks/useErrorLogger";
 
 interface TaskTemplateProps {
   taskType: 'validation' | 'assignment' | 'scheduling';
@@ -38,7 +38,7 @@ export default function TaskTemplate({
   example
 }: TaskTemplateProps) {
   // Task state
-  const { logTaskStart } = useActionLogger();
+  const { logTaskStart, logTaskEnd } = useActionLogger();
   const [showIntroModal, setShowIntroModal] = useState<boolean>(true);
   const [taskStarted, setTaskStarted] = useState<boolean>(false);
   const [taskFinished, setTaskFinished] = useState<boolean>(false);
@@ -85,6 +85,7 @@ export default function TaskTemplate({
     
     if (onComplete) {
       onComplete();
+      logTaskEnd();
     }
   };
   
