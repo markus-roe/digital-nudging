@@ -4,7 +4,6 @@ import { useTaskTimer } from "@/lib/hooks/useTaskTimer";
 import TaskHeader from "./TaskHeader";
 import TaskIntroModal from "./TaskIntroModal";
 import { useActionLogger } from "@/lib/hooks/useActionLogger";
-import { useErrorLogger } from "@/lib/hooks/useErrorLogger";
 
 interface TaskTemplateProps {
   taskType: 'validation' | 'assignment' | 'scheduling';
