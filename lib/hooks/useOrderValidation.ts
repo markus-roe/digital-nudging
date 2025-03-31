@@ -15,15 +15,15 @@ export function useOrderValidation({ initialOrders, version }: UseOrderValidatio
   const { logOrderSelect, logCaseSubmit } = useActionLogger();
   const { logValidationError } = useErrorLogger();
   const [orders, setOrders] = useState<OrderValidation[]>(initialOrders);
-  const [selectedOrderId, setSelectedOrderId] = useState<string>(initialOrders[0].id);
+  const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [validatedOrderIds, setValidatedOrderIds] = useState<Set<string>>(new Set());
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState<OrderValidationFormData>({
-    address: initialOrders[0].address,
-    contactName: initialOrders[0].contactName,
-    contactPhone: initialOrders[0].contactPhone,
-    contactEmail: initialOrders[0].contactEmail,
-    deliveryInstructions: initialOrders[0].deliveryInstructions
+    address: '',
+    contactName: '',
+    contactPhone: '',
+    contactEmail: '',
+    deliveryInstructions: ''
   });
   const [validatedFields, setValidatedFields] = useState<Set<string>>(new Set());
   const [hasSubmitted, setHasSubmitted] = useState(false);
@@ -36,16 +36,6 @@ export function useOrderValidation({ initialOrders, version }: UseOrderValidatio
     ? orders.find(order => order.id === selectedOrderId) ?? null
     : null;
   
-  // Initialize the selected order on component mount
-  useEffect(() => {
-    if (!selectedOrderId && orders.length > 0) {
-      const firstOrderWithErrors = orders.find(order => order.hasErrors);
-      const firstOrderId = firstOrderWithErrors ? firstOrderWithErrors.id : orders[0].id;
-      setSelectedOrderId(firstOrderId);
-      logOrderSelect(firstOrderId);
-    }
-  }, [orders, selectedOrderId, logOrderSelect]);
-
   // Reset form data when order changes
   useEffect(() => {
     if (!selectedOrder) return;
@@ -132,6 +122,8 @@ export function useOrderValidation({ initialOrders, version }: UseOrderValidatio
   // Handle form submission
   const handleFormSubmit = useCallback((e: React.FormEvent) => {
     e.preventDefault();
+    if (!selectedOrderId) return;
+    
     setHasSubmitted(true);
     
     const validationErrors = validateOrderData(formData);

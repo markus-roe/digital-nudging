@@ -16,14 +16,7 @@ export const useDeliveryScheduling = (
   // State
   const [orders, setOrders] = useState<ScheduledOrder[]>(initialOrders);
   const [timeSlots] = useState<TimeSlot[]>(initialTimeSlots);
-  const [selectedOrder, setSelectedOrder] = useState<string | null>(initialOrders[0].id);
-  
-  // Initialize first order selection
-  useEffect(() => {
-    if (initialOrders.length > 0) {
-      logOrderSelect(initialOrders[0].id);
-    }
-  }, [initialOrders, logOrderSelect]);
+  const [selectedOrder, setSelectedOrder] = useState<string | null>(null);
   
   // Get order by ID
   const getOrderById = useCallback((orderId: string) => {
