@@ -5,6 +5,9 @@ import OrderAssignmentTask from "@/app/components/experiment/tasks/order-assignm
 import DeliverySchedulingTask from "@/app/components/experiment/tasks/delivery-scheduling/DeliverySchedulingTask";
 import { ExperimentVersion } from "@/lib/types/experiment";
 import { ExperimentProvider, useExperiment } from "@/lib/context/ExperimentContext";
+import { initialOrderValidations } from "@/lib/data/orderValidationData";
+import ExperimentCompletion from "./shared/ExperimentCompletion";
+import { OrderValidationProvider } from "@/lib/context/OrderValidationContext";
 
 interface ERPExperimentProps {
   version: ExperimentVersion;
@@ -12,33 +15,9 @@ interface ERPExperimentProps {
 
 function ExperimentContent() {
   const [introCompleted, setIntroCompleted] = useState(false);
-  const { currentTask, setCurrentTask, taskProgress, setTaskProgress, setParticipantId } = useExperiment();
+  const [allTasksCompleted, setAllTasksCompleted] = useState(false);
+  const { currentTask, setCurrentTask, taskProgress, setTaskProgress } = useExperiment();
   
-  // // Initialize participant on component mount
-  // useEffect(() => {
-  //   const initializeParticipant = async () => {
-  //     try {
-  //       const response = await fetch('/api/register', {
-  //         method: 'POST',
-  //         headers: {
-  //           'Content-Type': 'application/json',
-  //         },
-  //         body: JSON.stringify({})
-  //       });
-
-  //       if (!response.ok) {
-  //         throw new Error('Failed to initialize participant');
-  //       }
-
-  //       const data = await response.json();
-  //       setParticipantId(data.participantId);
-  //     } catch (error) {
-  //       console.error('Failed to initialize participant:', error);
-  //     }
-  //   };
-
-  //   initializeParticipant();
-  // }, [setParticipantId]);
   
   // Task completion handlers
   const handleValidationComplete = () => {
@@ -53,7 +32,7 @@ function ExperimentContent() {
   
   const handleSchedulingComplete = () => {
     setTaskProgress({ ...taskProgress, scheduling: true });
-    // Navigate to completion page or show final results
+    setAllTasksCompleted(true);
   };
   
   // Initialize first task after intro
@@ -62,6 +41,10 @@ function ExperimentContent() {
       setCurrentTask("validation");
     }
   }, [introCompleted, currentTask, setCurrentTask]);
+
+  if (allTasksCompleted) {
+    return <ExperimentCompletion onComplete={() => {}} />;
+  }
   
   return (
     <ERPDashboard
@@ -95,7 +78,9 @@ function ExperimentContent() {
 export default function ERPExperiment({ version }: ERPExperimentProps) {
   return (
     <ExperimentProvider version={version}>
-      <ExperimentContent />
+      <OrderValidationProvider initialOrders={initialOrderValidations}>
+        <ExperimentContent />
+      </OrderValidationProvider>
     </ExperimentProvider>
   );
 } 
