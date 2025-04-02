@@ -46,6 +46,7 @@ model Participant {
   createdAt     DateTime    @default(now())
   actionLogs    ActionLog[]
   errorLogs     ErrorLog[]
+  questionnaire Questionnaire?
 }
 
 model ActionLog {
@@ -74,7 +75,8 @@ model ErrorLog {
 
 model Questionnaire {
   id              String   @id @default(cuid())
-  participantId   String
+  participantId   String   @unique
+  participant     Participant @relation(fields: [participantId], references: [id])
   version         String
   nasaTlxMental   Int
   nasaTlxPhysical Int
