@@ -204,16 +204,20 @@ async function getParticipantStats(): Promise<ParticipantStats> {
       return groups;
     }, {} as Record<string, typeof orderAssignmentLogs>);
 
-    // Calculate hesitation time for each order
-    Object.values(orderGroups).forEach(logs => {
-      const selectLog = logs.find(log => log.action === 'ORDER_SELECT');
-      const submitLog = logs.find(log => log.action === 'CASE_SUBMIT');
+    // Calculate hesitation time between order groups
+    const orderIds = Object.keys(orderGroups);
+    for (let i = 0; i < orderIds.length - 1; i++) {
+      const currentGroup = orderGroups[orderIds[i]];
+      const nextGroup = orderGroups[orderIds[i + 1]];
       
-      if (selectLog && submitLog) {
-        const hesitationTime = submitLog.timestamp.getTime() - selectLog.timestamp.getTime();
+      const currentSubmit = currentGroup.find(log => log.action === 'CASE_SUBMIT');
+      const nextSelect = nextGroup.find(log => log.action === 'CASE_START');
+      
+      if (currentSubmit && nextSelect) {
+        const hesitationTime = nextSelect.timestamp.getTime() - currentSubmit.timestamp.getTime();
         stats.hesitationTimes[TaskType.ORDER_ASSIGNMENT][participant.version].push(hesitationTime);
       }
-    });
+    }
 
     // Questionnaire data
     if (participant.questionnaire) {
@@ -341,7 +345,7 @@ export default async function AnalysisPage() {
     <div className="min-h-screen bg-gray-100">
       {/* Dashboard Header */}
       <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 border-b border-gray-200/50 shadow-sm mb-8">
-        <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="max-w-[1920px] mx-auto px-6 py-8">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Experiment Analysis</h1>
@@ -359,7 +363,7 @@ export default async function AnalysisPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6">
+      <div className="max-w-[1920px] mx-auto px-6">
         {/* Summary Section */}
         <div className="mb-8">
           <h2 className="text-xl font-semibold text-gray-900 mb-6">Key Improvements with Digital Nudging</h2>
@@ -427,15 +431,13 @@ export default async function AnalysisPage() {
           {/* Performance Metrics */}
           <section>
             <h2 className="text-xl font-semibold text-gray-900 mb-6">Performance Metrics</h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
               <VersionDistribution versionDistributionData={versionDistributionData} />
               <TaskCompletion taskCompletionData={taskCompletionData} />
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <ErrorRates errorRatesData={errorRatesData} />
-              <HesitationTime hesitationTimeData={hesitationTimeData} />
             </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <HesitationTime hesitationTimeData={hesitationTimeData} />
               <NasaTLX nasaTlxData={nasaTlxData} />
             </div>
           </section>
@@ -443,7 +445,7 @@ export default async function AnalysisPage() {
           {/* User Experience Metrics */}
           <section className="mb-8">
             <h2 className="text-xl font-semibold text-gray-900 mb-6">User Experience Metrics</h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <SUS susScores={susScores} />
               <Confidence confidenceRatings={confidenceRatings} />
             </div>
