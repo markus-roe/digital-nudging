@@ -60,7 +60,7 @@ export default function VersionOrdersTable() {
                         isSelected
                           ? 'bg-blue-100' 
                           : assignments[order.id]
-                            ? 'bg-gray-50 opacity-60' 
+                            ? 'bg-gray-50 opacity-20' 
                             : ''
                       }
                       transition-[opacity] duration-150

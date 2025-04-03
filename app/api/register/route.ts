@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, demographics } = body;
+    const { email, demographics, version } = body;
     
     // if (!email) {
     //   return NextResponse.json(
@@ -13,8 +13,8 @@ export async function POST(request: NextRequest) {
     //   );
     // }
     
-    const version = Math.random() < 0.5 ? 'A' : 'B';
-    
+    // Use the version provided by the client (which was assigned by the version-assignment API)
+    // This ensures we maintain the version balance
     const participant = await prisma.participant.create({
       data: {
         email,
@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
         gender: demographics.gender,
         experience: demographics.experience,
         education: demographics.education,
-        version,
+        version: version.toUpperCase() as 'A' | 'B',
       }
     });
     
