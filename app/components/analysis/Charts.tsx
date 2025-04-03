@@ -103,6 +103,14 @@ function DemographicsCharts({ demographics }: DemographicsChartsProps) {
   );
 }
 
+interface ChartData {
+  name: string;
+  versionA: number;
+  versionB: number;
+  improvement?: string;
+  reduction?: string;
+}
+
 interface ChartsProps {
   demographics: {
     age: Record<string, number>;
@@ -116,6 +124,7 @@ interface ChartsProps {
   versionDistributionData: any[];
   susScores: { versionA: number; versionB: number };
   confidenceRatings: { versionA: number; versionB: number };
+  hesitationTimeData: ChartData[];
 }
 
 const VersionDistribution = ({ versionDistributionData }: { versionDistributionData: any[] }) => {
@@ -432,7 +441,7 @@ const SUS = ({ susScores }: { susScores: { versionA: number; versionB: number } 
             datasets: [{
               label: 'SUS Score',
               data: [susScores.versionA, susScores.versionB],
-              backgroundColor: COLORS[0],
+              backgroundColor: [COLORS[0], COLORS[1]],
               borderRadius: 4,
             }],
           }}
@@ -484,7 +493,7 @@ const Confidence = ({ confidenceRatings }: { confidenceRatings: { versionA: numb
             datasets: [{
               label: 'Confidence Score',
               data: [confidenceRatings.versionA, confidenceRatings.versionB],
-              backgroundColor: COLORS[1],
+              backgroundColor: [COLORS[0], COLORS[1]],
               borderRadius: 4,
             }],
           }}
@@ -492,6 +501,83 @@ const Confidence = ({ confidenceRatings }: { confidenceRatings: { versionA: numb
       </div>
       <div className="mt-2 text-sm text-gray-600">
         Confidence improved by {((confidenceRatings.versionB - confidenceRatings.versionA) / confidenceRatings.versionA * 100).toFixed(1)}%
+      </div>
+    </div>
+  );
+};
+
+const HesitationTime = ({ hesitationTimeData }: { hesitationTimeData: ChartData[] }) => {
+  const barChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        display: false,
+      },
+      tooltip: {
+        callbacks: {
+          label: (context: any) => {
+            const value = (context.raw / 1000).toFixed(2);
+            return `${context.dataset.label}: ${value} seconds`;
+          }
+        }
+      }
+    },
+    scales: {
+      y: {
+        beginAtZero: true,
+        grid: {
+          display: false,
+        },
+        ticks: {
+          callback: (value: any) => `${(value / 1000).toFixed(1)}s`
+        }
+      },
+      x: {
+        grid: {
+          display: false,
+        }
+      }
+    }
+  };
+
+  return (
+    <div className="bg-white p-4 rounded-lg shadow-sm">
+      <h3 className="text-lg font-medium mb-4">Decision Hesitation Time</h3>
+      <div className="text-sm text-gray-600 mb-2">Time between selecting and assigning an order (lower is better)</div>
+      <div className="h-[200px]">
+        <Bar
+          data={{
+            labels: hesitationTimeData.map(d => d.name),
+            datasets: [
+              {
+                label: 'Version A',
+                data: hesitationTimeData.map(d => d.versionA),
+                backgroundColor: COLORS[0],
+                borderRadius: 4,
+              },
+              {
+                label: 'Version B',
+                data: hesitationTimeData.map(d => d.versionB),
+                backgroundColor: COLORS[1],
+                borderRadius: 4,
+              }
+            ]
+          }}
+          options={barChartOptions}
+        />
+      </div>
+      <div className="mt-2 text-sm text-gray-600">
+        {hesitationTimeData.map((d, i) => (
+          <div key={i} className="flex justify-between items-center">
+            <span>{d.name}</span>
+            <span className="text-green-600">
+              {parseFloat(d.improvement || '0') > 0 
+                ? `Faster by ${d.improvement}%` 
+                : `Slower by ${Math.abs(parseFloat(d.improvement || '0'))}%`}
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   );
@@ -506,6 +592,7 @@ const Charts = {
   NasaTLX,
   SUS,
   Confidence,
+  HesitationTime,
 };
 
 export {
@@ -516,6 +603,7 @@ export {
   NasaTLX,
   SUS,
   Confidence,
+  HesitationTime,
 };
 
 export default Charts; 

@@ -7,7 +7,8 @@ import {
   ErrorRates,
   NasaTLX,
   SUS,
-  Confidence
+  Confidence,
+  HesitationTime
 } from '../components/analysis/Charts';
 
 type ParticipantWithRelations = Participant & {
@@ -62,6 +63,9 @@ interface ParticipantStats {
   taskCompletion: Record<TaskType, { A: number; B: number }>;
   caseDurations: Record<TaskType, { A: number[]; B: number[] }>;
   errorRates: Record<TaskType, { A: number; B: number }>;
+  hesitationTimes: {
+    [TaskType.ORDER_ASSIGNMENT]: { A: number[]; B: number[] };
+  };
   taskSpecificMetrics: {
     [TaskType.ORDER_ASSIGNMENT]: TaskSpecificMetrics;
     [TaskType.ORDER_VALIDATION]: ValidationMetrics;
@@ -109,6 +113,9 @@ async function getParticipantStats(): Promise<ParticipantStats> {
       [TaskType.ORDER_ASSIGNMENT]: { A: 0, B: 0 },
       [TaskType.ORDER_VALIDATION]: { A: 0, B: 0 },
       [TaskType.DELIVERY_SCHEDULING]: { A: 0, B: 0 },
+    },
+    hesitationTimes: {
+      [TaskType.ORDER_ASSIGNMENT]: { A: [], B: [] },
     },
     taskSpecificMetrics: {
       [TaskType.ORDER_ASSIGNMENT]: {
@@ -184,6 +191,30 @@ async function getParticipantStats(): Promise<ParticipantStats> {
       }
     });
 
+    // Calculate hesitation times for order assignment
+    const orderAssignmentLogs = participant.actionLogs.filter(
+      log => log.task === TaskType.ORDER_ASSIGNMENT
+    );
+
+    // Group logs by orderId to calculate hesitation times
+    const orderGroups = orderAssignmentLogs.reduce((groups, log) => {
+      if (!log.orderId) return groups;
+      if (!groups[log.orderId]) groups[log.orderId] = [];
+      groups[log.orderId].push(log);
+      return groups;
+    }, {} as Record<string, typeof orderAssignmentLogs>);
+
+    // Calculate hesitation time for each order
+    Object.values(orderGroups).forEach(logs => {
+      const selectLog = logs.find(log => log.action === 'ORDER_SELECT');
+      const submitLog = logs.find(log => log.action === 'CASE_SUBMIT');
+      
+      if (selectLog && submitLog) {
+        const hesitationTime = submitLog.timestamp.getTime() - selectLog.timestamp.getTime();
+        stats.hesitationTimes[TaskType.ORDER_ASSIGNMENT][participant.version].push(hesitationTime);
+      }
+    });
+
     // Questionnaire data
     if (participant.questionnaire) {
       stats.nasaTlx.mental[participant.version] += participant.questionnaire.nasaTlxMental;
@@ -235,6 +266,17 @@ async function getParticipantStats(): Promise<ParticipantStats> {
   stats.confidenceRatings.A /= versionACount;
   stats.confidenceRatings.B /= versionBCount;
 
+  // Calculate average hesitation times
+  Object.keys(stats.hesitationTimes).forEach(task => {
+    const taskKey = task as keyof typeof stats.hesitationTimes;
+    const aTimes = stats.hesitationTimes[taskKey].A;
+    const bTimes = stats.hesitationTimes[taskKey].B;
+    const avgATime = aTimes.length > 0 ? aTimes.reduce((a: number, b: number) => a + b, 0) / aTimes.length : 0;
+    const avgBTime = bTimes.length > 0 ? bTimes.reduce((a: number, b: number) => a + b, 0) / bTimes.length : 0;
+    stats.hesitationTimes[taskKey].A = [avgATime];
+    stats.hesitationTimes[taskKey].B = [avgBTime];
+  });
+
   return stats;
 }
 
@@ -256,6 +298,20 @@ export default async function AnalysisPage() {
     versionB: rates.B,
     reduction: rates.A === 0 ? '100.0' : ((rates.A - rates.B) / rates.A * 100).toFixed(1)
   }));
+
+  const hesitationTimeData: ChartData[] = Object.entries(stats.hesitationTimes).map(([task, times]) => {
+    const versionA = times.A[0] || 0;
+    const versionB = times.B[0] || 0;
+    // Calculate percentage reduction (positive means improvement, negative means worse)
+    const improvement = versionA === 0 ? '100.0' : ((versionA - versionB) / versionA * 100).toFixed(1);
+    
+    return {
+      name: task.replace('_', ' '),
+      versionA,
+      versionB,
+      improvement
+    };
+  });
 
   const nasaTlxData: ChartData[] = [
     { name: 'Mental', versionA: stats.nasaTlx.mental.A, versionB: stats.nasaTlx.mental.B },
@@ -377,6 +433,9 @@ export default async function AnalysisPage() {
             </div>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <ErrorRates errorRatesData={errorRatesData} />
+              <HesitationTime hesitationTimeData={hesitationTimeData} />
+            </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-6">
               <NasaTLX nasaTlxData={nasaTlxData} />
             </div>
           </section>
