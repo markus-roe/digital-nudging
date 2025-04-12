@@ -52,7 +52,7 @@ model Participant {
 model ActionLog {
   id            String      @id @default(cuid())
   participantId String
-  participant   Participant @relation(fields: [participantId], references: [id])
+  participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
   action        ActionType
   task          TaskType
   orderId       String?
@@ -64,7 +64,7 @@ model ActionLog {
 model ErrorLog {
   id            String      @id @default(cuid())
   participantId String
-  participant   Participant @relation(fields: [participantId], references: [id])
+  participant   Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
   errorType     ErrorType
   task          TaskType
   orderId       String
@@ -76,7 +76,7 @@ model ErrorLog {
 model Questionnaire {
   id              String   @id @default(cuid())
   participantId   String   @unique
-  participant     Participant @relation(fields: [participantId], references: [id])
+  participant     Participant @relation(fields: [participantId], references: [id], onDelete: Cascade)
   version         String
   nasaTlxMental   Int
   nasaTlxPhysical Int

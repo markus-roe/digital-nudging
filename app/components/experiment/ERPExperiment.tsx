@@ -5,9 +5,7 @@ import OrderAssignmentTask from "@/app/components/experiment/tasks/order-assignm
 import DeliverySchedulingTask from "@/app/components/experiment/tasks/delivery-scheduling/DeliverySchedulingTask";
 import { ExperimentVersion } from "@/lib/types/experiment";
 import { ExperimentProvider, useExperiment } from "@/lib/context/ExperimentContext";
-import { initialOrderValidations } from "@/lib/data/orderValidationData";
 import ExperimentCompletion from "./shared/ExperimentCompletion";
-import { OrderValidationProvider } from "@/lib/context/OrderValidationContext";
 
 interface ERPExperimentProps {
   version: ExperimentVersion;
@@ -78,9 +76,7 @@ function ExperimentContent() {
 export default function ERPExperiment({ version }: ERPExperimentProps) {
   return (
     <ExperimentProvider version={version}>
-      <OrderValidationProvider initialOrders={initialOrderValidations}>
         <ExperimentContent />
-      </OrderValidationProvider>
     </ExperimentProvider>
   );
 } 

@@ -7,7 +7,8 @@ import {
   ErrorRates,
   NasaTLX,
   SUS,
-  Confidence
+  Confidence,
+  HesitationTime
 } from '../components/analysis/Charts';
 
 type ParticipantWithRelations = Participant & {
@@ -62,6 +63,9 @@ interface ParticipantStats {
   taskCompletion: Record<TaskType, { A: number; B: number }>;
   caseDurations: Record<TaskType, { A: number[]; B: number[] }>;
   errorRates: Record<TaskType, { A: number; B: number }>;
+  hesitationTimes: {
+    [TaskType.ORDER_ASSIGNMENT]: { A: number[]; B: number[] };
+  };
   taskSpecificMetrics: {
     [TaskType.ORDER_ASSIGNMENT]: TaskSpecificMetrics;
     [TaskType.ORDER_VALIDATION]: ValidationMetrics;
@@ -109,6 +113,9 @@ async function getParticipantStats(): Promise<ParticipantStats> {
       [TaskType.ORDER_ASSIGNMENT]: { A: 0, B: 0 },
       [TaskType.ORDER_VALIDATION]: { A: 0, B: 0 },
       [TaskType.DELIVERY_SCHEDULING]: { A: 0, B: 0 },
+    },
+    hesitationTimes: {
+      [TaskType.ORDER_ASSIGNMENT]: { A: [], B: [] },
     },
     taskSpecificMetrics: {
       [TaskType.ORDER_ASSIGNMENT]: {
@@ -184,6 +191,34 @@ async function getParticipantStats(): Promise<ParticipantStats> {
       }
     });
 
+    // Calculate hesitation times for order assignment
+    const orderAssignmentLogs = participant.actionLogs.filter(
+      log => log.task === TaskType.ORDER_ASSIGNMENT
+    );
+
+    // Group logs by orderId to calculate hesitation times
+    const orderGroups = orderAssignmentLogs.reduce((groups, log) => {
+      if (!log.orderId) return groups;
+      if (!groups[log.orderId]) groups[log.orderId] = [];
+      groups[log.orderId].push(log);
+      return groups;
+    }, {} as Record<string, typeof orderAssignmentLogs>);
+
+    // Calculate hesitation time between order groups
+    const orderIds = Object.keys(orderGroups);
+    for (let i = 0; i < orderIds.length - 1; i++) {
+      const currentGroup = orderGroups[orderIds[i]];
+      const nextGroup = orderGroups[orderIds[i + 1]];
+      
+      const currentSubmit = currentGroup.find(log => log.action === 'CASE_SUBMIT');
+      const nextSelect = nextGroup.find(log => log.action === 'ORDER_SELECT');
+      
+      if (currentSubmit && nextSelect) {
+        const hesitationTime = nextSelect.timestamp.getTime() - currentSubmit.timestamp.getTime();
+        stats.hesitationTimes[TaskType.ORDER_ASSIGNMENT][participant.version].push(hesitationTime);
+      }
+    }
+
     // Questionnaire data
     if (participant.questionnaire) {
       stats.nasaTlx.mental[participant.version] += participant.questionnaire.nasaTlxMental;
@@ -193,9 +228,17 @@ async function getParticipantStats(): Promise<ParticipantStats> {
       stats.nasaTlx.effort[participant.version] += participant.questionnaire.nasaTlxEffort;
       stats.nasaTlx.frustration[participant.version] += participant.questionnaire.nasaTlxFrustration;
       
-      // Calculate SUS score (average of responses)
-      stats.susScores[participant.version] += 
-        participant.questionnaire.susResponses.reduce((a, b) => a + b, 0) / 10;
+      // Calculate SUS score
+      const susPoints = participant.questionnaire.susResponses.map((response, index) => {
+        return index % 2 === 0
+          ? response - 1 // positive Qs
+          : 5 - response; // negative Qs
+      });
+      const userSUSScore = susPoints.reduce((a, b) => a + b, 0) * 2.5;
+      
+      
+      stats.susScores[participant.version] += userSUSScore;
+      
       
       stats.confidenceRatings[participant.version] += participant.questionnaire.confidenceRating;
     }
@@ -235,6 +278,17 @@ async function getParticipantStats(): Promise<ParticipantStats> {
   stats.confidenceRatings.A /= versionACount;
   stats.confidenceRatings.B /= versionBCount;
 
+  // Calculate average hesitation times
+  Object.keys(stats.hesitationTimes).forEach(task => {
+    const taskKey = task as keyof typeof stats.hesitationTimes;
+    const aTimes = stats.hesitationTimes[taskKey].A;
+    const bTimes = stats.hesitationTimes[taskKey].B;
+    const avgATime = aTimes.length > 0 ? aTimes.reduce((a: number, b: number) => a + b, 0) / aTimes.length : 0;
+    const avgBTime = bTimes.length > 0 ? bTimes.reduce((a: number, b: number) => a + b, 0) / bTimes.length : 0;
+    stats.hesitationTimes[taskKey].A = [avgATime];
+    stats.hesitationTimes[taskKey].B = [avgBTime];
+  });
+
   return stats;
 }
 
@@ -256,6 +310,20 @@ export default async function AnalysisPage() {
     versionB: rates.B,
     reduction: rates.A === 0 ? '100.0' : ((rates.A - rates.B) / rates.A * 100).toFixed(1)
   }));
+
+  const hesitationTimeData: ChartData[] = Object.entries(stats.hesitationTimes).map(([task, times]) => {
+    const versionA = times.A[0] || 0;
+    const versionB = times.B[0] || 0;
+    // Calculate percentage reduction (positive means improvement, negative means worse)
+    const improvement = versionA === 0 ? '100.0' : ((versionA - versionB) / versionA * 100).toFixed(1);
+    
+    return {
+      name: task.replace('_', ' '),
+      versionA,
+      versionB,
+      improvement
+    };
+  });
 
   const nasaTlxData: ChartData[] = [
     { name: 'Mental', versionA: stats.nasaTlx.mental.A, versionB: stats.nasaTlx.mental.B },
@@ -285,7 +353,7 @@ export default async function AnalysisPage() {
     <div className="min-h-screen bg-gray-100">
       {/* Dashboard Header */}
       <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 border-b border-gray-200/50 shadow-sm mb-8">
-        <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="max-w-[1920px] mx-auto px-6 py-8">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Experiment Analysis</h1>
@@ -294,16 +362,33 @@ export default async function AnalysisPage() {
               </p>
             </div>
             <div className="flex items-center space-x-4">
-              <div className="bg-white px-6 py-3 rounded-lg shadow-sm border border-gray-200">
-                <div className="text-sm font-medium text-gray-600">Total Participants</div>
-                <div className="text-3xl font-bold text-blue-600">{participantCount}</div>
+              <div className="bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200">
+                <div className="text-xs font-medium text-gray-600">Total Participants</div>
+                <div className="text-2xl font-bold text-blue-600">{participantCount}</div>
+              </div>
+              <div className="bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200">
+                <div className="text-xs font-medium text-gray-600">Version Distribution</div>
+                <div className="mt-1">
+                  <div className="flex items-center space-x-1">
+                    <div className="flex-1 bg-blue-100 rounded-full h-2">
+                      <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${(versionDistributionData[0].value / participantCount) * 100}%` }}></div>
+                    </div>
+                    <div className="text-xs text-gray-600">A: {versionDistributionData[0].value}</div>
+                  </div>
+                  <div className="flex items-center space-x-1 mt-1">
+                    <div className="flex-1 bg-green-100 rounded-full h-2">
+                      <div className="bg-green-600 h-2 rounded-full" style={{ width: `${(versionDistributionData[1].value / participantCount) * 100}%` }}></div>
+                    </div>
+                    <div className="text-xs text-gray-600">B: {versionDistributionData[1].value}</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-6">
+      <div className="max-w-[1920px] mx-auto px-6">
         {/* Summary Section */}
         <div className="mb-8">
           <h2 className="text-xl font-semibold text-gray-900 mb-6">Key Improvements with Digital Nudging</h2>
@@ -371,12 +456,10 @@ export default async function AnalysisPage() {
           {/* Performance Metrics */}
           <section>
             <h2 className="text-xl font-semibold text-gray-900 mb-6">Performance Metrics</h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-              <VersionDistribution versionDistributionData={versionDistributionData} />
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
               <TaskCompletion taskCompletionData={taskCompletionData} />
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               <ErrorRates errorRatesData={errorRatesData} />
+              <HesitationTime hesitationTimeData={hesitationTimeData} />
               <NasaTLX nasaTlxData={nasaTlxData} />
             </div>
           </section>
@@ -384,7 +467,7 @@ export default async function AnalysisPage() {
           {/* User Experience Metrics */}
           <section className="mb-8">
             <h2 className="text-xl font-semibold text-gray-900 mb-6">User Experience Metrics</h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
               <SUS susScores={susScores} />
               <Confidence confidenceRatings={confidenceRatings} />
             </div>

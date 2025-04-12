@@ -103,7 +103,7 @@ type SectionConfig = {
 };
 
 export default function QuestionnaireForm({ onSubmit }: QuestionnaireFormProps) {
-  const [currentStep, setCurrentStep] = useState<Step>('nasa-tlx');
+  const [currentStep, setCurrentStep] = useState<Step>('sus');
   const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
   const questionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -311,23 +311,23 @@ export default function QuestionnaireForm({ onSubmit }: QuestionnaireFormProps) 
       },
       'sus': {
         questions: [
-          "I think that I would like to use this order delivery management system frequently",
-          "I found the order delivery management system unnecessarily complex",
-          "I thought the order delivery management system was easy to use",
-          "I think that I would need the support of a technical person to be able to use this system",
-          "I found the various functions in the order delivery management system were well integrated",
-          "I thought there was too much inconsistency in the order delivery management system",
-          "I would imagine that most people would learn to use this order delivery management system very quickly",
-          "I found the order delivery management system very cumbersome to use",
-          "I felt very confident using the order delivery management system",
-          "I needed to learn a lot of things before I could get going with this order delivery management system"
+          "The interface was intuitive to use.",
+          "I felt uncertain completing the tasks with this interface.",
+          "The information was presented in a clear and understandable way.",
+          "It was difficult to navigate through the different steps of each task.",
+          "The interface helped me complete the tasks efficiently.",
+          "I was unsure about what actions were expected of me during each task.",
+          "The visual design of the interface supported my decision-making.",
+          "The functionality of the interface did not meet my expectations.",
+          "The interface responded reliably to my inputs.",
+          "Overall, the interface provided a poor user experience."
         ].map((question, index) => ({
           title: question,
           value: sus[index],
           onChange: (rating: number) => handleSusChange(index, rating),
-          options: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
-          leftLabel: "Disagree",
-          rightLabel: "Agree",
+          options: [1, 2, 3, 4, 5],
+          leftLabel: "Strongly Disagree",
+          rightLabel: "Strongly Agree",
           name: `sus-${index}`
         })),
         totalSteps: 10
