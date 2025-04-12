@@ -103,7 +103,7 @@ type SectionConfig = {
 };
 
 export default function QuestionnaireForm({ onSubmit }: QuestionnaireFormProps) {
-  const [currentStep, setCurrentStep] = useState<Step>('sus');
+  const [currentStep, setCurrentStep] = useState<Step>('nasa-tlx');
   const [activeQuestionIndex, setActiveQuestionIndex] = useState(0);
   const questionRefs = useRef<(HTMLDivElement | null)[]>([]);
   const contentRef = useRef<HTMLDivElement>(null);
