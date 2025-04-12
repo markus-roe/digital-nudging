@@ -211,7 +211,7 @@ async function getParticipantStats(): Promise<ParticipantStats> {
       const nextGroup = orderGroups[orderIds[i + 1]];
       
       const currentSubmit = currentGroup.find(log => log.action === 'CASE_SUBMIT');
-      const nextSelect = nextGroup.find(log => log.action === 'CASE_START');
+      const nextSelect = nextGroup.find(log => log.action === 'ORDER_SELECT');
       
       if (currentSubmit && nextSelect) {
         const hesitationTime = nextSelect.timestamp.getTime() - currentSubmit.timestamp.getTime();
@@ -228,9 +228,17 @@ async function getParticipantStats(): Promise<ParticipantStats> {
       stats.nasaTlx.effort[participant.version] += participant.questionnaire.nasaTlxEffort;
       stats.nasaTlx.frustration[participant.version] += participant.questionnaire.nasaTlxFrustration;
       
-      // Calculate SUS score (average of responses)
-      stats.susScores[participant.version] += 
-        participant.questionnaire.susResponses.reduce((a, b) => a + b, 0) / 10;
+      // Calculate SUS score
+      const susPoints = participant.questionnaire.susResponses.map((response, index) => {
+        return index % 2 === 0
+          ? response - 1 // positive Qs
+          : 5 - response; // negative Qs
+      });
+      const userSUSScore = susPoints.reduce((a, b) => a + b, 0) * 2.5;
+      
+      
+      stats.susScores[participant.version] += userSUSScore;
+      
       
       stats.confidenceRatings[participant.version] += participant.questionnaire.confidenceRating;
     }
@@ -354,9 +362,26 @@ export default async function AnalysisPage() {
               </p>
             </div>
             <div className="flex items-center space-x-4">
-              <div className="bg-white px-6 py-3 rounded-lg shadow-sm border border-gray-200">
-                <div className="text-sm font-medium text-gray-600">Total Participants</div>
-                <div className="text-3xl font-bold text-blue-600">{participantCount}</div>
+              <div className="bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200">
+                <div className="text-xs font-medium text-gray-600">Total Participants</div>
+                <div className="text-2xl font-bold text-blue-600">{participantCount}</div>
+              </div>
+              <div className="bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200">
+                <div className="text-xs font-medium text-gray-600">Version Distribution</div>
+                <div className="mt-1">
+                  <div className="flex items-center space-x-1">
+                    <div className="flex-1 bg-blue-100 rounded-full h-2">
+                      <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${(versionDistributionData[0].value / participantCount) * 100}%` }}></div>
+                    </div>
+                    <div className="text-xs text-gray-600">A: {versionDistributionData[0].value}</div>
+                  </div>
+                  <div className="flex items-center space-x-1 mt-1">
+                    <div className="flex-1 bg-green-100 rounded-full h-2">
+                      <div className="bg-green-600 h-2 rounded-full" style={{ width: `${(versionDistributionData[1].value / participantCount) * 100}%` }}></div>
+                    </div>
+                    <div className="text-xs text-gray-600">B: {versionDistributionData[1].value}</div>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -431,12 +456,9 @@ export default async function AnalysisPage() {
           {/* Performance Metrics */}
           <section>
             <h2 className="text-xl font-semibold text-gray-900 mb-6">Performance Metrics</h2>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-              <VersionDistribution versionDistributionData={versionDistributionData} />
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
               <TaskCompletion taskCompletionData={taskCompletionData} />
               <ErrorRates errorRatesData={errorRatesData} />
-            </div>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <HesitationTime hesitationTimeData={hesitationTimeData} />
               <NasaTLX nasaTlxData={nasaTlxData} />
             </div>
@@ -445,7 +467,7 @@ export default async function AnalysisPage() {
           {/* User Experience Metrics */}
           <section className="mb-8">
             <h2 className="text-xl font-semibold text-gray-900 mb-6">User Experience Metrics</h2>
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
               <SUS susScores={susScores} />
               <Confidence confidenceRatings={confidenceRatings} />
             </div>

@@ -147,7 +147,8 @@ function DemographicsCharts({ demographics }: DemographicsChartsProps) {
             return `${value} participants (${percentage}%)`;
           }
         }
-      }
+      },
+      scales: {},
     },
   };
 
@@ -225,6 +226,7 @@ const VersionDistribution = ({ versionDistributionData }: { versionDistributionD
         }
       }
     },
+    scales: {},
   };
 
   return (
@@ -413,12 +415,12 @@ const NasaTLX = ({ nasaTlxData }: { nasaTlxData: any[] }) => {
             ? ((d.versionB - d.versionA) / d.versionA * 100).toFixed(1)
             : ((d.versionA - d.versionB) / d.versionA * 100).toFixed(1);
           const sign = isPerformance ? '+' : '-';
-          const label = isPerformance ? 'improved by' : 'reduced by';
+          const label = 'improved by';
           
           return (
             <div key={i} className="flex justify-between items-center py-1">
               <span>{d.name}</span>
-              <span className="text-green-600">Workload {label} {Math.abs(parseFloat(improvement))}%</span>
+              <span className="text-green-600">Score {label} {Math.abs(parseFloat(improvement))}%</span>
             </div>
           );
         })}
@@ -436,6 +438,12 @@ const SUS = ({ susScores }: { susScores: { versionA: number; versionB: number } 
         <Bar
           options={{
             ...commonChartOptions,
+            plugins: {
+              ...commonChartOptions.plugins,
+              legend: {
+                display: false,
+              },
+            },
             scales: {
               ...commonChartOptions.scales,
               y: {
@@ -457,7 +465,6 @@ const SUS = ({ susScores }: { susScores: { versionA: number; versionB: number } 
           data={{
             labels: ['Version A', 'Version B'],
             datasets: [{
-              label: 'SUS Score',
               data: [susScores.versionA, susScores.versionB],
               backgroundColor: [COLORS[0], COLORS[1]],
               borderRadius: 2,
@@ -476,17 +483,23 @@ const Confidence = ({ confidenceRatings }: { confidenceRatings: { versionA: numb
   return (
     <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
       <h3 className="text-sm font-medium text-gray-700 mb-4">Confidence Ratings</h3>
-      <div className="text-xs text-gray-500 mb-4">1-5 scale (higher is better)</div>
+      <div className="text-xs text-gray-500 mb-4">1-10 scale (higher is better)</div>
       <div className="h-[240px]">
         <Bar
           options={{
             ...commonChartOptions,
+            plugins: {
+              ...commonChartOptions.plugins,
+              legend: {
+                display: false,
+              },
+            },
             scales: {
               ...commonChartOptions.scales,
               y: {
                 ...commonChartOptions.scales.y,
                 min: 0,
-                max: 5,
+                max: 10,
                 title: {
                   display: true,
                   text: 'Confidence Score',
@@ -502,7 +515,6 @@ const Confidence = ({ confidenceRatings }: { confidenceRatings: { versionA: numb
           data={{
             labels: ['Version A', 'Version B'],
             datasets: [{
-              label: 'Confidence Score',
               data: [confidenceRatings.versionA, confidenceRatings.versionB],
               backgroundColor: [COLORS[0], COLORS[1]],
               borderRadius: 2,
