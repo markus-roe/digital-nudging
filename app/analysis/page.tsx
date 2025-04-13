@@ -8,7 +8,8 @@ import {
   NasaTLX,
   SUS,
   Confidence,
-  HesitationTime
+  HesitationTime,
+  CaseDurations
 } from '../components/analysis/Charts';
 
 type ParticipantWithRelations = Participant & {
@@ -160,7 +161,7 @@ async function getParticipantStats(): Promise<ParticipantStats> {
         }
       } else if (log.action === 'CASE_SUBMIT') {
         const caseStart = participant.actionLogs.find(
-          l => l.action === 'CASE_START' && l.task === log.task && l.orderId === log.orderId
+          l => l.action === 'ORDER_SELECT' && l.task === log.task && l.orderId === log.orderId
         );
         if (caseStart) {
           const duration = log.timestamp.getTime() - caseStart.timestamp.getTime();
@@ -349,6 +350,12 @@ export default async function AnalysisPage() {
     { name: 'Version B', value: participants.filter(p => p.version === Version.B).length }
   ];
 
+  const caseDurationsData = Object.entries(stats.caseDurations).map(([task, durations]) => ({
+    task,
+    versionA: durations.A,
+    versionB: durations.B
+  }));
+
   return (
     <div className="min-h-screen bg-gray-100">
       {/* Dashboard Header */}
@@ -458,18 +465,20 @@ export default async function AnalysisPage() {
             <h2 className="text-xl font-semibold text-gray-900 mb-6">Performance Metrics</h2>
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
               <TaskCompletion taskCompletionData={taskCompletionData} />
+              <CaseDurations caseDurationsData={caseDurationsData} />
               <ErrorRates errorRatesData={errorRatesData} />
               <HesitationTime hesitationTimeData={hesitationTimeData} />
-              <NasaTLX nasaTlxData={nasaTlxData} />
             </div>
           </section>
 
           {/* User Experience Metrics */}
           <section className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">User Experience Metrics</h2>
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">Questionnaire Results</h2>
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
               <SUS susScores={susScores} />
               <Confidence confidenceRatings={confidenceRatings} />
+              <NasaTLX nasaTlxData={nasaTlxData} />
+
             </div>
           </section>
         </div>

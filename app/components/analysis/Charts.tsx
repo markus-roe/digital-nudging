@@ -443,6 +443,14 @@ const SUS = ({ susScores }: { susScores: { versionA: number; versionB: number } 
               legend: {
                 display: false,
               },
+              tooltip: {
+                ...commonChartOptions.plugins.tooltip,
+                callbacks: {
+                  label: (context: any) => {
+                    return `SUS Score: ${context.raw.toFixed(1)}`;
+                  }
+                }
+              }
             },
             scales: {
               ...commonChartOptions.scales,
@@ -493,6 +501,14 @@ const Confidence = ({ confidenceRatings }: { confidenceRatings: { versionA: numb
               legend: {
                 display: false,
               },
+              tooltip: {
+                ...commonChartOptions.plugins.tooltip,
+                callbacks: {
+                  label: (context: any) => {
+                    return `Confidence Score: ${context.raw.toFixed(1)}`;
+                  }
+                }
+              }
             },
             scales: {
               ...commonChartOptions.scales,
@@ -625,6 +641,70 @@ const HesitationTime = ({ hesitationTimeData }: { hesitationTimeData: ChartData[
   );
 };
 
+const CaseDurations = ({ caseDurationsData }: { caseDurationsData: { task: string; versionA: number[]; versionB: number[] }[] }) => {
+  return (
+    <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
+      <h3 className="text-sm font-medium text-gray-700 mb-4">Case Duration</h3>
+      <div className="text-xs text-gray-500 mb-4">Average time per case in seconds (lower is better)</div>
+      <div className="h-[240px]">
+        <Bar
+          data={{
+            labels: caseDurationsData.map(d => d.task.replace('_', ' ')),
+            datasets: [
+              {
+                label: 'Version A',
+                data: caseDurationsData.map(d => d.versionA[0] / 1000), // Convert ms to seconds
+                backgroundColor: COLORS[0],
+                borderRadius: 2,
+              },
+              {
+                label: 'Version B',
+                data: caseDurationsData.map(d => d.versionB[0] / 1000), // Convert ms to seconds
+                backgroundColor: COLORS[1],
+                borderRadius: 2,
+              }
+            ]
+          }}
+          options={{
+            ...commonChartOptions,
+            scales: {
+              ...commonChartOptions.scales,
+              y: {
+                ...commonChartOptions.scales.y,
+                title: {
+                  display: true,
+                  text: 'Time (seconds)',
+                  font: {
+                    family: 'Inter, system-ui, sans-serif',
+                    size: 11,
+                    weight: 500,
+                  },
+                },
+                ticks: {
+                  callback: function(value: number | string) {
+                    return `${Number(value).toFixed(1)}s`;
+                  }
+                }
+              },
+            },
+          }}
+        />
+      </div>
+      <div className="mt-4 text-xs text-gray-600">
+        {caseDurationsData.map((d, i) => {
+          const improvement = ((d.versionA[0] - d.versionB[0]) / d.versionA[0] * 100).toFixed(1);
+          return (
+            <div key={i} className="flex justify-between items-center py-1">
+              <span>{d.task.replace('_', ' ')}</span>
+              <span className="text-green-600">Time per case reduced by {improvement}%</span>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 // Main Charts component with all subcomponents
 const Charts = {
   DemographicsCharts,
@@ -635,6 +715,7 @@ const Charts = {
   SUS,
   Confidence,
   HesitationTime,
+  CaseDurations,
 };
 
 export {
@@ -646,6 +727,7 @@ export {
   SUS,
   Confidence,
   HesitationTime,
+  CaseDurations,
 };
 
 export default Charts; 
