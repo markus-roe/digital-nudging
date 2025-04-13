@@ -1,7 +1,7 @@
 import { WorkflowStep } from '../data/workflowSteps';
 
 // Development mode flag - set to true to make all tasks accessible
-export const DEV_MODE = true;
+export const DEV_MODE = process.env.NODE_ENV === 'development';
 
 type TaskProgress = {
   validation: boolean;
