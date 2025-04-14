@@ -10,7 +10,6 @@ export default function ExperimentOnboarding({ onIntroComplete }: ExperimentOnbo
   const [registrationCompleted, setRegistrationCompleted] = useState(false);
   const { setParticipantId, version } = useExperiment();
   // Registration form state
-  const [email, setEmail] = useState('');
   const [age, setAge] = useState('');
   const [gender, setGender] = useState('');
   const [experience, setExperience] = useState('');
@@ -32,7 +31,6 @@ export default function ExperimentOnboarding({ onIntroComplete }: ExperimentOnbo
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          email,
           demographics: {
             age,
             gender,
@@ -64,22 +62,39 @@ export default function ExperimentOnboarding({ onIntroComplete }: ExperimentOnbo
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center py-8">
       <div className="container mx-auto p-6 max-w-2xl">
         <div className="bg-white rounded-lg shadow-md p-6">
-          <div className="flex flex-col h-[700px]">
+          <div className="flex flex-col">
             <div className="text-center mb-6">
               <h1 className="text-2xl font-bold">
-                {!registrationCompleted ? "Experiment Registration" : "Welcome to DeliverEase ERP System"}
+                {!registrationCompleted ? "Thank you for participating in this study!" : "Welcome to DeliverEase ERP System"}
               </h1>
             </div>
             
-            <div className="flex-grow">
+            <div className={`flex-grow ${registrationCompleted ? 'overflow-y-auto pr-1 max-h-[550px]' : ''}`}>
               {!registrationCompleted ? (
                 <>
-                  <p className="mb-6 text-gray-600">
-                    Thank you for participating in our study on ERP interfaces. Please complete this form to begin.
-                    Your email will only be used for the giveaway and will not be shared with third parties.
+                  <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-6">
+                    <h3 className="font-medium text-blue-800 mb-2">About the Study</h3>
+                    <p className="text-gray-700">
+                      This study explores how different interface designs affect decision-making in ERP systems. Your participation will help improve these systems for real-world users.
+                    </p>
+                  </div>
+  
+                  <div className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-6">
+                    <div className="flex items-start gap-3">
+                      <svg className="w-5 h-5 text-gray-500 mt-0.5 flex-shrink-0" fill="none" stroke="orange" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <p className="text-gray-700">
+                        ERP (Enterprise Resource Planning) systems are software platforms that integrate business processes, helping companies manage information and resources efficiently.
+                      </p>
+                    </div>
+                  </div>
+
+                  <p className="mt-6 mb-2 font-medium text-gray-600 text-center">
+                    Please complete this form to begin:
                   </p>
                   
                   {error && (
@@ -89,19 +104,7 @@ export default function ExperimentOnboarding({ onIntroComplete }: ExperimentOnbo
                   )}
                   
                   <form onSubmit={handleRegistrationSubmit} className="space-y-4">
-                    <div>
-                      <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-                        Email (for giveaway participation)
-                      </label>
-                      <input
-                        id="email"
-                        type="email"
-                        value={email}
-                        onChange={(e) => setEmail(e.target.value)}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                        placeholder="your.email@example.com"
-                      />
-                    </div>
+
                     
                     <div>
                       <label htmlFor="age" className="block text-sm font-medium text-gray-700 mb-1">
@@ -181,32 +184,31 @@ export default function ExperimentOnboarding({ onIntroComplete }: ExperimentOnbo
               ) : (
                 <>
                   <div className="text-center">
-                    <p className="text-gray-600 mb-6">
-                      Thank you for participating in our study. We're excited to have you try our order delivery management system.
-                    </p>
-                    
                     <div className="bg-blue-50 p-4 rounded-lg border border-blue-100 mb-6">
                       <h3 className="font-medium text-blue-800 mb-2">Your Mission Today</h3>
                       <p className="text-gray-700">
-                        You'll be stepping into the role of an order management specialist at DeliverEase, helping ensure packages reach customers efficiently and on time.
+                        You'll be stepping into the role of an order management specialist at DeliverEase, helping ensure orders are processed efficiently and shipped on time.
                       </p>
                     </div>
-                    
+                  
                     <h3 className="font-medium text-gray-800 mb-3">Your workflow consists of three key tasks:</h3>
                     <ol className="list-decimal text-left mx-auto max-w-md space-y-3 mb-6">
                       <li className="bg-gray-50 p-2 rounded">
-                        <span className="font-medium">Validating order details</span> - Ensure all customer information is accurate
+                        <span className="font-medium">Validating order details</span>
+                        <br />
+                        Ensure all customer information is accurate
                       </li>
                       <li className="bg-gray-50 p-2 rounded">
-                        <span className="font-medium">Assigning drivers</span> - Match orders with the right delivery personnel
+                        <span className="font-medium">Assigning drivers</span>
+                        <br />
+                        Match orders with the right delivery personnel
                       </li>
                       <li className="bg-gray-50 p-2 rounded">
-                        <span className="font-medium">Scheduling deliveries</span> - Set optimal delivery times
+                        <span className="font-medium">Scheduling deliveries</span>
+                        <br />
+                        Set optimal delivery times for each order
                       </li>
                     </ol>
-                    <p className="text-gray-600 italic">
-                      Your input will help us improve delivery management systems for real-world users!
-                    </p>
                   </div>
                 </>
               )}
