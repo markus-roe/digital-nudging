@@ -4,20 +4,12 @@ import { prisma } from '@/lib/prisma';
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { email, demographics, version } = body;
-    
-    // if (!email) {
-    //   return NextResponse.json(
-    //     { error: 'Email is required' },
-    //     { status: 400 }
-    //   );
-    // }
+    const { demographics, version } = body;
     
     // Use the version provided by the client (which was assigned by the version-assignment API)
     // This ensures we maintain the version balance
     const participant = await prisma.participant.create({
       data: {
-        email,
         age: demographics.age,
         gender: demographics.gender,
         experience: demographics.experience,

@@ -558,20 +558,6 @@ const HesitationTime = ({ hesitationTimeData }: { hesitationTimeData: ChartData[
     d.versionB > 0
   );
 
-  console.log('Valid Hesitation Time Data:', validData);
-
-  if (validData.length === 0) {
-    return (
-      <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
-        <h3 className="text-sm font-medium text-gray-700 mb-4">Order Transition Time</h3>
-        <div className="text-xs text-gray-500 mb-4">Time between completing one order and starting the next (lower is better)</div>
-        <div className="h-[240px] flex items-center justify-center text-gray-500">
-          No transition time data available
-        </div>
-      </div>
-    );
-  }
-
   // Convert milliseconds to seconds and ensure we have valid numbers
   const chartData = {
     labels: validData.map(d => d.name),
@@ -595,7 +581,7 @@ const HesitationTime = ({ hesitationTimeData }: { hesitationTimeData: ChartData[
 
   return (
     <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
-      <h3 className="text-sm font-medium text-gray-700 mb-4">Order Transition Time</h3>
+      <h3 className="text-sm font-medium text-gray-700 mb-4">Hesitation Time</h3>
       <div className="text-xs text-gray-500 mb-4">Time between completing one order and starting the next (lower is better)</div>
       <div className="h-[240px]">
         <Bar

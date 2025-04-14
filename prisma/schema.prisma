@@ -37,7 +37,6 @@ enum ErrorType {
 
 model Participant {
   id            String      @id @default(cuid())
-  email         String?
   age           String?
   gender        String?
   experience    String?
