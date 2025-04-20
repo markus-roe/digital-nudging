@@ -27,6 +27,8 @@ export function useOrderValidation({ initialOrders, version }: UseOrderValidatio
   });
   const [validatedFields, setValidatedFields] = useState<Set<string>>(new Set());
   const [hasSubmitted, setHasSubmitted] = useState(false);
+
+  const allOrdersValidated = validatedOrderIds.size === orders.length;
   
   // Calculate validated orders count from the Set
   const validatedOrdersCount = validatedOrderIds.size;
@@ -231,6 +233,7 @@ export function useOrderValidation({ initialOrders, version }: UseOrderValidatio
     handleFormSubmit,
     getInputClass,
     shouldShowError,
-    getErrorMessage
+    getErrorMessage,
+    allOrdersValidated
   };
 } 

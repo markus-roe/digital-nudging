@@ -1,7 +1,6 @@
 import React, { createContext, useContext, ReactNode } from 'react';
 import { Order, Driver, Assignment } from '@/lib/types/orderAssignment';
 import { useOrderAssignment } from '@/lib/hooks/useOrderAssignment';
-import { useExperiment } from '@/lib/context/ExperimentContext';
 
 interface OrderAssignmentContextType {
   // Order management
@@ -10,20 +9,16 @@ interface OrderAssignmentContextType {
   selectedOrderId: string | null;
   assignedOrdersCount: number;
   handleOrderSelect: (orderId: string) => void;
+  allOrdersAssigned: boolean;
   
   // Driver management
   drivers: Driver[];
   handleDriverSelect: (driverId: string) => void;
-  selectedDriver: Driver | null;
   
   // Assignment management
   assignments: Record<string, Assignment>;
   handleAssignOrder: (orderId: string, driverId: string) => void;
   handleUnassignOrder: (orderId: string) => void;
-  
-  // UI helpers
-  getOrderStatusClass: (order: Order) => string;
-  getDriverStatusClass: (driver: Driver) => string;
 }
 
 const OrderAssignmentContext = createContext<OrderAssignmentContextType | null>(null);
@@ -37,7 +32,6 @@ export function OrderAssignmentProvider({
   initialOrders: Order[];
   initialDrivers: Driver[];
 }) {
-  const { version } = useExperiment();
   const assignmentState = useOrderAssignment(initialOrders, initialDrivers);
   
   return (

@@ -24,30 +24,24 @@ export default function OrderAssignmentTask({ onComplete }: OrderAssignmentProps
 function OrderAssignmentTaskContent({ onComplete }: OrderAssignmentProps) {
   const { 
     orders,
-    selectedOrder,
     assignedOrdersCount,
+    allOrdersAssigned,
   } = useOrderAssignmentContext();
   
-  // Task guidelines
-  const guidelines = [
-    "Match drivers to their zones",
-    "Process by priority",
-    "Complete all assignments to finish the task"
-  ];
-  
-  // Check if task is completed
-  const taskCompleted = assignedOrdersCount === orders.length;
-
 
   return (
     <TaskTemplate
       taskType="assignment"
       title="Order Assignment Task"
       description="In this task, you'll assign delivery orders to available drivers based on priority levels and zones."
-      guidelines={guidelines}
+      guidelines={[
+        "Match drivers to their zones",
+        "Process by priority",
+        "Complete all assignments to finish the task"
+      ]}
       progressCount={assignedOrdersCount}
       totalCount={orders.length}
-      isTaskCompleted={taskCompleted}
+      isTaskCompleted={allOrdersAssigned}
       onComplete={onComplete}
       example={<OrderAssignmentExample />}
     >
