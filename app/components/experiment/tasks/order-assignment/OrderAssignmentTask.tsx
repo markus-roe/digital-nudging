@@ -1,11 +1,10 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { initialOrders, initialDrivers } from "@/lib/data/orderAssignmentData";
 import DriversPanel from "./DriversPanel";
 import TaskTemplate from "@/app/components/experiment/shared/TaskTemplate";
 import OrderAssignmentExample from "./OrderAssignmentExample";
-import { useExperiment } from "@/lib/context/ExperimentContext";
 import { OrderAssignmentProvider, useOrderAssignmentContext } from "@/lib/context/OrderAssignmentContext";
-import VersionOrdersTable from "./VersionOrdersTable";
+import OrdersTable from "./OrdersTable";
 
 interface OrderAssignmentProps {
   onComplete?: () => void;
@@ -53,7 +52,7 @@ function OrderAssignmentTaskContent({ onComplete }: OrderAssignmentProps) {
       example={<OrderAssignmentExample />}
     >
       <div className="flex flex-col lg:flex-row gap-6 select-none">
-          <VersionOrdersTable />
+          <OrdersTable />
           <DriversPanel />
       </div>
     </TaskTemplate>

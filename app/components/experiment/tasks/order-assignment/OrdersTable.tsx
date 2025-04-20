@@ -5,7 +5,7 @@ import { getZoneColor } from '@/lib/utils/orderUtils';
 import { useOrderAssignmentContext } from '@/lib/context/OrderAssignmentContext';
 import PriorityBadge from '@/app/components/experiment/shared/PriorityBadge';
 
-export default function VersionOrdersTable() {
+export default function OrdersTable() {
   const { 
     orders, 
     selectedOrderId, 
