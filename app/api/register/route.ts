@@ -1,15 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { generateParticipantId } from '@/lib/utils/participantUtils';
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const { demographics, version } = body;
     
-    // Use the version provided by the client (which was assigned by the version-assignment API)
-    // This ensures we maintain the version balance
+    // Generate custom participant ID
+    const participantId = generateParticipantId();
+    
     const participant = await prisma.participant.create({
       data: {
+        id: participantId,
         age: demographics.age,
         gender: demographics.gender,
         experience: demographics.experience,
