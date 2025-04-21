@@ -1,13 +1,13 @@
 export interface TimeRange {
-  start: string;  // Format: "HH:mm"
-  end: string;    // Format: "HH:mm"
+  start: string;
+  end: string;
 }
 
 export interface TimeSlot {
   id: string;
-  start: string;  // Format: "HH:mm"
-  end: string;    // Format: "HH:mm"
-  workload: number;  // percentage
+  start: string;
+  end: string;
+  workload: number;
 }
 
 export interface ScheduledOrder {
