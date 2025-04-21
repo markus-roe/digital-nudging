@@ -7,10 +7,6 @@ export interface TimeSlot {
   id: string;
   start: string;  // Format: "HH:mm"
   end: string;    // Format: "HH:mm"
-}
-
-export interface TimeSlotWorkload {
-  timeSlotId: string;
   workload: number;  // percentage
 }
 
@@ -19,122 +15,122 @@ export interface ScheduledOrder {
   customer: string;
   scheduledTimeSlot: TimeSlot | null;
   preferredTimeRange: TimeRange;
-  timeSlotWorkloads: TimeSlotWorkload[];
+  availableTimeSlots: TimeSlot[];
 }
 
 // Available time slots
 export const timeSlots: TimeSlot[] = [
-  { id: 'ts-1', start: '8:00', end: '10:00' },
-  { id: 'ts-2', start: '10:00', end: '12:00' },
-  { id: 'ts-3', start: '12:00', end: '14:00' },
-  { id: 'ts-4', start: '14:00', end: '16:00' },
-  { id: 'ts-5', start: '16:00', end: '18:00' },
+  { id: 'ts-1', start: '8:00', end: '10:00', workload: 0 },
+  { id: 'ts-2', start: '10:00', end: '12:00', workload: 0 },
+  { id: 'ts-3', start: '12:00', end: '14:00', workload: 0 },
+  { id: 'ts-4', start: '14:00', end: '16:00', workload: 0 },
+  { id: 'ts-5', start: '16:00', end: '18:00', workload: 0 },
 ];
 
 // Initial assigned orders that need scheduling
 export const initialOrders: ScheduledOrder[] = [
   {
     id: '1',
-    customer: 'Acme Corp',
+    customer: 'Red Bull GmbH',
     scheduledTimeSlot: null,
     preferredTimeRange: { start: '8:00', end: '12:00' },
-    timeSlotWorkloads: [
-      { timeSlotId: 'ts-1', workload: 10 },
-      { timeSlotId: 'ts-2', workload: 30 },
-      { timeSlotId: 'ts-3', workload: 60 },
-      { timeSlotId: 'ts-4', workload: 80 },
-      { timeSlotId: 'ts-5', workload: 50 }
-    ],
+    availableTimeSlots: [
+      { id: 'ts-1', start: '8:00', end: '10:00', workload: 10 },
+      { id: 'ts-2', start: '10:00', end: '12:00', workload: 30 },
+      { id: 'ts-3', start: '12:00', end: '14:00', workload: 60 },
+      { id: 'ts-4', start: '14:00', end: '16:00', workload: 80 },
+      { id: 'ts-5', start: '16:00', end: '18:00', workload: 50 }
+    ]
   },
   {
     id: '2',
-    customer: 'Widget Inc',
+    customer: 'Swarovski KG',
     scheduledTimeSlot: null,
     preferredTimeRange: { start: '10:00', end: '14:00' },
-    timeSlotWorkloads: [
-      { timeSlotId: 'ts-1', workload: 70 },
-      { timeSlotId: 'ts-2', workload: 20 },
-      { timeSlotId: 'ts-3', workload: 40 },
-      { timeSlotId: 'ts-4', workload: 30 },
-      { timeSlotId: 'ts-5', workload: 60 }
-    ],
+    availableTimeSlots: [
+      { id: 'ts-1', start: '8:00', end: '10:00', workload: 70 },
+      { id: 'ts-2', start: '10:00', end: '12:00', workload: 20 },
+      { id: 'ts-3', start: '12:00', end: '14:00', workload: 40 },
+      { id: 'ts-4', start: '14:00', end: '16:00', workload: 30 },
+      { id: 'ts-5', start: '16:00', end: '18:00', workload: 60 }
+    ]
   },
   {
     id: '3',
-    customer: 'ABC Company',
+    customer: 'OMV AG',
     scheduledTimeSlot: null,
     preferredTimeRange: { start: '14:00', end: '18:00' },
-    timeSlotWorkloads: [
-      { timeSlotId: 'ts-1', workload: 50 },
-      { timeSlotId: 'ts-2', workload: 80 },
-      { timeSlotId: 'ts-3', workload: 30 },
-      { timeSlotId: 'ts-4', workload: 20 },
-      { timeSlotId: 'ts-5', workload: 90 }
-    ],
+    availableTimeSlots: [
+      { id: 'ts-1', start: '8:00', end: '10:00', workload: 50 },
+      { id: 'ts-2', start: '10:00', end: '12:00', workload: 80 },
+      { id: 'ts-3', start: '12:00', end: '14:00', workload: 30 },
+      { id: 'ts-4', start: '14:00', end: '16:00', workload: 20 },
+      { id: 'ts-5', start: '16:00', end: '18:00', workload: 90 }
+    ]
   },
   {
     id: '4',
-    customer: 'XYZ Ltd',
+    customer: 'Voestalpine AG',
     scheduledTimeSlot: null,
     preferredTimeRange: { start: '12:00', end: '16:00' },
-    timeSlotWorkloads: [
-      { timeSlotId: 'ts-1', workload: 40 },
-      { timeSlotId: 'ts-2', workload: 60 },
-      { timeSlotId: 'ts-3', workload: 70 },
-      { timeSlotId: 'ts-4', workload: 50 },
-      { timeSlotId: 'ts-5', workload: 10 }
-    ],
+    availableTimeSlots: [
+      { id: 'ts-1', start: '8:00', end: '10:00', workload: 40 },
+      { id: 'ts-2', start: '10:00', end: '12:00', workload: 60 },
+      { id: 'ts-3', start: '12:00', end: '14:00', workload: 70 },
+      { id: 'ts-4', start: '14:00', end: '16:00', workload: 50 },
+      { id: 'ts-5', start: '16:00', end: '18:00', workload: 10 }
+    ]
   },
   {
     id: '5',
-    customer: 'Tech Solutions',
+    customer: 'Spar Österreich',
     scheduledTimeSlot: null,
     preferredTimeRange: { start: '12:00', end: '16:00' },
-    timeSlotWorkloads: [
-      { timeSlotId: 'ts-1', workload: 40 },
-      { timeSlotId: 'ts-2', workload: 60 },
-      { timeSlotId: 'ts-3', workload: 70 },
-      { timeSlotId: 'ts-4', workload: 50 },
-      { timeSlotId: 'ts-5', workload: 10 }
-    ],
+    availableTimeSlots: [
+      { id: 'ts-1', start: '8:00', end: '10:00', workload: 40 },
+      { id: 'ts-2', start: '10:00', end: '12:00', workload: 60 },
+      { id: 'ts-3', start: '12:00', end: '14:00', workload: 70 },
+      { id: 'ts-4', start: '14:00', end: '16:00', workload: 50 },
+      { id: 'ts-5', start: '16:00', end: '18:00', workload: 10 }
+    ]
   },
   {
     id: '6',
-    customer: 'Global Enterprises',
+    customer: 'Raiffeisen Bank International',
     scheduledTimeSlot: null,
     preferredTimeRange: { start: '10:00', end: '14:00' },
-    timeSlotWorkloads: [
-      { timeSlotId: 'ts-1', workload: 40 },
-      { timeSlotId: 'ts-2', workload: 60 },
-      { timeSlotId: 'ts-3', workload: 70 },
-      { timeSlotId: 'ts-4', workload: 50 },
-      { timeSlotId: 'ts-5', workload: 10 }
-    ],
+    availableTimeSlots: [
+      { id: 'ts-1', start: '8:00', end: '10:00', workload: 80 },
+      { id: 'ts-2', start: '10:00', end: '12:00', workload: 30 },
+      { id: 'ts-3', start: '12:00', end: '14:00', workload: 40 },
+      { id: 'ts-4', start: '14:00', end: '16:00', workload: 70 },
+      { id: 'ts-5', start: '16:00', end: '18:00', workload: 90 }
+    ]
   },
   {
     id: '7',
-    customer: 'Local Shop',
+    customer: 'Billa AG',
     scheduledTimeSlot: null,
     preferredTimeRange: { start: '8:00', end: '12:00' },
-    timeSlotWorkloads: [
-      { timeSlotId: 'ts-1', workload: 40 },
-      { timeSlotId: 'ts-2', workload: 60 },
-      { timeSlotId: 'ts-3', workload: 70 },
-      { timeSlotId: 'ts-4', workload: 50 },
-      { timeSlotId: 'ts-5', workload: 10 }
-    ],
+    availableTimeSlots: [
+      { id: 'ts-1', start: '8:00', end: '10:00', workload: 40 },
+      { id: 'ts-2', start: '10:00', end: '12:00', workload: 60 },
+      { id: 'ts-3', start: '12:00', end: '14:00', workload: 70 },
+      { id: 'ts-4', start: '14:00', end: '16:00', workload: 50 },
+      { id: 'ts-5', start: '16:00', end: '18:00', workload: 10 }
+    ]
   },
   {
     id: '8',
-    customer: 'Big Corporation',
+    customer: 'Österreichische Post AG',
     scheduledTimeSlot: null,
     preferredTimeRange: { start: '14:00', end: '18:00' },
-    timeSlotWorkloads: [
-      { timeSlotId: 'ts-1', workload: 40 },
-      { timeSlotId: 'ts-2', workload: 60 },
-      { timeSlotId: 'ts-3', workload: 70 },
-      { timeSlotId: 'ts-4', workload: 50 },
-      { timeSlotId: 'ts-5', workload: 10 }
-    ],
-  },
+    availableTimeSlots: [
+      { id: 'ts-1', start: '8:00', end: '10:00', workload: 40 },
+      { id: 'ts-2', start: '10:00', end: '12:00', workload: 60 },
+      { id: 'ts-3', start: '12:00', end: '14:00', workload: 70 },
+      { id: 'ts-4', start: '14:00', end: '16:00', workload: 50 },
+      { id: 'ts-5', start: '16:00', end: '18:00', workload: 10 }
+    ]
+  }
 ];
