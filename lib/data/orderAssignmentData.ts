@@ -3,8 +3,8 @@ import { Order, Driver } from '@/lib/types/orderAssignment';
 export const initialOrders: Order[] = [
   { 
     id: '1', 
-    customer: 'Acme Corp', 
-    address: '123 Main St, City', 
+    customer: 'Red Bull GmbH', 
+    address: 'Am Brunnen 1', 
     zone: 'North Zone',
     items: 3, 
     priority: 'High', 
@@ -12,8 +12,8 @@ export const initialOrders: Order[] = [
   },
   { 
     id: '2', 
-    customer: 'Widget Inc', 
-    address: '456 Oak Ave, Town', 
+    customer: 'Swarovski KG', 
+    address: 'Swarovski Straße 70', 
     zone: 'South Zone',
     items: 1, 
     priority: 'Medium', 
@@ -21,8 +21,8 @@ export const initialOrders: Order[] = [
   },
   { 
     id: '3', 
-    customer: 'ABC Company', 
-    address: '789 Pine Rd, Village', 
+    customer: 'OMV AG', 
+    address: 'Trabrennstraße 6-8', 
     zone: 'East Zone',
     items: 5, 
     priority: 'Low', 
@@ -30,8 +30,8 @@ export const initialOrders: Order[] = [
   },
   { 
     id: '4', 
-    customer: 'XYZ Ltd', 
-    address: '101 Elm Blvd, County', 
+    customer: 'Voestalpine AG', 
+    address: 'Voestalpine Straße 1', 
     zone: 'West Zone',
     items: 2, 
     priority: 'High', 
@@ -39,8 +39,8 @@ export const initialOrders: Order[] = [
   },
   { 
     id: '5', 
-    customer: 'Tech Solutions', 
-    address: '202 Oak Lane, District', 
+    customer: 'Spar Österreich', 
+    address: 'Europastraße 3', 
     zone: 'South Zone',
     items: 4, 
     priority: 'Medium', 
@@ -48,8 +48,8 @@ export const initialOrders: Order[] = [
   },
   { 
     id: '6', 
-    customer: 'Global Enterprises',
-    address: '303 Elm Way, Borough',
+    customer: 'Raiffeisen Bank International',
+    address: 'Am Stadtpark 9',
     zone: 'West Zone',
     items: 2, 
     priority: 'Medium', 
@@ -57,8 +57,8 @@ export const initialOrders: Order[] = [
   },
   { 
     id: '7', 
-    customer: 'Local Shop', 
-    address: '404 Main Ave, Village',
+    customer: 'Billa AG', 
+    address: 'Wiener Straße 55',
     zone: 'North Zone',
     items: 1, 
     priority: 'Low', 
@@ -66,8 +66,8 @@ export const initialOrders: Order[] = [
   },
   { 
     id: '8', 
-    customer: 'Big Corporation', 
-    address: '505 Pine St, City',
+    customer: 'Österreichische Post AG', 
+    address: 'Rochusplatz 1',
     zone: 'East Zone',
     items: 6, 
     priority: 'High', 
@@ -75,8 +75,8 @@ export const initialOrders: Order[] = [
   },
   { 
     id: '9', 
-    customer: 'Metro Distributors', 
-    address: '606 Main Blvd, Suburb',
+    customer: 'Magna Steyr', 
+    address: 'Magna Straße 1',
     zone: 'North Zone',
     items: 3, 
     priority: 'Medium', 
@@ -84,8 +84,8 @@ export const initialOrders: Order[] = [
   },
   { 
     id: '10', 
-    customer: 'Coastal Supplies', 
-    address: '707 Oak Drive, Harbor',
+    customer: 'Andritz AG', 
+    address: 'Stattegger Straße 18',
     zone: 'South Zone',
     items: 5, 
     priority: 'Low', 
@@ -96,25 +96,25 @@ export const initialOrders: Order[] = [
 export const initialDrivers: Driver[] = [
   { 
     id: '1', 
-    name: 'John Smith', 
+    name: 'Franz Huber', 
     status: 'Available', 
     location: 'North Zone'
   },
   { 
     id: '2', 
-    name: 'Jane Doe', 
+    name: 'Maria Schmidt', 
     status: 'Available', 
     location: 'South Zone'
   },
   { 
     id: '3', 
-    name: 'Mike Johnson', 
+    name: 'Thomas Wagner', 
     status: 'Available', 
     location: 'East Zone'
   },
   { 
     id: '4', 
-    name: 'Sarah Williams', 
+    name: 'Anna Bauer', 
     status: 'Available', 
     location: 'West Zone'
   }

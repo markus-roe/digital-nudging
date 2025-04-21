@@ -20,6 +20,8 @@ export function useOrderValidation({ initialOrders, version }: UseOrderValidatio
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [formData, setFormData] = useState<OrderValidationFormData>({
     address: '',
+    zip: '',
+    city: '',
     contactName: '',
     contactPhone: '',
     contactEmail: '',
@@ -44,6 +46,8 @@ export function useOrderValidation({ initialOrders, version }: UseOrderValidatio
     
     const newFormData = {
       address: selectedOrder.address,
+      zip: selectedOrder.zip,
+      city: selectedOrder.city,
       contactName: selectedOrder.contactName,
       contactPhone: selectedOrder.contactPhone,
       contactEmail: selectedOrder.contactEmail,

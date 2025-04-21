@@ -2,6 +2,8 @@ export interface OrderValidation {
   id: string;
   customer: string;
   address: string;
+  zip: string;
+  city: string;
   contactName: string;
   contactPhone: string;
   contactEmail: string;
@@ -12,6 +14,8 @@ export interface OrderValidation {
 
 export interface OrderValidationFormData {
   address: string;
+  zip: string;
+  city: string;
   contactName: string;
   contactPhone: string;
   contactEmail: string;
