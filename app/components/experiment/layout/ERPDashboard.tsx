@@ -28,12 +28,15 @@ export default function ERPDashboard({
 }: ERPDashboardProps) {
   const [isMobile, setIsMobile] = useState(false);
   const [isTablet, setIsTablet] = useState(false);
+  const [isWindowTooSmall, setIsWindowTooSmall] = useState(false);
   
   useEffect(() => {
     const checkDeviceCompatibility = () => {
       const width = window.innerWidth;
-      setIsMobile(width < 1025);
-      setIsTablet(width >= 1025 && width < 1350);
+      const screenWidth = window.screen.width;
+      setIsMobile(screenWidth < 1025);
+      setIsTablet(screenWidth >= 1025 && screenWidth < 1350);
+      setIsWindowTooSmall(width < 1025 && screenWidth >= 1025);
     };
     
     checkDeviceCompatibility();
@@ -41,7 +44,7 @@ export default function ERPDashboard({
     return () => window.removeEventListener('resize', checkDeviceCompatibility);
   }, []);
 
-  // Render warning for devices with insufficient screen width
+  // Render warning for devices with insufficient screen size
   if (isMobile) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
@@ -49,12 +52,53 @@ export default function ERPDashboard({
           <svg className="w-16 h-16 mx-auto text-yellow-500 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
           </svg>
-          <h2 className="text-xl font-bold text-gray-800 mb-3">Desktop Device Required</h2>
+          <h2 className="text-xl font-bold text-gray-800 mb-3">Larger Screen Required</h2>
           <p className="text-gray-600 mb-4">
-            This research study must be completed on a desktop computer or laptop with a large monitor.
+            This research study requires a screen width of at least 1025 pixels.
           </p>
           <p className="text-gray-600 mb-6">
-            Please switch to a desktop device with a wider screen to participate in this study.
+            Please use a device with a larger screen to participate in this study.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // Render warning for small window size
+  if (isWindowTooSmall) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-lg shadow-md p-6 max-w-md text-center">
+          <div className="mx-auto mb-4 relative w-32 h-32">
+            {/* Window frame */}
+            <div className="absolute inset-0 border-2 border-blue-500 rounded-md"></div>
+            
+            {/* Window title bar */}
+            <div className="absolute top-0 left-0 right-0 h-6 bg-blue-500 flex items-center px-2 rounded-t-sm">
+              <div className="flex space-x-1.5">
+                <div className="w-2.5 h-2.5 rounded-full bg-red-500"></div>
+                <div className="w-2.5 h-2.5 rounded-full bg-yellow-400"></div>
+                <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+              </div>
+            </div>
+            
+            {/* Expand arrows animation */}
+            <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/3">
+              <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-500 animate-pulse">
+                <polyline points="15 3 21 3 21 9"></polyline>
+                <polyline points="9 21 3 21 3 15"></polyline>
+                <line x1="21" y1="3" x2="14" y2="10"></line>
+                <line x1="3" y1="21" x2="10" y2="14"></line>
+              </svg>
+            </div>
+            
+            {/* Animated border that expands */}
+            <div className="absolute inset-0 border-2 border-blue-500 rounded-md opacity-75"></div>
+          </div>
+          
+          <h2 className="text-xl font-bold text-gray-800 mb-3">Maximize Your Browser Window</h2>
+          <p className="text-gray-600 mb-4">
+            Your browser window is too small for optimal viewing. Please maximize your browser window or increase its width to at least 1025 pixels.
           </p>
         </div>
       </div>
