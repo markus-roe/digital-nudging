@@ -66,7 +66,6 @@ export default function DeliverySchedulingExample() {
         
         {/* Right side - Time slots */}
         <div className="absolute right-0 top-0 w-4/6 h-full p-3">
-          <div className="bg-gray-100 p-2 text-sm font-medium mb-3 rounded">Schedule Time Slots</div>
           
           {animationStep === 0 ? (
             <div className="flex flex-col items-center justify-center h-full">
