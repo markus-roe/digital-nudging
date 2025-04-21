@@ -16,6 +16,7 @@ export interface ScheduledOrder {
   scheduledTimeSlot: TimeSlot | null;
   preferredTimeRange: TimeRange;
   availableTimeSlots: TimeSlot[];
+  optimalTimeSlotId: string;
 }
 
 // Available time slots
@@ -40,7 +41,8 @@ export const initialOrders: ScheduledOrder[] = [
       { id: 'ts-3', start: '12:00', end: '14:00', workload: 60 },
       { id: 'ts-4', start: '14:00', end: '16:00', workload: 80 },
       { id: 'ts-5', start: '16:00', end: '18:00', workload: 50 }
-    ]
+    ],
+    optimalTimeSlotId: 'ts-1'
   },
   {
     id: '2',
@@ -53,7 +55,8 @@ export const initialOrders: ScheduledOrder[] = [
       { id: 'ts-3', start: '12:00', end: '14:00', workload: 40 },
       { id: 'ts-4', start: '14:00', end: '16:00', workload: 30 },
       { id: 'ts-5', start: '16:00', end: '18:00', workload: 60 }
-    ]
+    ],
+    optimalTimeSlotId: 'ts-2'
   },
   {
     id: '3',
@@ -66,7 +69,8 @@ export const initialOrders: ScheduledOrder[] = [
       { id: 'ts-3', start: '12:00', end: '14:00', workload: 30 },
       { id: 'ts-4', start: '14:00', end: '16:00', workload: 20 },
       { id: 'ts-5', start: '16:00', end: '18:00', workload: 90 }
-    ]
+    ],
+    optimalTimeSlotId: 'ts-4'
   },
   {
     id: '4',
@@ -79,7 +83,8 @@ export const initialOrders: ScheduledOrder[] = [
       { id: 'ts-3', start: '12:00', end: '14:00', workload: 70 },
       { id: 'ts-4', start: '14:00', end: '16:00', workload: 50 },
       { id: 'ts-5', start: '16:00', end: '18:00', workload: 10 }
-    ]
+    ],
+    optimalTimeSlotId: 'ts-4'
   },
   {
     id: '5',
@@ -92,7 +97,8 @@ export const initialOrders: ScheduledOrder[] = [
       { id: 'ts-3', start: '12:00', end: '14:00', workload: 70 },
       { id: 'ts-4', start: '14:00', end: '16:00', workload: 50 },
       { id: 'ts-5', start: '16:00', end: '18:00', workload: 10 }
-    ]
+    ],
+    optimalTimeSlotId: 'ts-4'
   },
   {
     id: '6',
@@ -105,7 +111,8 @@ export const initialOrders: ScheduledOrder[] = [
       { id: 'ts-3', start: '12:00', end: '14:00', workload: 40 },
       { id: 'ts-4', start: '14:00', end: '16:00', workload: 70 },
       { id: 'ts-5', start: '16:00', end: '18:00', workload: 90 }
-    ]
+    ],
+    optimalTimeSlotId: 'ts-2'
   },
   {
     id: '7',
@@ -118,7 +125,8 @@ export const initialOrders: ScheduledOrder[] = [
       { id: 'ts-3', start: '12:00', end: '14:00', workload: 70 },
       { id: 'ts-4', start: '14:00', end: '16:00', workload: 50 },
       { id: 'ts-5', start: '16:00', end: '18:00', workload: 10 }
-    ]
+    ],
+    optimalTimeSlotId: 'ts-1'
   },
   {
     id: '8',
@@ -131,6 +139,7 @@ export const initialOrders: ScheduledOrder[] = [
       { id: 'ts-3', start: '12:00', end: '14:00', workload: 70 },
       { id: 'ts-4', start: '14:00', end: '16:00', workload: 50 },
       { id: 'ts-5', start: '16:00', end: '18:00', workload: 10 }
-    ]
+    ],
+    optimalTimeSlotId: 'ts-5'
   }
 ];

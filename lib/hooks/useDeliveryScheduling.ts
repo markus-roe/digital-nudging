@@ -69,25 +69,13 @@ export const useDeliveryScheduling = (
     const order = getOrderById(orderId);
     if (!order) return;
     
-    // Check if time slot is within preferred range
-    const isPreferred = isPreferredTimeSlot(orderId, timeSlot);
-    
-    // Find the minimum workload among preferred time slots
-    const minPreferredWorkload = Math.min(
-      ...order.availableTimeSlots
-        .filter(ts => isPreferredTimeSlot(orderId, ts))
-        .map(ts => ts.workload)
-    );
-    
     // Update orders
     setOrders(prevOrders => prevOrders.map(o => 
       o.id === orderId ? { ...o, scheduledTimeSlot: timeSlot } : o
     ));
     
-    // Log error if:
-    // 1. Time slot is outside preferred range, or
-    // 2. Selected workload is higher than the minimum preferred workload
-    if (!isPreferred || timeSlot.workload > minPreferredWorkload) {
+    // Log error if selected time slot is not the optimal one
+    if (timeSlot.id !== order.optimalTimeSlotId) {
       logSchedulingError(orderId);
     }
     
@@ -96,7 +84,7 @@ export const useDeliveryScheduling = (
     
     // Clear selection
     setSelectedOrder(null);
-  }, [getOrderById, isPreferredTimeSlot, logCaseSubmit, logSchedulingError]);
+  }, [getOrderById, logCaseSubmit, logSchedulingError]);
   
   // Unschedule an order
   const unscheduleOrder = useCallback((orderId: string) => {
