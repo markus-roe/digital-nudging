@@ -99,7 +99,7 @@ export const initialOrderValidations: OrderValidation[] = [
     zip: '1010',
     city: 'Wien',
     contactName: 'Michael Gruber',
-    contactPhone: '+43 577 672 052',
+    contactPhone: '+43 577 672 05 22',
     contactEmail: 'michael.gruber@post.at',
     deliveryInstructions: 'ID verification required',
     hasErrors: true,
