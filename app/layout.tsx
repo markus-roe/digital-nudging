@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Dashboard",
+  title: "ERP Order Delivery Management Dashboard",
   description: "ERP Order Delivery Management Dashboard",
 };
 
