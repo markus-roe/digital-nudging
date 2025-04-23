@@ -3,6 +3,8 @@ import { VALIDATION_MESSAGES } from '@/lib/constants/validationMessages';
 // Validate form data
 export function validateOrderData(formData: {
   address: string;
+  zip: string;
+  city: string;
   contactName: string;
   contactPhone: string;
   contactEmail: string;
@@ -12,7 +14,7 @@ export function validateOrderData(formData: {
   // Address validation
   if (!formData.address) {
     errors.address = VALIDATION_MESSAGES.address.required;
-  } else if (!/^[A-Za-z]+(\s+[A-Za-z]+)*\s+\d+/.test(formData.address)) {
+  } else if (!/^[A-Za-zäöüßÄÖÜ]+(\s+[A-Za-zäöüßÄÖÜ]+)*\s+\d+/.test(formData.address)) {
     errors.address = VALIDATION_MESSAGES.address.format;
   }
   
@@ -24,7 +26,7 @@ export function validateOrderData(formData: {
   // Phone validation
   if (!formData.contactPhone) {
     errors.contactPhone = VALIDATION_MESSAGES.contactPhone.required;
-  } else if (!/^\d{3}-\d{3}-\d{4}$/.test(formData.contactPhone)) {
+  } else if (!/^\+43\s\d{3}\s\d{3}\s\d{4}$/.test(formData.contactPhone)) {
     errors.contactPhone = VALIDATION_MESSAGES.contactPhone.format;
   }
   
@@ -33,6 +35,13 @@ export function validateOrderData(formData: {
     errors.contactEmail = VALIDATION_MESSAGES.contactEmail.required;
   } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contactEmail)) {
     errors.contactEmail = VALIDATION_MESSAGES.contactEmail.format;
+  }
+
+  // Zip validation
+  if (!formData.zip) {
+    errors.zip = VALIDATION_MESSAGES.zip.required;
+  } else if (!/^\d{4}$/.test(formData.zip)) {
+    errors.zip = VALIDATION_MESSAGES.zip.format;
   }
   
   return errors;

@@ -1,10 +1,9 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { initialOrderValidations } from "@/lib/data/orderValidationData";
 import OrderValidationList from "./OrderValidationList";
 import OrderValidationForm from "./OrderValidationForm";
 import TaskTemplate from "@/app/components/experiment/shared/TaskTemplate";
 import OrderValidationExample from "./OrderValidationExample";
-import { useExperiment } from "@/lib/context/ExperimentContext";
 import { OrderValidationProvider, useOrderValidationContext } from "@/lib/context/OrderValidationContext";
 
 interface OrderValidationProps {
@@ -24,18 +23,8 @@ function OrderValidationTaskContent({ onComplete }: OrderValidationProps) {
     orders,
     selectedOrder,
     validatedOrdersCount,
-    handleOrderSelect
+    allOrdersValidated,
   } = useOrderValidationContext();
-  
-  // Task guidelines
-  const guidelines = [
-    "Review each order's delivery details for errors",
-    "Correct any errors in the form fields",
-    "Validate all orders to complete the task"
-  ];
-  
-  // Check if task is completed
-  const taskCompleted = validatedOrdersCount === orders.length;
   
 
   return (
@@ -43,10 +32,14 @@ function OrderValidationTaskContent({ onComplete }: OrderValidationProps) {
       taskType="validation"
       title="Order Validation Task"
       description="In this task, you'll review and validate delivery details before orders are processed."
-      guidelines={guidelines}
+      guidelines={[
+        "Review each order's delivery details for errors",
+        "Correct any errors in the form fields",
+        "Validate all orders to complete the task"
+      ]}
       progressCount={validatedOrdersCount}
       totalCount={orders.length}
-      isTaskCompleted={taskCompleted}
+      isTaskCompleted={allOrdersValidated}
       onComplete={onComplete}
       example={<OrderValidationExample />}
     >

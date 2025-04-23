@@ -49,7 +49,7 @@ export default function OrderValidationForm() {
             <div>
               <div className="flex justify-between items-center mb-1">
                 <label htmlFor="address" className="block text-sm font-medium text-gray-700">
-                  Delivery Address
+                  Address and House Number
                 </label>
                 {shouldShowError('address') && (
                   <span className="text-xs text-red-600">{formErrors.address}</span>
@@ -62,10 +62,47 @@ export default function OrderValidationForm() {
                 value={formData.address}
                 onChange={handleFormChange}
                 className={getInputClass('address')}
-                placeholder="Street, City, Postal Code"
+                placeholder="Street, House Number"
               />
             </div>
-            
+
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <div className="flex justify-between items-center mb-1">
+                  <label htmlFor="zip" className="block text-sm font-medium text-gray-700">Zip Code</label>
+                  {shouldShowError('zip') && (
+                    <span className="text-xs text-red-600">{formErrors.zip}</span>
+                  )}
+                </div>
+                <input
+                  id="zip"
+                  name="zip"
+                  type="text"
+                  value={formData.zip}
+                  onChange={handleFormChange}
+                  className={getInputClass('zip')}
+                  placeholder="Zip Code"
+                />
+              </div>
+              <div>
+                <div className="flex justify-between items-center mb-1">
+                  <label htmlFor="city" className="block text-sm font-medium text-gray-700">City</label>
+                  {shouldShowError('city') && (
+                    <span className="text-xs text-red-600">{formErrors.city}</span>
+                  )}
+                </div>
+                <input
+                  id="city"
+                  name="city"
+                  type="text"
+                  value={formData.city}
+                  onChange={handleFormChange}
+                  className={getInputClass('city')}
+                  placeholder="City"
+                />
+              </div>
+            </div>
+
             <div>
               <div className="flex justify-between items-center mb-1">
                 <label htmlFor="contactName" className="block text-sm font-medium text-gray-700">
@@ -102,7 +139,7 @@ export default function OrderValidationForm() {
                 value={formData.contactPhone}
                 onChange={handleFormChange}
                 className={getInputClass('contactPhone')}
-                placeholder="XXX-XXX-XXXX"
+                placeholder="+43 XXX XXX XXX"
               />
             </div>
             

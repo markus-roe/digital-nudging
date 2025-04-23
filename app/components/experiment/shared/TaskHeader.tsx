@@ -102,7 +102,7 @@ export default function TaskHeader({
   };
 
   return (
-    <div className="pl-3 pr-3 pb-3">
+    <div className="pb-3">
     <h3 className="text-xl font-semibold text-gray-800 mb-2">{getTaskTitle()}</h3>
     <div className="bg-white p-4 rounded-lg mb-6 border border-gray-200 shadow-sm relative overflow-hidden">
       <div className="flex flex-wrap gap-6 justify-between items-center mb-5">

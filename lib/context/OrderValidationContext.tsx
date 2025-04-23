@@ -10,7 +10,7 @@ interface OrderValidationContextType {
   selectedOrderId: string | null;
   validatedOrdersCount: number;
   handleOrderSelect: (orderId: string) => void;
-  
+  allOrdersValidated: boolean;
   // Form management
   formData: OrderValidationFormData;
   formErrors: Record<string, string>;

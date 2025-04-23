@@ -1,17 +1,12 @@
 import React from 'react';
-import { ScheduledOrder } from '@/lib/data/deliverySchedulingData';
-import { useExperiment } from '@/lib/context/ExperimentContext';
 import { useDeliverySchedulingContext } from '@/lib/context/DeliverySchedulingContext';
 import OrdersList, { OrderItem } from '@/app/components/experiment/shared/OrdersList';
 
 export default function OrdersSchedulingPanel() {
-  const { version } = useExperiment();
   const {
     orders,
     selectedOrder,
     handleOrderSelect,
-    isPreferredTimeSlot,
-    timeSlots
   } = useDeliverySchedulingContext();
   
   // Transform orders to match OrderItem interface

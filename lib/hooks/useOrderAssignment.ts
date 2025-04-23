@@ -11,7 +11,7 @@ export function useOrderAssignment(initialOrders: Order[], initialDrivers: Drive
   const [assignments, setAssignments] = useState<Record<string, Assignment>>({});
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const assignedOrdersCount = Object.keys(assignments).length;
-  
+  const allOrdersAssigned = assignedOrdersCount === orders.length;
   // Handle order selection
   const handleOrderSelect = (orderId: string) => {
     if (selectedOrderId === orderId) {
@@ -118,7 +118,6 @@ export function useOrderAssignment(initialOrders: Order[], initialDrivers: Drive
     assignments,
     selectedOrder: selectedOrderId ? orders.find(o => o.id === selectedOrderId) ?? null : null,
     selectedOrderId,
-    selectedDriver: null, // Add driver selection state if needed
     assignedOrdersCount,
     handleOrderSelect,
     handleDriverSelect: (driverId: string) => {
@@ -128,7 +127,6 @@ export function useOrderAssignment(initialOrders: Order[], initialDrivers: Drive
     },
     handleAssignOrder: assignOrderToDriver,
     handleUnassignOrder: unassignOrder,
-    getOrderStatusClass: (order: Order) => "border-gray-300", // Add proper styling logic
-    getDriverStatusClass: (driver: Driver) => "border-gray-300" // Add proper styling logic
+    allOrdersAssigned
   };
 } 

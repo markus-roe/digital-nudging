@@ -2,11 +2,8 @@ import React, { createContext, useContext, ReactNode } from 'react';
 import { 
   ScheduledOrder, 
   TimeSlot,
-  TimeRange,
-  TimeSlotWorkload
 } from '@/lib/data/deliverySchedulingData';
 import { useDeliveryScheduling } from '@/lib/hooks/useDeliveryScheduling';
-import { useExperiment } from '@/lib/context/ExperimentContext';
 
 interface DeliverySchedulingContextType {
   // Order management

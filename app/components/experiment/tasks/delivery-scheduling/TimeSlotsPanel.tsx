@@ -1,5 +1,5 @@
 import React from 'react';
-import { TimeSlot, ScheduledOrder } from '@/lib/data/deliverySchedulingData';
+import { ScheduledOrder } from '@/lib/data/deliverySchedulingData';
 import { useExperiment } from '@/lib/context/ExperimentContext';
 import { useDeliverySchedulingContext } from '@/lib/context/DeliverySchedulingContext';
 
@@ -11,7 +11,6 @@ export default function TimeSlotsPanel() {
     selectedOrder,
     scheduleOrderToTimeSlot,
     unscheduleOrder,
-    isPreferredTimeSlot
   } = useDeliverySchedulingContext();
   
   // Group scheduled orders by time slot
@@ -24,6 +23,8 @@ export default function TimeSlotsPanel() {
       ordersByTimeSlot[order.scheduledTimeSlot.id].push(order);
     }
   });
+  
+  const selectedOrderData = selectedOrder ? orders.find(o => o.id === selectedOrder) : null;
   
   return (
     <div className="bg-white rounded-lg border border-gray-200 p-4 w-full">
@@ -41,12 +42,12 @@ export default function TimeSlotsPanel() {
           <div className="flex-1 grid grid-cols-5 divide-x divide-gray-200 border-r border-gray-300">
             {timeSlots.map((timeSlot) => {
               const ordersInSlot = ordersByTimeSlot[timeSlot.id] || [];
-              // Get workload directly from the selected order's timeSlotWorkloads
-              const workload = selectedOrder 
-                ? orders.find(o => o.id === selectedOrder)?.timeSlotWorkloads.find(w => w.timeSlotId === timeSlot.id)?.workload ?? 0
+              // Get workload from the selected order's available time slots
+              const workload = selectedOrderData 
+                ? selectedOrderData.availableTimeSlots.find(ts => ts.id === timeSlot.id)?.workload ?? 0
                 : 0;
                 
-              const canSchedule = selectedOrder && !orders.find(o => o.id === selectedOrder)?.scheduledTimeSlot;
+              const canSchedule = selectedOrder && !selectedOrderData?.scheduledTimeSlot;
               
               return (
                 <div 

@@ -134,7 +134,7 @@ export default function OrderValidationExample() {
                 </div>
                 <input
                   type="text"
-                  value="555-123-4567"
+                  value="+43 654 123 4523"
                   readOnly
                   className="w-full text-xs px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-0 select-none pointer-events-none"
                 />

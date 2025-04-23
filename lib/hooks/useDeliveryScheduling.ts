@@ -69,50 +69,14 @@ export const useDeliveryScheduling = (
     const order = getOrderById(orderId);
     if (!order) return;
     
-    // Get customer preferences
-    const isPreferred = isPreferredTimeSlot(orderId, timeSlot);
-    
-    // Get the workload for this time slot
-    const selectedSlotWorkload = order.timeSlotWorkloads.find(
-      w => w.timeSlotId === timeSlot.id
-    )?.workload ?? Infinity;
-    
-    // Get workloads only for preferred time slots
-    const preferredSlotWorkloads = timeSlots.map(ts => ({
-      timeSlot: ts,
-      workload: isPreferredTimeSlot(orderId, ts) 
-        ? order.timeSlotWorkloads.find(w => w.timeSlotId === ts.id)?.workload ?? Infinity
-        : Infinity
-    }));
-    
-    const minWorkload = Math.min(...preferredSlotWorkloads.map(tw => tw.workload));
-    const isOptimalWorkload = selectedSlotWorkload === minWorkload;
-    
     // Update orders
     setOrders(prevOrders => prevOrders.map(o => 
       o.id === orderId ? { ...o, scheduledTimeSlot: timeSlot } : o
     ));
     
-    // Track errors if any
-    let preferenceMismatchError = false;
-    let highWorkloadError = false;
-
-    if (!isPreferred) {
-      preferenceMismatchError = true;
+    // Log error if selected time slot is not the optimal one
+    if (timeSlot.id !== order.optimalTimeSlotId) {
       logSchedulingError(orderId);
-    }
-    
-    if (isPreferred && !isOptimalWorkload) {
-      highWorkloadError = true;
-      logSchedulingError(orderId);
-    }
-
-    if (preferenceMismatchError) {
-      console.warn('Preference mismatch error');
-    }
-
-    if (highWorkloadError) {
-      console.warn('High workload error');
     }
     
     // Log successful case submission
@@ -120,7 +84,7 @@ export const useDeliveryScheduling = (
     
     // Clear selection
     setSelectedOrder(null);
-  }, [getOrderById, isPreferredTimeSlot, timeSlots, logCaseSubmit, logSchedulingError]);
+  }, [getOrderById, logCaseSubmit, logSchedulingError]);
   
   // Unschedule an order
   const unscheduleOrder = useCallback((orderId: string) => {
