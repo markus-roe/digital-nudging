@@ -484,7 +484,7 @@ export default function QuestionnaireForm({ onSubmit }: QuestionnaireFormProps) 
 
         {/* Navigation Buttons */}
         <div className="px-6 py-4 flex justify-end">
-          {currentStep === 'feedback' && isStepComplete() ? (
+          {currentStep === 'feedback' ? (
             <Button
               onClick={handleSubmit}
               className="px-6 py-2 bg-blue-600 text-white hover:bg-blue-700"
