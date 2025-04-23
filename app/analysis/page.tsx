@@ -293,6 +293,9 @@ async function getParticipantStats(): Promise<ParticipantStats> {
   return stats;
 }
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function AnalysisPage() {
   const stats = await getParticipantStats();
   const participants = await prisma.participant.findMany();
