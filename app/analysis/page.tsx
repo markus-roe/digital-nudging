@@ -360,7 +360,7 @@ export default async function AnalysisPage() {
   }));
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-100 pb-10">
       {/* Dashboard Header */}
       <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 border-b border-gray-200/50 shadow-sm mb-8">
         <div className="max-w-[1920px] mx-auto px-6 py-8">
@@ -478,10 +478,15 @@ export default async function AnalysisPage() {
           <section className="mb-8">
             <h2 className="text-xl font-semibold text-gray-900 mb-6">Questionnaire Results</h2>
             <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
-              <SUS susScores={susScores} />
-              <Confidence confidenceRatings={confidenceRatings} />
-              <NasaTLX nasaTlxData={nasaTlxData} />
-
+              <div className="lg:col-span-1">
+                <SUS susScores={susScores} />
+              </div>
+              <div className="lg:col-span-1">
+                <Confidence confidenceRatings={confidenceRatings} />
+              </div>
+              <div className="lg:col-span-2">
+                <NasaTLX nasaTlxData={nasaTlxData} />
+              </div>
             </div>
           </section>
         </div>
