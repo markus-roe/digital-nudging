@@ -11,6 +11,13 @@ import {
   HesitationTime,
   CaseDurations
 } from '../components/analysis/Charts';
+import {
+  TaskPerformanceTable,
+  ErrorAnalysisTable,
+  NasaTLXTable,
+  UsabilityTable,
+  HesitationTimeTable
+} from '../components/analysis/Tables';
 
 type ParticipantWithRelations = Participant & {
   actionLogs: ActionLog[];
@@ -359,8 +366,43 @@ export default async function AnalysisPage() {
     versionB: durations.B
   }));
 
+  // Calculate table data
+  const taskPerformanceData = Object.entries(stats.taskCompletion).map(([task, times]) => ({
+    name: task.replace('_', ' '),
+    versionA: times.A / 1000, // Convert to seconds
+    versionB: times.B / 1000,
+    improvement: ((times.A - times.B) / times.A * 100).toFixed(1)
+  }));
+
+  const errorAnalysisData = Object.entries(stats.errorRates).map(([task, rates]) => ({
+    name: task.replace('_', ' '),
+    versionA: rates.A,
+    versionB: rates.B,
+    reduction: rates.A === 0 ? '100.0' : ((rates.A - rates.B) / rates.A * 100).toFixed(1)
+  }));
+
+  const nasaTLXTableData = [
+    { name: 'Mental Demand', versionA: stats.nasaTlx.mental.A, versionB: stats.nasaTlx.mental.B, improvement: ((stats.nasaTlx.mental.A - stats.nasaTlx.mental.B) / stats.nasaTlx.mental.A * 100).toFixed(1) },
+    { name: 'Physical Demand', versionA: stats.nasaTlx.physical.A, versionB: stats.nasaTlx.physical.B, improvement: ((stats.nasaTlx.physical.A - stats.nasaTlx.physical.B) / stats.nasaTlx.physical.A * 100).toFixed(1) },
+    { name: 'Temporal Demand', versionA: stats.nasaTlx.temporal.A, versionB: stats.nasaTlx.temporal.B, improvement: ((stats.nasaTlx.temporal.A - stats.nasaTlx.temporal.B) / stats.nasaTlx.temporal.A * 100).toFixed(1) },
+    { name: 'Performance', versionA: stats.nasaTlx.performance.A, versionB: stats.nasaTlx.performance.B, improvement: ((stats.nasaTlx.performance.B - stats.nasaTlx.performance.A) / stats.nasaTlx.performance.A * 100).toFixed(1) },
+    { name: 'Effort', versionA: stats.nasaTlx.effort.A, versionB: stats.nasaTlx.effort.B, improvement: ((stats.nasaTlx.effort.A - stats.nasaTlx.effort.B) / stats.nasaTlx.effort.A * 100).toFixed(1) },
+    { name: 'Frustration', versionA: stats.nasaTlx.frustration.A, versionB: stats.nasaTlx.frustration.B, improvement: ((stats.nasaTlx.frustration.A - stats.nasaTlx.frustration.B) / stats.nasaTlx.frustration.A * 100).toFixed(1) }
+  ];
+
+  const hesitationTimeTableData = Object.entries(stats.hesitationTimes).map(([task, times]) => {
+    const versionA = times.A[0] || 0;
+    const versionB = times.B[0] || 0;
+    return {
+      name: task.replace('_', ' '),
+      versionA: versionA / 1000, // Convert to seconds
+      versionB: versionB / 1000,
+      improvement: versionA === 0 ? '100.0' : ((versionA - versionB) / versionA * 100).toFixed(1)
+    };
+  });
+
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-gray-50">
       {/* Dashboard Header */}
       <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 border-b border-gray-200/50 shadow-sm mb-8">
         <div className="max-w-[1920px] mx-auto px-6 py-8">
@@ -456,32 +498,57 @@ export default async function AnalysisPage() {
         </div>
 
         {/* Main Content */}
-        <div className="space-y-8">
+        <div className="space-y-12">
           {/* Demographics Section */}
-          <section>
+          <section className="bg-white rounded-xl shadow-sm p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-6">Participant Demographics</h2>
             <DemographicsCharts demographics={stats.demographics} />
           </section>
 
-          {/* Performance Metrics */}
-          <section>
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Performance Metrics</h2>
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+          {/* Task Performance Section */}
+          <section className="bg-white rounded-xl shadow-sm p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">Task Performance Analysis</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
               <TaskCompletion taskCompletionData={taskCompletionData} />
               <CaseDurations caseDurationsData={caseDurationsData} />
+            </div>
+            <TaskPerformanceTable data={taskPerformanceData} />
+          </section>
+
+          {/* Error Analysis Section */}
+          <section className="bg-white rounded-xl shadow-sm p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">Error Analysis</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
               <ErrorRates errorRatesData={errorRatesData} />
               <HesitationTime hesitationTimeData={hesitationTimeData} />
             </div>
+            <div className="grid gap-6">
+              <ErrorAnalysisTable data={errorAnalysisData} />
+              <HesitationTimeTable data={hesitationTimeTableData} />
+            </div>
           </section>
 
-          {/* User Experience Metrics */}
-          <section className="mb-8">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Questionnaire Results</h2>
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-6">
+          {/* User Experience Section */}
+          <section className="bg-white rounded-xl shadow-sm p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">User Experience Analysis</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
               <SUS susScores={susScores} />
               <Confidence confidenceRatings={confidenceRatings} />
-              <NasaTLX nasaTlxData={nasaTlxData} />
+              <NasaTLX nasaTlxData={nasaTLXTableData} />
+            </div>
+            <div className="grid gap-6">
+              <NasaTLXTable data={nasaTLXTableData} />
 
+              <UsabilityTable 
+                susScores={{
+                  versionA: susScores.versionA,
+                  versionB: susScores.versionB
+                }}
+                confidenceRatings={{
+                  versionA: confidenceRatings.versionA,
+                  versionB: confidenceRatings.versionB
+                }}
+              />
             </div>
           </section>
         </div>
