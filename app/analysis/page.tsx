@@ -523,7 +523,7 @@ export default async function AnalysisPage() {
         {/* Action Logs Section */}
         <section className="bg-white rounded-xl shadow-sm p-6 mb-8">
           <h2 className="text-xl font-semibold text-gray-900 mb-6">Action Logs Analysis</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {Object.entries(actionLogStats).map(([action, stats]) => (
               <div key={action} className="bg-gray-50 rounded-lg p-4">
                 <div className="text-sm font-medium text-gray-500">{action}</div>
