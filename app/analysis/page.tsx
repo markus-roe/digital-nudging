@@ -21,7 +21,6 @@ import {
 } from '../components/analysis/Tables';
 import { RefreshButton } from '../components/analysis/RefreshButton';
 import { ParticipantTable } from '../components/analysis/ParticipantTable';
-import { IndividualMetricsTable } from '../components/analysis/IndividualMetricsTable';
 
 type ParticipantWithRelations = Participant & {
   actionLogs: ActionLog[];
@@ -355,7 +354,6 @@ export default async function AnalysisPage() {
       errorLogs: true,
       questionnaire: true,
     },
-   
   });
   const participantCount = participants.length;
 
@@ -519,116 +517,65 @@ export default async function AnalysisPage() {
         </div>
       </div>
 
-      <div className="max-w-[1920px] mx-auto px-6">
-        {/* Action Logs Section */}
-        <section className="bg-white rounded-xl shadow-sm p-6 mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">Action Logs Analysis</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {Object.entries(actionLogStats).map(([action, stats]) => (
-              <div key={action} className="bg-gray-50 rounded-lg p-4">
-                <div className="text-sm font-medium text-gray-500">{action}</div>
-                <div className="text-2xl font-bold text-gray-900 mt-1">{stats.total}</div>
-                <div className="mt-4 space-y-2">
-                  <div className="text-xs font-medium text-gray-500">By Version</div>
-                  <div className="flex items-center space-x-2">
-                    <div className="flex-1 bg-blue-100 rounded-full h-2">
-                      <div 
-                        className="bg-blue-600 h-2 rounded-full" 
-                        style={{ width: `${(stats.byVersion.A / stats.total) * 100}%` }}
-                      ></div>
-                    </div>
-                    <div className="text-xs text-gray-600">A: {stats.byVersion.A}</div>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <div className="flex-1 bg-green-100 rounded-full h-2">
-                      <div 
-                        className="bg-green-600 h-2 rounded-full" 
-                        style={{ width: `${(stats.byVersion.B / stats.total) * 100}%` }}
-                      ></div>
-                    </div>
-                    <div className="text-xs text-gray-600">B: {stats.byVersion.B}</div>
-                  </div>
-                </div>
-                <div className="mt-4">
-                  <div className="text-xs font-medium text-gray-500">By Task</div>
-                  <div className="mt-2 space-y-1">
-                    {Object.entries(stats.byTask).map(([task, count]) => (
-                      <div key={task} className="flex items-center justify-between text-xs">
-                        <span className="text-gray-600">{task.replace('_', ' ')}</span>
-                        <span className="text-gray-900">{count}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            ))}
+      {/* Key Improvements with Digital Nudging - moved to top */}
+      <div className="max-w-[1920px] mx-auto px-6 mb-8">
+        <h2 className="text-xl font-semibold text-gray-900 mb-6">Key Improvements with Digital Nudging</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Task Efficiency */}
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-base font-medium text-gray-900">Task Efficiency</h3>
+              <span className="text-green-600 text-2xl font-semibold">
+                +{Math.abs((Object.values(stats.taskCompletion).reduce((acc, curr) => 
+                  acc + ((curr.A - curr.B) / curr.A), 0) / Object.keys(stats.taskCompletion).length * 100)).toFixed(1)}%
+              </span>
+            </div>
+            <p className="text-sm text-gray-500">Average completion time reduction</p>
           </div>
-        </section>
 
-        {/* Participant Details Table */}
-        <ParticipantTable participants={participants} completionStatus={stats.completionStatus} />
-
-        {/* Individual Metrics Table */}
-        <section className="bg-white rounded-xl shadow-sm p-6 mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">Individual Participant Metrics</h2>
-          <IndividualMetricsTable participants={participants} />
-        </section>
-
-        {/* Summary Section */}
-        <div className="mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-6">Key Improvements with Digital Nudging</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Task Efficiency */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-base font-medium text-gray-900">Task Efficiency</h3>
-                <span className="text-green-600 text-2xl font-semibold">
-                  +{Math.abs((Object.values(stats.taskCompletion).reduce((acc, curr) => 
-                    acc + ((curr.A - curr.B) / curr.A), 0) / Object.keys(stats.taskCompletion).length * 100)).toFixed(1)}%
-                </span>
-              </div>
-              <p className="text-sm text-gray-500">Average completion time reduction</p>
+          {/* Error Reduction */}
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-base font-medium text-gray-900">Error Reduction</h3>
+              <span className="text-green-600 text-2xl font-semibold">
+                -{((Object.values(stats.errorRates).reduce((acc, curr) => 
+                  curr.A === 0 ? acc + 100 : acc + ((curr.A - curr.B) / curr.A * 100), 0) / Object.keys(stats.errorRates).length)).toFixed(1)}%
+              </span>
             </div>
+            <p className="text-sm text-gray-500">Average error rate reduction</p>
+          </div>
 
-            {/* Error Reduction */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-base font-medium text-gray-900">Error Reduction</h3>
-                <span className="text-green-600 text-2xl font-semibold">
-                  -{((Object.values(stats.errorRates).reduce((acc, curr) => 
-                    curr.A === 0 ? acc + 100 : acc + ((curr.A - curr.B) / curr.A * 100), 0) / Object.keys(stats.errorRates).length)).toFixed(1)}%
-                </span>
-              </div>
-              <p className="text-sm text-gray-500">Average error rate reduction</p>
+          {/* Cognitive Load */}
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-base font-medium text-gray-900">Cognitive Load</h3>
+              <span className="text-green-600 text-2xl font-semibold">
+                -{Math.abs(([
+                  stats.nasaTlx.mental,
+                  stats.nasaTlx.effort,
+                  stats.nasaTlx.frustration
+                ].reduce((acc, curr) => acc + ((curr.A - curr.B) / curr.A), 0) / 3 * 100)).toFixed(1)}%
+              </span>
             </div>
+            <p className="text-sm text-gray-500">Mental workload reduction</p>
+          </div>
 
-            {/* Cognitive Load */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-base font-medium text-gray-900">Cognitive Load</h3>
-                <span className="text-green-600 text-2xl font-semibold">
-                  -{Math.abs(([
-                    stats.nasaTlx.mental,
-                    stats.nasaTlx.effort,
-                    stats.nasaTlx.frustration
-                  ].reduce((acc, curr) => acc + ((curr.A - curr.B) / curr.A), 0) / 3 * 100)).toFixed(1)}%
-                </span>
-              </div>
-              <p className="text-sm text-gray-500">Mental workload reduction</p>
+          {/* User Experience */}
+          <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-base font-medium text-gray-900">User Experience</h3>
+              <span className="text-green-600 text-2xl font-semibold">
+                +{((stats.susScores.B - stats.susScores.A) / stats.susScores.A * 100).toFixed(1)}%
+              </span>
             </div>
-
-            {/* User Experience */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-base font-medium text-gray-900">User Experience</h3>
-                <span className="text-green-600 text-2xl font-semibold">
-                  +{((stats.susScores.B - stats.susScores.A) / stats.susScores.A * 100).toFixed(1)}%
-                </span>
-              </div>
-              <p className="text-sm text-gray-500">SUS score improvement</p>
-            </div>
+            <p className="text-sm text-gray-500">SUS score improvement</p>
           </div>
         </div>
+      </div>
+
+      <div className="max-w-[1920px] mx-auto px-6">
+        {/* Participant Details Table */}
+        <ParticipantTable participants={participants} completionStatus={stats.completionStatus} />
 
         {/* Main Content */}
         <div className="space-y-12">
@@ -684,6 +631,199 @@ export default async function AnalysisPage() {
                   versionB: confidenceRatings.versionB
                 }}
               />
+            </div>
+          </section>
+
+          {/* Questionnaire Details Section */}
+          <section className="bg-white rounded-xl shadow-sm p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">Questionnaire Details</h2>
+            
+            {/* Summary Statistics */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                <h3 className="text-sm font-medium text-blue-900 mb-2">SUS Score (Version A)</h3>
+                <div className="flex items-baseline">
+                  <span className="text-2xl font-bold text-blue-600">{stats.susScores.A.toFixed(1)}</span>
+                  <span className="text-sm text-blue-600 ml-1">/ 100</span>
+                </div>
+                <p className="text-xs text-blue-600 mt-1">Average System Usability Score</p>
+              </div>
+              <div className="bg-green-50 p-4 rounded-lg border border-green-100">
+                <h3 className="text-sm font-medium text-green-900 mb-2">SUS Score (Version B)</h3>
+                <div className="flex items-baseline">
+                  <span className="text-2xl font-bold text-green-600">{stats.susScores.B.toFixed(1)}</span>
+                  <span className="text-sm text-green-600 ml-1">/ 100</span>
+                </div>
+                <p className="text-xs text-green-600 mt-1">Average System Usability Score</p>
+              </div>
+              <div className="bg-purple-50 p-4 rounded-lg border border-purple-100">
+                <h3 className="text-sm font-medium text-purple-900 mb-2">Improvement</h3>
+                <div className="flex items-baseline">
+                  <span className="text-2xl font-bold text-purple-600">
+                    {((stats.susScores.B - stats.susScores.A) / stats.susScores.A * 100).toFixed(1)}%
+                  </span>
+                </div>
+                <p className="text-xs text-purple-600 mt-1">SUS Score Improvement</p>
+              </div>
+            </div>
+            
+            {/* SUS Questions */}
+            <div className="mb-8">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">System Usability Scale (SUS) Questions</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[
+                  "I think that I would like to use this system frequently.",
+                  "I found the system unnecessarily complex.",
+                  "I thought the system was easy to use.",
+                  "I think that I would need the support of a technical person to be able to use this system.",
+                  "I found the various functions in this system were well integrated.",
+                  "I thought there was too much inconsistency in this system.",
+                  "I would imagine that most people would learn to use this system very quickly.",
+                  "I found the system very cumbersome to use.",
+                  "I felt very confident using the system.",
+                  "I needed to learn a lot of things before I could get going with this system."
+                ].map((question, index) => {
+                  const avgResponseA = participants.reduce((acc, p) => {
+                    if (p.questionnaire && p.version === Version.A) {
+                      return acc + p.questionnaire.susResponses[index];
+                    }
+                    return acc;
+                  }, 0) / participants.filter(p => p.version === Version.A && p.questionnaire).length;
+
+                  const avgResponseB = participants.reduce((acc, p) => {
+                    if (p.questionnaire && p.version === Version.B) {
+                      return acc + p.questionnaire.susResponses[index];
+                    }
+                    return acc;
+                  }, 0) / participants.filter(p => p.version === Version.B && p.questionnaire).length;
+
+                  const negativeIndices = [1, 3, 5, 7, 9]; // 0-based indices for Q2, Q4, Q6, Q8, Q10
+                  let improvement = ((avgResponseB - avgResponseA) / avgResponseA * 100);
+                  if (negativeIndices.includes(index)) {
+                    improvement = -improvement; // Invert for negative questions
+                  }
+                  const improvementStr = improvement.toFixed(1);
+
+                  return (
+                    <div key={index} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                      <p className="text-sm text-gray-700 mb-3">
+                        <span className="font-medium">Q{index + 1}:</span> {question}
+                      </p>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            <span className="text-blue-600 font-medium mr-2">A:</span>
+                            <div className="w-24 bg-blue-100 rounded-full h-2">
+                              <div 
+                                className="bg-blue-600 h-2 rounded-full" 
+                                style={{ width: `${(avgResponseA / 5) * 100}%` }}
+                              ></div>
+                            </div>
+                            <span className="text-gray-600 ml-2">{avgResponseA.toFixed(1)}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            <span className="text-green-600 font-medium mr-2">B:</span>
+                            <div className="w-24 bg-green-100 rounded-full h-2">
+                              <div 
+                                className="bg-green-600 h-2 rounded-full" 
+                                style={{ width: `${(avgResponseB / 5) * 100}%` }}
+                              ></div>
+                            </div>
+                            <span className="text-gray-600 ml-2">{avgResponseB.toFixed(1)}</span>
+                          </div>
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          <span className={improvement > 0 ? "text-green-600" : "text-red-600"}>
+                            {improvement > 0 ? `+${improvementStr}% improvement` : `${improvementStr}% change`}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* NASA-TLX Descriptions */}
+            <div>
+              <h3 className="text-lg font-medium text-gray-900 mb-4">NASA-TLX Dimensions</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {Object.entries({
+                  mental: {
+                    label: "Mental Demand",
+                    description: "How much mental and perceptual activity was required? For example, how much did you need to think, decide, calculate, remember, look, search, etc.?"
+                  },
+                  physical: {
+                    label: "Physical Demand",
+                    description: "How much physical activity was required? For example, how much did you need to push, pull, turn, control, or activate?"
+                  },
+                  temporal: {
+                    label: "Time Pressure",
+                    description: "How much time pressure did you feel due to the rate or pace at which the tasks or task elements occurred?"
+                  },
+                  performance: {
+                    label: "Task Performance",
+                    description: "How successful were you in accomplishing what you were asked to do? How satisfied were you with your performance in accomplishing these tasks?"
+                  },
+                  effort: {
+                    label: "Effort Required",
+                    description: "How hard did you have to work (mentally and physically) to accomplish your level of performance?"
+                  },
+                  frustration: {
+                    label: "Frustration Level",
+                    description: "How irritated, stressed, and annoyed versus content, relaxed, and complacent did you feel during the tasks?"
+                  }
+                }).map(([key, { label, description }]) => {
+                  const avgScoreA = stats.nasaTlx[key as keyof typeof stats.nasaTlx].A;
+                  const avgScoreB = stats.nasaTlx[key as keyof typeof stats.nasaTlx].B;
+                  // For NASA-TLX, lower scores are better (except for Performance)
+                  const improvement = key === 'performance' 
+                    ? ((avgScoreB - avgScoreA) / avgScoreA * 100).toFixed(1)  // Higher is better for Performance
+                    : ((avgScoreA - avgScoreB) / avgScoreA * 100).toFixed(1); // Lower is better for other dimensions
+
+                  return (
+                    <div key={key} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                      <h4 className="font-medium text-gray-900 mb-2">{label}</h4>
+                      <p className="text-sm text-gray-700 mb-3">{description}</p>
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            <span className="text-blue-600 font-medium mr-2">A:</span>
+                            <div className="w-24 bg-blue-100 rounded-full h-2">
+                              <div 
+                                className="bg-blue-600 h-2 rounded-full" 
+                                style={{ width: `${(avgScoreA / 100) * 100}%` }}
+                              ></div>
+                            </div>
+                            <span className="text-gray-600 ml-2">{avgScoreA.toFixed(1)}</span>
+                          </div>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center">
+                            <span className="text-green-600 font-medium mr-2">B:</span>
+                            <div className="w-24 bg-green-100 rounded-full h-2">
+                              <div 
+                                className="bg-green-600 h-2 rounded-full" 
+                                style={{ width: `${(avgScoreB / 100) * 100}%` }}
+                              ></div>
+                            </div>
+                            <span className="text-gray-600 ml-2">{avgScoreB.toFixed(1)}</span>
+                          </div>
+                        </div>
+                        <div className="text-xs text-gray-500 mt-1">
+                          {parseFloat(improvement) > 0 ? (
+                            <span className="text-green-600">+{improvement}% improvement</span>
+                          ) : (
+                            <span className="text-red-600">{improvement}% change</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           </section>
         </div>
