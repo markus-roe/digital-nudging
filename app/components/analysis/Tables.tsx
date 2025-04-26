@@ -120,12 +120,24 @@ const HesitationTimeTable = ({ data }: { data: TableData[] }) => (
   />
 );
 
+const CaseDurationTable = ({ data }: { data: { task: string; versionA: number[]; versionB: number[] }[] }) => {
+  const tableData = data.map(item => ({
+    name: item.task.replace('_', ' '),
+    versionA: item.versionA[0] / 1000, // Convert to seconds
+    versionB: item.versionB[0] / 1000,
+    improvement: item.versionA[0] === 0 ? '100.0' : ((item.versionA[0] - item.versionB[0]) / item.versionA[0] * 100).toFixed(1)
+  }));
+
+  return <AnalysisTable title="Case Duration Analysis" data={tableData} unit="s" showImprovement />;
+};
+
 const Tables = {
   TaskPerformanceTable,
   ErrorAnalysisTable,
   NasaTLXTable,
   UsabilityTable,
-  HesitationTimeTable
+  HesitationTimeTable,
+  CaseDurationTable
 } as const;
 
 export type { TableData, TableProps };
@@ -134,6 +146,7 @@ export {
   ErrorAnalysisTable,
   NasaTLXTable,
   UsabilityTable,
-  HesitationTimeTable
+  HesitationTimeTable,
+  CaseDurationTable
 };
 export default Tables; 

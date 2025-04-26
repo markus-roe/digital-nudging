@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma';
-import { Version, TaskType, Participant, ActionLog, ErrorLog, Questionnaire } from '@prisma/client';
+import { Version, TaskType, Participant, ActionLog, ErrorLog, Questionnaire, ActionType } from '@prisma/client';
 import {
   DemographicsCharts,
   VersionDistribution,
@@ -16,8 +16,12 @@ import {
   ErrorAnalysisTable,
   NasaTLXTable,
   UsabilityTable,
-  HesitationTimeTable
+  HesitationTimeTable,
+  CaseDurationTable
 } from '../components/analysis/Tables';
+import { RefreshButton } from '../components/analysis/RefreshButton';
+import { ParticipantTable } from '../components/analysis/ParticipantTable';
+import { IndividualMetricsTable } from '../components/analysis/IndividualMetricsTable';
 
 type ParticipantWithRelations = Participant & {
   actionLogs: ActionLog[];
@@ -68,6 +72,13 @@ interface ParticipantStats {
     experience: Record<string, number>;
     education: Record<string, number>;
   };
+  completionStatus: {
+    total: number;
+    registeredOnly: number;
+    completedTasks: number;
+    completedQuestionnaire: number;
+    fullyCompleted: number;
+  };
   taskCompletion: Record<TaskType, { A: number; B: number }>;
   caseDurations: Record<TaskType, { A: number[]; B: number[] }>;
   errorRates: Record<TaskType, { A: number; B: number }>;
@@ -98,6 +109,13 @@ async function getParticipantStats(): Promise<ParticipantStats> {
       errorLogs: true,
       questionnaire: true,
     },
+    where: {
+      actionLogs: {
+        some: {
+          action: 'TASK_END',
+        },
+      },
+    },
   });
 
   const stats: ParticipantStats = {
@@ -106,6 +124,13 @@ async function getParticipantStats(): Promise<ParticipantStats> {
       gender: {},
       experience: {},
       education: {},
+    },
+    completionStatus: {
+      total: participants.length,
+      registeredOnly: 0,
+      completedTasks: 0,
+      completedQuestionnaire: 0,
+      fullyCompleted: 0,
     },
     taskCompletion: {
       [TaskType.ORDER_ASSIGNMENT]: { A: 0, B: 0 },
@@ -150,6 +175,25 @@ async function getParticipantStats(): Promise<ParticipantStats> {
   };
 
   participants.forEach(participant => {
+    // Track completion status
+    const hasCompletedTasks = participant.actionLogs.some(log => 
+      log.action === 'TASK_END' && 
+      (log.task === TaskType.ORDER_ASSIGNMENT || 
+       log.task === TaskType.ORDER_VALIDATION || 
+       log.task === TaskType.DELIVERY_SCHEDULING)
+    );
+    const hasCompletedQuestionnaire = participant.questionnaire !== null;
+
+    if (!hasCompletedTasks && !hasCompletedQuestionnaire) {
+      stats.completionStatus.registeredOnly++;
+    } else if (hasCompletedTasks && !hasCompletedQuestionnaire) {
+      stats.completionStatus.completedTasks++;
+    } else if (!hasCompletedTasks && hasCompletedQuestionnaire) {
+      stats.completionStatus.completedQuestionnaire++;
+    } else {
+      stats.completionStatus.fullyCompleted++;
+    }
+
     // Demographics
     if (participant.age) stats.demographics.age[participant.age] = (stats.demographics.age[participant.age] || 0) + 1;
     if (participant.gender) stats.demographics.gender[participant.gender] = (stats.demographics.gender[participant.gender] || 0) + 1;
@@ -305,8 +349,42 @@ export const revalidate = 0;
 
 export default async function AnalysisPage() {
   const stats = await getParticipantStats();
-  const participants = await prisma.participant.findMany();
+  const participants = await prisma.participant.findMany({
+    include: {
+      actionLogs: true,
+      errorLogs: true,
+      questionnaire: true,
+    },
+   
+  });
   const participantCount = participants.length;
+
+  // Analyze action logs
+  const actionLogStats = participants.reduce((acc, participant) => {
+    participant.actionLogs.forEach(log => {
+      if (!acc[log.action]) {
+        acc[log.action] = {
+          total: 0,
+          byVersion: { A: 0, B: 0 },
+          byTask: {
+            [TaskType.ORDER_ASSIGNMENT]: 0,
+            [TaskType.ORDER_VALIDATION]: 0,
+            [TaskType.DELIVERY_SCHEDULING]: 0
+          }
+        };
+      }
+      acc[log.action].total++;
+      acc[log.action].byVersion[participant.version]++;
+      if (log.task) {
+        acc[log.action].byTask[log.task]++;
+      }
+    });
+    return acc;
+  }, {} as Record<string, {
+    total: number;
+    byVersion: { A: number; B: number };
+    byTask: Record<TaskType, number>;
+  }>);
 
   const taskCompletionData: ChartData[] = Object.entries(stats.taskCompletion).map(([task, times]) => ({
     name: task.replace('_', ' '),
@@ -405,20 +483,21 @@ export default async function AnalysisPage() {
     <div className="min-h-screen bg-gray-50">
       {/* Dashboard Header */}
       <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-blue-50 border-b border-gray-200/50 shadow-sm mb-8">
-        <div className="max-w-[1920px] mx-auto px-6 py-8">
-          <div className="flex items-center justify-between">
+        <div className="max-w-[1920px] mx-auto px-4 sm:px-6 py-6 sm:py-8">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Experiment Analysis</h1>
-              <p className="mt-2 text-base text-gray-600">
+              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Experiment Analysis</h1>
+              <p className="mt-2 text-sm sm:text-base text-gray-600">
                 Analyzing the impact of digital nudging in ERP interfaces
               </p>
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+              <RefreshButton />
+              <div className="bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200 w-full sm:w-auto">
                 <div className="text-xs font-medium text-gray-600">Total Participants</div>
                 <div className="text-2xl font-bold text-blue-600">{participantCount}</div>
               </div>
-              <div className="bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200">
+              <div className="bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200 w-full sm:w-auto">
                 <div className="text-xs font-medium text-gray-600">Version Distribution</div>
                 <div className="mt-1">
                   <div className="flex items-center space-x-1">
@@ -441,6 +520,60 @@ export default async function AnalysisPage() {
       </div>
 
       <div className="max-w-[1920px] mx-auto px-6">
+        {/* Action Logs Section */}
+        <section className="bg-white rounded-xl shadow-sm p-6 mb-8">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">Action Logs Analysis</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Object.entries(actionLogStats).map(([action, stats]) => (
+              <div key={action} className="bg-gray-50 rounded-lg p-4">
+                <div className="text-sm font-medium text-gray-500">{action}</div>
+                <div className="text-2xl font-bold text-gray-900 mt-1">{stats.total}</div>
+                <div className="mt-4 space-y-2">
+                  <div className="text-xs font-medium text-gray-500">By Version</div>
+                  <div className="flex items-center space-x-2">
+                    <div className="flex-1 bg-blue-100 rounded-full h-2">
+                      <div 
+                        className="bg-blue-600 h-2 rounded-full" 
+                        style={{ width: `${(stats.byVersion.A / stats.total) * 100}%` }}
+                      ></div>
+                    </div>
+                    <div className="text-xs text-gray-600">A: {stats.byVersion.A}</div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <div className="flex-1 bg-green-100 rounded-full h-2">
+                      <div 
+                        className="bg-green-600 h-2 rounded-full" 
+                        style={{ width: `${(stats.byVersion.B / stats.total) * 100}%` }}
+                      ></div>
+                    </div>
+                    <div className="text-xs text-gray-600">B: {stats.byVersion.B}</div>
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <div className="text-xs font-medium text-gray-500">By Task</div>
+                  <div className="mt-2 space-y-1">
+                    {Object.entries(stats.byTask).map(([task, count]) => (
+                      <div key={task} className="flex items-center justify-between text-xs">
+                        <span className="text-gray-600">{task.replace('_', ' ')}</span>
+                        <span className="text-gray-900">{count}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* Participant Details Table */}
+        <ParticipantTable participants={participants} completionStatus={stats.completionStatus} />
+
+        {/* Individual Metrics Table */}
+        <section className="bg-white rounded-xl shadow-sm p-6 mb-8">
+          <h2 className="text-xl font-semibold text-gray-900 mb-6">Individual Participant Metrics</h2>
+          <IndividualMetricsTable participants={participants} />
+        </section>
+
         {/* Summary Section */}
         <div className="mb-8">
           <h2 className="text-xl font-semibold text-gray-900 mb-6">Key Improvements with Digital Nudging</h2>
@@ -502,25 +635,28 @@ export default async function AnalysisPage() {
           {/* Demographics Section */}
           <section className="bg-white rounded-xl shadow-sm p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-6">Participant Demographics</h2>
-            <DemographicsCharts demographics={stats.demographics} />
+              <DemographicsCharts demographics={stats.demographics} />
           </section>
 
           {/* Task Performance Section */}
           <section className="bg-white rounded-xl shadow-sm p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-6">Task Performance Analysis</h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-              <TaskCompletion taskCompletionData={taskCompletionData} />
-              <CaseDurations caseDurationsData={caseDurationsData} />
+                <TaskCompletion taskCompletionData={taskCompletionData} />
+                <CaseDurations caseDurationsData={caseDurationsData} />
             </div>
-            <TaskPerformanceTable data={taskPerformanceData} />
+            <div className="grid gap-6">
+              <TaskPerformanceTable data={taskPerformanceData} />
+              <CaseDurationTable data={caseDurationsData} />
+            </div>
           </section>
 
           {/* Error Analysis Section */}
           <section className="bg-white rounded-xl shadow-sm p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-6">Error Analysis</h2>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-              <ErrorRates errorRatesData={errorRatesData} />
-              <HesitationTime hesitationTimeData={hesitationTimeData} />
+                <ErrorRates errorRatesData={errorRatesData} />
+                <HesitationTime hesitationTimeData={hesitationTimeData} />
             </div>
             <div className="grid gap-6">
               <ErrorAnalysisTable data={errorAnalysisData} />
@@ -532,13 +668,12 @@ export default async function AnalysisPage() {
           <section className="bg-white rounded-xl shadow-sm p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-6">User Experience Analysis</h2>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-              <SUS susScores={susScores} />
-              <Confidence confidenceRatings={confidenceRatings} />
-              <NasaTLX nasaTlxData={nasaTLXTableData} />
+                <SUS susScores={susScores} />
+                <Confidence confidenceRatings={confidenceRatings} />
+                <NasaTLX nasaTlxData={nasaTlxData} />
             </div>
             <div className="grid gap-6">
               <NasaTLXTable data={nasaTLXTableData} />
-
               <UsabilityTable 
                 susScores={{
                   versionA: susScores.versionA,
