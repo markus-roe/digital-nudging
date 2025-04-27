@@ -1,15 +1,15 @@
 import { prisma } from '@/lib/prisma';
-import { Version, TaskType, Participant, ActionLog, ErrorLog, Questionnaire, ActionType } from '@prisma/client';
+import { Version, TaskType } from '@prisma/client';
 import {
   DemographicsCharts,
-  VersionDistribution,
   TaskCompletion,
   ErrorRates,
   NasaTLX,
   SUS,
   Confidence,
   HesitationTime,
-  CaseDurations
+  CaseDurations,
+  TaskEfficiencyVsErrorRate,
 } from '../components/analysis/Charts';
 import {
   TaskPerformanceTable,
@@ -22,11 +22,6 @@ import {
 import { RefreshButton } from '../components/analysis/RefreshButton';
 import { ParticipantTable } from '../components/analysis/ParticipantTable';
 
-type ParticipantWithRelations = Participant & {
-  actionLogs: ActionLog[];
-  errorLogs: ErrorLog[];
-  questionnaire: Questionnaire | null;
-};
 
 interface ChartData {
   name: string;
@@ -591,6 +586,12 @@ export default async function AnalysisPage() {
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
                 <TaskCompletion taskCompletionData={taskCompletionData} />
                 <CaseDurations caseDurationsData={caseDurationsData} />
+            </div>
+            <div className="mb-6">
+              <TaskEfficiencyVsErrorRate 
+                taskCompletionData={taskCompletionData}
+                errorRatesData={errorRatesData}
+              />
             </div>
             <div className="grid gap-6">
               <TaskPerformanceTable data={taskPerformanceData} />
