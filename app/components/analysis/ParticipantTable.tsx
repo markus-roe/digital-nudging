@@ -207,9 +207,9 @@ export const ParticipantTable = ({ participants, completionStatus }: Participant
     return 'bg-white';
   };
 
-  // Custom error heatmap color: gradient starts at 1 error, only 0 errors have no bg
+  // Custom error heatmap color: gradient starts at 1 error
   const getErrorHeatmapColor = (value: number, stats: { mean: number; stdDev: number }) => {
-    if (value === 0) return '';
+    if (value === 0) return 'bg-white';
     if (value === 1) return 'bg-red-50';
     const zScore = (value - stats.mean) / stats.stdDev;
     if (zScore > 1) return 'bg-red-200';
@@ -352,7 +352,14 @@ export const ParticipantTable = ({ participants, completionStatus }: Participant
                 const isExpanded = expandedFeedback[participant.id] || false;
 
                 return (
-                  <tr key={participant.id} className="hover:bg-gray-50">
+                  <tr 
+                    key={participant.id} 
+                    className={`hover:bg-opacity-80 ${
+                      participant.version === Version.A 
+                        ? 'bg-blue-50 hover:bg-blue-100' 
+                        : 'bg-green-50 hover:bg-green-100'
+                    }`}
+                  >
                     {/* Participant Details */}
                     <td className="px-2 py-2 whitespace-nowrap text-xs text-gray-900">{participant.id}</td>
                     <td className="px-2 py-2 whitespace-nowrap text-xs text-gray-900">{participant.version}</td>

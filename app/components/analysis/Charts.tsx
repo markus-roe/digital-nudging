@@ -9,8 +9,9 @@ import {
   Tooltip,
   Legend,
   ArcElement,
+  PointElement,
 } from 'chart.js';
-import { Bar, Pie } from 'react-chartjs-2';
+import { Bar, Pie, Scatter } from 'react-chartjs-2';
 
 ChartJS.register(
   CategoryScale,
@@ -19,7 +20,8 @@ ChartJS.register(
   Title,
   Tooltip,
   Legend,
-  ArcElement
+  ArcElement,
+  PointElement
 );
 
 const COLORS = ['#1f77b4', '#2ca02c', '#ff7f0e', '#d62728', '#9467bd'];
@@ -691,6 +693,140 @@ const CaseDurations = ({ caseDurationsData }: { caseDurationsData: { task: strin
   );
 };
 
+const TaskEfficiencyVsErrorRate = ({ 
+  taskCompletionData, 
+  errorRatesData 
+}: { 
+  taskCompletionData: ChartData[];
+  errorRatesData: ChartData[];
+}) => {
+  // Assign a number to each task
+  const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+  const scatterData = taskCompletionData.map((task, index) => {
+    const errorData = errorRatesData.find(e => e.name === task.name);
+    return {
+      number: numbers[index],
+      task: task.name,
+      versionA: {
+        x: task.versionA / 1000, // Convert to seconds
+        y: errorData?.versionA || 0,
+      },
+      versionB: {
+        x: task.versionB / 1000,
+        y: errorData?.versionB || 0,
+      }
+    };
+  });
+
+  // Custom plugin to draw numbers next to each dot
+  const drawNumbersPlugin = {
+    id: 'drawNumbersPlugin',
+    afterDatasetsDraw(chart: any) {
+      const { ctx } = chart;
+      ctx.save();
+      chart.data.datasets.forEach((dataset: any, datasetIndex: any) => {
+        ctx.font = 'bold 13px Inter, system-ui, sans-serif';
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        ctx.fillStyle = dataset.backgroundColor;
+        dataset.data.forEach((point: any, i: any) => {
+          const meta = chart.getDatasetMeta(datasetIndex);
+          const x = meta.data[i].x;
+          const y = meta.data[i].y;
+          // Find the number for this point
+          const number = scatterData[i]?.number || '';
+          ctx.fillText(number, x + 10, y - 10);
+        });
+      });
+      ctx.restore();
+    }
+  };
+
+  return (
+    <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
+      <h3 className="text-sm font-medium text-gray-700 mb-4">Task Efficiency vs Error Rate</h3>
+      <div className="text-xs text-gray-500 mb-4">
+        Correlation between completion time and error rates
+      </div>
+      <div className="h-[300px]">
+        <Scatter
+          data={{
+            datasets: [
+              {
+                label: 'Version A',
+                data: scatterData.map(d => d.versionA),
+                backgroundColor: COLORS[0],
+                pointRadius: 8,
+                pointHoverRadius: 10,
+              },
+              {
+                label: 'Version B',
+                data: scatterData.map(d => d.versionB),
+                backgroundColor: COLORS[1],
+                pointRadius: 8,
+                pointHoverRadius: 10,
+              }
+            ]
+          }}
+          options={{
+            ...commonChartOptions,
+            plugins: {
+              ...commonChartOptions.plugins,
+              tooltip: {
+                ...commonChartOptions.plugins.tooltip,
+                callbacks: {
+                  label: (context: any) => {
+                    const task = scatterData[context.dataIndex].task;
+                    return `${task}: ${context.raw.y} errors in ${context.raw.x.toFixed(1)}s`;
+                  }
+                }
+              }
+            },
+            scales: {
+              x: {
+                type: 'linear',
+                position: 'bottom',
+                title: {
+                  display: true,
+                  text: 'Task Completion Time (seconds)',
+                  font: {
+                    family: 'Inter, system-ui, sans-serif',
+                    size: 11,
+                    weight: 500,
+                  },
+                },
+                min: 0,
+              },
+              y: {
+                title: {
+                  display: true,
+                  text: 'Number of Errors',
+                  font: {
+                    family: 'Inter, system-ui, sans-serif',
+                    size: 11,
+                    weight: 500,
+                  },
+                },
+                min: 0,
+              }
+            },
+          }}
+          plugins={[drawNumbersPlugin]}
+        />
+      </div>
+      <div className="mt-4 text-xs text-gray-600">
+        <div className="flex flex-wrap gap-x-4 gap-y-1">
+          {scatterData.map((d, i) => (
+            <span key={i}>
+              {d.number} = {d.task}
+            </span>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // Main Charts component with all subcomponents
 const Charts = {
   DemographicsCharts,
@@ -702,6 +838,7 @@ const Charts = {
   Confidence,
   HesitationTime,
   CaseDurations,
+  TaskEfficiencyVsErrorRate,
 };
 
 export {
@@ -714,6 +851,7 @@ export {
   Confidence,
   HesitationTime,
   CaseDurations,
+  TaskEfficiencyVsErrorRate,
 };
 
 export default Charts; 
