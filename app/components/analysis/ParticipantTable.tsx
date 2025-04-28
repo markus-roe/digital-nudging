@@ -68,11 +68,22 @@ export const ParticipantTable = ({ participants, completionStatus }: Participant
           metrics.taskCompletion[log.task] = duration;
         }
       } else if (log.action === 'CASE_SUBMIT') {
-        const caseStart = participant.actionLogs.find(
-          l => l.action === 'ORDER_SELECT' && l.task === log.task && l.orderId === log.orderId
+        // Find all ORDER_SELECT actions for this order and task
+        const selects = participant.actionLogs.filter(
+          l => l.action === 'ORDER_SELECT' && 
+          l.task === log.task && 
+          l.orderId === log.orderId &&
+          l.timestamp < log.timestamp
         );
-        if (caseStart) {
-          const duration = log.timestamp.getTime() - caseStart.timestamp.getTime();
+        
+        if (selects.length > 0) {
+          // Get the last selection before this submit
+          const lastSelect = selects.reduce((latest, current) => {
+            if (!latest) return current;
+            return current.timestamp > latest.timestamp ? current : latest;
+          }, selects[0]);
+          
+          const duration = log.timestamp.getTime() - lastSelect.timestamp.getTime();
           metrics.caseDurations[log.task].push(duration);
         }
       }
@@ -101,13 +112,25 @@ export const ParticipantTable = ({ participants, completionStatus }: Participant
       const currentGroup = orderGroups[orderIds[i]];
       const nextGroup = orderGroups[orderIds[i + 1]];
       
-      const currentSubmit = currentGroup.find(log => log.action === 'CASE_SUBMIT');
-      const nextSelect = nextGroup.find(log => log.action === 'ORDER_SELECT');
+      // Find the last ORDER_SELECT before CASE_SUBMIT for the current order
+      const currentSubmits = currentGroup.filter(log => log.action === 'CASE_SUBMIT');
+      const currentSelects = currentGroup.filter(log => log.action === 'ORDER_SELECT');
       
-      if (currentSubmit && nextSelect) {
-        const hesitationTime = nextSelect.timestamp.getTime() - currentSubmit.timestamp.getTime();
-        totalHesitationTime += hesitationTime;
-        hesitationCount++;
+      if (currentSubmits.length > 0 && currentSelects.length > 0) {
+        // Get the last selection before the first submit
+        const lastSelect = currentSelects.reduce((latest, current) => {
+          if (!latest) return current;
+          return current.timestamp > latest.timestamp ? current : latest;
+        }, currentSelects[0]);
+        
+        const firstSubmit = currentSubmits[0];
+        
+        // Only calculate if the selection was before the submit
+        if (lastSelect.timestamp < firstSubmit.timestamp) {
+          const hesitationTime = firstSubmit.timestamp.getTime() - lastSelect.timestamp.getTime();
+          totalHesitationTime += hesitationTime;
+          hesitationCount++;
+        }
       }
     }
     metrics.hesitationTime = hesitationCount > 0 ? totalHesitationTime / hesitationCount : 0;
@@ -297,7 +320,10 @@ export const ParticipantTable = ({ participants, completionStatus }: Participant
                   <>
                     <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Task Time</th>
                     <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Case Time</th>
-                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Errors</th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Errors</th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Val. Errors</th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Asn. Errors</th>
+                    <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Sch. Errors</th>
                     <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hesitation</th>
                     <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">SUS</th>
                     <th className="px-2 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Confidence</th>
@@ -421,6 +447,15 @@ export const ParticipantTable = ({ participants, completionStatus }: Participant
                         </td>
                         <td className={`px-2 py-2 whitespace-nowrap text-xs text-gray-900 ${getErrorHeatmapColor(totalErrors, stats.errors)}`}>
                           {totalErrors}
+                        </td>
+                        <td className={`px-2 py-2 whitespace-nowrap text-xs text-gray-900 ${getErrorHeatmapColor(metrics.errorRates[TaskType.ORDER_VALIDATION], stats.errors)}`}>
+                          {metrics.errorRates[TaskType.ORDER_VALIDATION]}
+                        </td>
+                        <td className={`px-2 py-2 whitespace-nowrap text-xs text-gray-900 ${getErrorHeatmapColor(metrics.errorRates[TaskType.ORDER_ASSIGNMENT], stats.errors)}`}>
+                          {metrics.errorRates[TaskType.ORDER_ASSIGNMENT]}
+                        </td>
+                        <td className={`px-2 py-2 whitespace-nowrap text-xs text-gray-900 ${getErrorHeatmapColor(metrics.errorRates[TaskType.DELIVERY_SCHEDULING], stats.errors)}`}>
+                          {metrics.errorRates[TaskType.DELIVERY_SCHEDULING]}
                         </td>
                         <td className={`px-2 py-2 whitespace-nowrap text-xs text-gray-900 ${getHeatmapColor(metrics.hesitationTime, stats.hesitation)}`}>
                           {formatTime(metrics.hesitationTime)}
