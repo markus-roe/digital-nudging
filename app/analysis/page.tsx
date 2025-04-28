@@ -205,11 +205,22 @@ async function getParticipantStats(): Promise<ParticipantStats> {
           stats.taskCompletion[log.task][participant.version] += duration;
         }
       } else if (log.action === 'CASE_SUBMIT') {
-        const caseStart = participant.actionLogs.find(
-          l => l.action === 'ORDER_SELECT' && l.task === log.task && l.orderId === log.orderId
+        // Find all ORDER_SELECT actions for this order and task
+        const selects = participant.actionLogs.filter(
+          l => l.action === 'ORDER_SELECT' && 
+          l.task === log.task && 
+          l.orderId === log.orderId &&
+          l.timestamp < log.timestamp
         );
-        if (caseStart) {
-          const duration = log.timestamp.getTime() - caseStart.timestamp.getTime();
+        
+        if (selects.length > 0) {
+          // Get the last selection before this submit
+          const lastSelect = selects.reduce((latest, current) => {
+            if (!latest) return current;
+            return current.timestamp > latest.timestamp ? current : latest;
+          }, selects[0]);
+          
+          const duration = log.timestamp.getTime() - lastSelect.timestamp.getTime();
           stats.caseDurations[log.task][participant.version].push(duration);
         }
       }
@@ -250,20 +261,28 @@ async function getParticipantStats(): Promise<ParticipantStats> {
       return groups;
     }, {} as Record<string, typeof orderAssignmentLogs>);
 
-    // Calculate hesitation time between order groups
-    const orderIds = Object.keys(orderGroups);
-    for (let i = 0; i < orderIds.length - 1; i++) {
-      const currentGroup = orderGroups[orderIds[i]];
-      const nextGroup = orderGroups[orderIds[i + 1]];
+    // Calculate hesitation time for each order
+    Object.values(orderGroups).forEach(group => {
+      // Find all ORDER_SELECT and CASE_SUBMIT actions for this order
+      const submits = group.filter(log => log.action === 'CASE_SUBMIT');
+      const selects = group.filter(log => log.action === 'ORDER_SELECT');
       
-      const currentSubmit = currentGroup.find(log => log.action === 'CASE_SUBMIT');
-      const nextSelect = nextGroup.find(log => log.action === 'ORDER_SELECT');
-      
-      if (currentSubmit && nextSelect) {
-        const hesitationTime = nextSelect.timestamp.getTime() - currentSubmit.timestamp.getTime();
-        stats.hesitationTimes[TaskType.ORDER_ASSIGNMENT][participant.version].push(hesitationTime);
+      if (submits.length > 0 && selects.length > 0) {
+        // Get the last selection before the first submit
+        const lastSelect = selects.reduce((latest, current) => {
+          if (!latest) return current;
+          return current.timestamp > latest.timestamp ? current : latest;
+        }, selects[0]);
+        
+        const firstSubmit = submits[0];
+        
+        // Only calculate if the selection was before the submit
+        if (lastSelect.timestamp < firstSubmit.timestamp) {
+          const hesitationTime = firstSubmit.timestamp.getTime() - lastSelect.timestamp.getTime();
+          stats.hesitationTimes[TaskType.ORDER_ASSIGNMENT][participant.version].push(hesitationTime);
+        }
       }
-    }
+    });
 
     // Questionnaire data
     if (participant.questionnaire) {
