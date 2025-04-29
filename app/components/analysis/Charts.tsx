@@ -297,12 +297,19 @@ const TaskCompletion = ({ taskCompletionData }: { taskCompletionData: any[] }) =
         />
       </div>
       <div className="mt-4 text-xs text-gray-600">
-        {taskCompletionData.map((d, i) => (
-          <div key={i} className="flex justify-between items-center py-1">
-            <span>{d.name}</span>
-            <span className="text-green-600">Time reduced by {d.improvement}%</span>
-          </div>
-        ))}
+        {taskCompletionData.map((d, i) => {
+          const change = ((d.versionA - d.versionB) / d.versionA * 100);
+          const isReduced = change > 0;
+          const percentage = Math.abs(change).toFixed(1);
+          return (
+            <div key={i} className="flex justify-between items-center py-1">
+              <span>{d.name}</span>
+              <span className={isReduced ? "text-green-600" : "text-red-600"}>
+                Time {isReduced ? "reduced" : "increased"} by {percentage}%
+              </span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -353,12 +360,19 @@ const ErrorRates = ({ errorRatesData }: { errorRatesData: any[] }) => {
         />
       </div>
       <div className="mt-4 text-xs text-gray-600">
-        {errorRatesData.map((d, i) => (
-          <div key={i} className="flex justify-between items-center py-1">
-            <span>{d.name}</span>
-            <span className="text-green-600">Errors reduced by {d.reduction}%</span>
-          </div>
-        ))}
+        {errorRatesData.map((d, i) => {
+          const change = ((d.versionA - d.versionB) / d.versionA * 100);
+          const isReduced = change > 0;
+          const percentage = Math.abs(change).toFixed(1);
+          return (
+            <div key={i} className="flex justify-between items-center py-1">
+              <span>{d.name}</span>
+              <span className={isReduced ? "text-green-600" : "text-red-600"}>
+                Errors {isReduced ? "reduced" : "increased"} by {percentage}%
+              </span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -413,16 +427,17 @@ const NasaTLX = ({ nasaTlxData }: { nasaTlxData: any[] }) => {
       <div className="mt-4 text-xs text-gray-600">
         {nasaTlxData.map((d, i) => {
           const isPerformance = d.name === 'Performance';
-          const improvement = isPerformance
-            ? ((d.versionB - d.versionA) / d.versionA * 100).toFixed(1)
-            : ((d.versionA - d.versionB) / d.versionA * 100).toFixed(1);
-          const sign = isPerformance ? '+' : '-';
-          const label = 'improved by';
+          const change = ((d.versionA - d.versionB) / d.versionA * 100);
+          const isImproved = isPerformance ? change < 0 : change > 0;
+          const percentage = Math.abs(change).toFixed(1);
+          const label = isPerformance ? (isImproved ? "improved" : "decreased") : (isImproved ? "reduced" : "increased");
           
           return (
             <div key={i} className="flex justify-between items-center py-1">
               <span>{d.name}</span>
-              <span className="text-green-600">Score {label} {Math.abs(parseFloat(improvement))}%</span>
+              <span className={isImproved ? "text-green-600" : "text-red-600"}>
+                Score {label} by {percentage}%
+              </span>
             </div>
           );
         })}
@@ -614,16 +629,19 @@ const HesitationTime = ({ hesitationTimeData }: { hesitationTimeData: ChartData[
         />
       </div>
       <div className="mt-4 text-xs text-gray-600">
-        {validData.map((d, i) => (
-          <div key={i} className="flex justify-between items-center py-1">
-            <span>{d.name}</span>
-            <span className="text-green-600">
-              {parseFloat(d.improvement || '0') > 0 
-                ? `Faster by ${d.improvement}%` 
-                : `Slower by ${Math.abs(parseFloat(d.improvement || '0'))}%`}
-            </span>
-          </div>
-        ))}
+        {validData.map((d, i) => {
+          const change = ((d.versionA - d.versionB) / d.versionA * 100);
+          const isReduced = change > 0;
+          const percentage = Math.abs(change).toFixed(1);
+          return (
+            <div key={i} className="flex justify-between items-center py-1">
+              <span>{d.name}</span>
+              <span className={isReduced ? "text-green-600" : "text-red-600"}>
+                Time {isReduced ? "reduced" : "increased"} by {percentage}%
+              </span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -680,11 +698,15 @@ const CaseDurations = ({ caseDurationsData }: { caseDurationsData: { task: strin
       </div>
       <div className="mt-4 text-xs text-gray-600">
         {caseDurationsData.map((d, i) => {
-          const improvement = ((d.versionA[0] - d.versionB[0]) / d.versionA[0] * 100).toFixed(1);
+          const change = ((d.versionA[0] - d.versionB[0]) / d.versionA[0] * 100);
+          const isReduced = change > 0;
+          const percentage = Math.abs(change).toFixed(1);
           return (
             <div key={i} className="flex justify-between items-center py-1">
               <span>{d.task.replace('_', ' ')}</span>
-              <span className="text-green-600">Time per case reduced by {improvement}%</span>
+              <span className={isReduced ? "text-green-600" : "text-red-600"}>
+                Time per case {isReduced ? "reduced" : "increased"} by {percentage}%
+              </span>
             </div>
           );
         })}
