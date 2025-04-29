@@ -24,6 +24,7 @@ export const ParticipantTable = ({ participants, completionStatus }: Participant
   const [showMetrics, setShowMetrics] = useState(false);
   const [expandedFeedback, setExpandedFeedback] = useState<Record<string, boolean>>({});
   const [selectedFeedback, setSelectedFeedback] = useState<{ id: string; feedback: string } | null>(null);
+  const [versionFilter, setVersionFilter] = useState<Version | 'ALL'>('ALL');
 
   const participantCount = participants.length;
 
@@ -285,19 +286,53 @@ export const ParticipantTable = ({ participants, completionStatus }: Participant
       <div className="mt-6">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-medium text-gray-900">Participant Details</h3>
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={handleToggleAllFeedback}
-              className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors cursor-pointer"
-            >
-              {Object.values(expandedFeedback).some(Boolean) ? 'Collapse Feedback' : 'Expand Feedback'}
-            </button>
-            <button
-              onClick={() => setShowMetrics(!showMetrics)}
-              className="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors cursor-pointer"
-            >
-              {showMetrics ? 'Hide Metrics' : 'Show Metrics'}
-            </button>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={() => setVersionFilter('ALL')}
+                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors cursor-pointer ${
+                  versionFilter === 'ALL'
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                All
+              </button>
+              <button
+                onClick={() => setVersionFilter(Version.A)}
+                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors cursor-pointer ${
+                  versionFilter === Version.A
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                Version A
+              </button>
+              <button
+                onClick={() => setVersionFilter(Version.B)}
+                className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors cursor-pointer ${
+                  versionFilter === Version.B
+                    ? 'bg-blue-500 text-white'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                }`}
+              >
+                Version B
+              </button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                onClick={handleToggleAllFeedback}
+                className="px-4 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors cursor-pointer"
+              >
+                {Object.values(expandedFeedback).some(Boolean) ? 'Collapse Feedback' : 'Expand Feedback'}
+              </button>
+              <button
+                onClick={() => setShowMetrics(!showMetrics)}
+                className="px-4 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-md transition-colors cursor-pointer"
+              >
+                {showMetrics ? 'Hide Metrics' : 'Show Metrics'}
+              </button>
+            </div>
           </div>
         </div>
         <div className="overflow-x-auto">
@@ -333,147 +368,149 @@ export const ParticipantTable = ({ participants, completionStatus }: Participant
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {participants.map(participant => {
-                const metrics = calculateParticipantMetrics(participant);
-                const avgCaseDuration = Object.values(metrics.caseDurations).flat().reduce((a, b) => a + b, 0) / 
-                  Object.values(metrics.caseDurations).flat().length || 0;
-                const totalErrors = Object.values(metrics.errorRates).reduce((a, b) => a + b, 0);
-                const avgNasaTlx = Object.values(metrics.nasaTlx).reduce((a, b) => a + b, 0) / 6;
-                const totalTaskTime = Object.values(metrics.taskCompletion).reduce((a, b) => a + b, 0);
+              {participants
+                .filter(participant => versionFilter === 'ALL' || participant.version === versionFilter)
+                .map(participant => {
+                  const metrics = calculateParticipantMetrics(participant);
+                  const avgCaseDuration = Object.values(metrics.caseDurations).flat().reduce((a, b) => a + b, 0) / 
+                    Object.values(metrics.caseDurations).flat().length || 0;
+                  const totalErrors = Object.values(metrics.errorRates).reduce((a, b) => a + b, 0);
+                  const avgNasaTlx = Object.values(metrics.nasaTlx).reduce((a, b) => a + b, 0) / 6;
+                  const totalTaskTime = Object.values(metrics.taskCompletion).reduce((a, b) => a + b, 0);
 
-                // Define the expected flow steps
-                const flowSteps = [
-                  { name: 'Reg', check: () => true },
-                  { 
-                    name: 'Val', 
-                    check: () => participant.actionLogs.some(log => 
-                      log.action === 'TASK_END' && log.task === TaskType.ORDER_VALIDATION
-                    )
-                  },
-                  { 
-                    name: 'Asn', 
-                    check: () => participant.actionLogs.some(log => 
-                      log.action === 'TASK_END' && log.task === TaskType.ORDER_ASSIGNMENT
-                    )
-                  },
-                  { 
-                    name: 'Sch', 
-                    check: () => participant.actionLogs.some(log => 
-                      log.action === 'TASK_END' && log.task === TaskType.DELIVERY_SCHEDULING
-                    )
-                  },
-                  { 
-                    name: 'Qst', 
-                    check: () => participant.questionnaire !== null
-                  }
-                ];
+                  // Define the expected flow steps
+                  const flowSteps = [
+                    { name: 'Reg', check: () => true },
+                    { 
+                      name: 'Val', 
+                      check: () => participant.actionLogs.some(log => 
+                        log.action === 'TASK_END' && log.task === TaskType.ORDER_VALIDATION
+                      )
+                    },
+                    { 
+                      name: 'Asn', 
+                      check: () => participant.actionLogs.some(log => 
+                        log.action === 'TASK_END' && log.task === TaskType.ORDER_ASSIGNMENT
+                      )
+                    },
+                    { 
+                      name: 'Sch', 
+                      check: () => participant.actionLogs.some(log => 
+                        log.action === 'TASK_END' && log.task === TaskType.DELIVERY_SCHEDULING
+                      )
+                    },
+                    { 
+                      name: 'Qst', 
+                      check: () => participant.questionnaire !== null
+                    }
+                  ];
 
-                // Check completion status for each step
-                const flowStatus = flowSteps.map(step => ({
-                  ...step,
-                  completed: step.check()
-                }));
+                  // Check completion status for each step
+                  const flowStatus = flowSteps.map(step => ({
+                    ...step,
+                    completed: step.check()
+                  }));
 
-                const feedback = participant.questionnaire?.feedback;
-                const isExpanded = expandedFeedback[participant.id] || false;
+                  const feedback = participant.questionnaire?.feedback;
+                  const isExpanded = expandedFeedback[participant.id] || false;
 
-                return (
-                  <tr 
-                    key={participant.id} 
-                    className={`hover:bg-opacity-80 ${
-                      participant.version === Version.A 
-                        ? 'bg-blue-50 hover:bg-blue-100' 
-                        : 'bg-green-50 hover:bg-green-100'
-                    }`}
-                  >
-                    {/* Participant Details */}
-                    <td className="px-2 py-2 whitespace-nowrap text-xs text-gray-900">{participant.id}</td>
-                    <td className="px-2 py-2 whitespace-nowrap text-xs text-gray-900">{participant.version}</td>
-                    <td className="px-2 py-2 whitespace-nowrap text-xs text-gray-900">
-                      {participant.createdAt.toLocaleDateString()}
-                    </td>
-                    <td className="px-2 py-2 whitespace-nowrap text-xs text-gray-900">{participant.age || '-'}</td>
-                    <td className="px-2 py-2 whitespace-nowrap text-xs text-gray-900">{participant.gender || '-'}</td>
-                    <td className="px-2 py-2 whitespace-nowrap text-xs text-gray-900">{participant.experience || '-'}</td>
-                    <td className="px-2 py-2 whitespace-nowrap text-xs text-gray-900">{participant.education || '-'}</td>
-                    <td className="px-2 py-2 whitespace-nowrap text-xs">
-                      <div className="flex items-center space-x-1">
-                        {flowStatus.map((step) => (
-                          <div key={step.name} className="flex items-center">
-                            <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${
-                              step.completed 
-                                ? 'bg-green-100 text-green-600 border border-green-400' 
-                                : 'bg-gray-100 text-gray-400 border border-gray-300'
-                            }`}>
-                              {step.name[0]}
+                  return (
+                    <tr 
+                      key={participant.id} 
+                      className={`hover:bg-opacity-80 ${
+                        participant.version === Version.A 
+                          ? 'bg-blue-50 hover:bg-blue-100' 
+                          : 'bg-green-50 hover:bg-green-100'
+                      }`}
+                    >
+                      {/* Participant Details */}
+                      <td className="px-2 py-2 whitespace-nowrap text-xs text-gray-900">{participant.id}</td>
+                      <td className="px-2 py-2 whitespace-nowrap text-xs text-gray-900">{participant.version}</td>
+                      <td className="px-2 py-2 whitespace-nowrap text-xs text-gray-900">
+                        {participant.createdAt.toLocaleDateString()}
+                      </td>
+                      <td className="px-2 py-2 whitespace-nowrap text-xs text-gray-900">{participant.age || '-'}</td>
+                      <td className="px-2 py-2 whitespace-nowrap text-xs text-gray-900">{participant.gender || '-'}</td>
+                      <td className="px-2 py-2 whitespace-nowrap text-xs text-gray-900">{participant.experience || '-'}</td>
+                      <td className="px-2 py-2 whitespace-nowrap text-xs text-gray-900">{participant.education || '-'}</td>
+                      <td className="px-2 py-2 whitespace-nowrap text-xs">
+                        <div className="flex items-center space-x-1">
+                          {flowStatus.map((step) => (
+                            <div key={step.name} className="flex items-center">
+                              <div className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${
+                                step.completed 
+                                  ? 'bg-green-100 text-green-600 border border-green-400' 
+                                  : 'bg-gray-100 text-gray-400 border border-gray-300'
+                              }`}>
+                                {step.name[0]}
+                              </div>
                             </div>
-                          </div>
-                        ))}
-                      </div>
-                    </td>
-                    <td className="px-2 py-2 text-xs text-gray-900 w-32">
-                      {feedback ? (
-                        <div className="relative">
-                          <button
-                            onClick={() => setExpandedFeedback(prev => ({
-                              ...prev,
-                              [participant.id]: !prev[participant.id]
-                            }))}
-                            className="text-blue-600 hover:text-blue-700 cursor-pointer"
-                          >
-                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-                            </svg>
-                          </button>
-                          {isExpanded && (
-                            <div className="max-w-xs mt-2">
-                              {feedback}
-                            </div>
-                          )}
+                          ))}
                         </div>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
-                    </td>
+                      </td>
+                      <td className="px-2 py-2 text-xs text-gray-900 w-32">
+                        {feedback ? (
+                          <div className="relative">
+                            <button
+                              onClick={() => setExpandedFeedback(prev => ({
+                                ...prev,
+                                [participant.id]: !prev[participant.id]
+                              }))}
+                              className="text-blue-600 hover:text-blue-700 cursor-pointer"
+                            >
+                              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                              </svg>
+                            </button>
+                            {isExpanded && (
+                              <div className="max-w-xs mt-2">
+                                {feedback}
+                              </div>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
+                      </td>
 
-                    {/* Performance Metrics - Only show when expanded */}
-                    {showMetrics && (
-                      <>
-                        <td className={`px-2 py-2 whitespace-nowrap text-xs text-gray-900 ${getHeatmapColor(totalTaskTime, stats.taskTime)}`}>
-                          {formatTime(totalTaskTime)}
-                        </td>
-                        <td className={`px-2 py-2 whitespace-nowrap text-xs text-gray-900 ${getHeatmapColor(avgCaseDuration, stats.caseDuration)}`}>
-                          {formatTime(avgCaseDuration)}
-                        </td>
-                        <td className={`px-2 py-2 whitespace-nowrap text-xs text-gray-900 ${getErrorHeatmapColor(totalErrors, stats.errors)}`}>
-                          {totalErrors}
-                        </td>
-                        <td className={`px-2 py-2 whitespace-nowrap text-xs text-gray-900 ${getErrorHeatmapColor(metrics.errorRates[TaskType.ORDER_VALIDATION], stats.errors)}`}>
-                          {metrics.errorRates[TaskType.ORDER_VALIDATION]}
-                        </td>
-                        <td className={`px-2 py-2 whitespace-nowrap text-xs text-gray-900 ${getErrorHeatmapColor(metrics.errorRates[TaskType.ORDER_ASSIGNMENT], stats.errors)}`}>
-                          {metrics.errorRates[TaskType.ORDER_ASSIGNMENT]}
-                        </td>
-                        <td className={`px-2 py-2 whitespace-nowrap text-xs text-gray-900 ${getErrorHeatmapColor(metrics.errorRates[TaskType.DELIVERY_SCHEDULING], stats.errors)}`}>
-                          {metrics.errorRates[TaskType.DELIVERY_SCHEDULING]}
-                        </td>
-                        <td className={`px-2 py-2 whitespace-nowrap text-xs text-gray-900 ${getHeatmapColor(metrics.hesitationTime, stats.hesitation)}`}>
-                          {formatTime(metrics.hesitationTime)}
-                        </td>
-                        <td className={`px-2 py-2 whitespace-nowrap text-xs text-gray-900 ${getHeatmapColor(metrics.susScore, stats.sus, true)}`}>
-                          {formatScore(metrics.susScore)}
-                        </td>
-                        <td className={`px-2 py-2 whitespace-nowrap text-xs text-gray-900 ${getHeatmapColor(metrics.confidenceRating, stats.confidence, true)}`}>
-                          {formatScore(metrics.confidenceRating)}
-                        </td>
-                        <td className={`px-2 py-2 whitespace-nowrap text-xs text-gray-900 ${getHeatmapColor(avgNasaTlx, stats.nasaTlx)}`}>
-                          {formatScore(avgNasaTlx)}
-                        </td>
-                      </>
-                    )}
-                  </tr>
-                );
-              })}
+                      {/* Performance Metrics - Only show when expanded */}
+                      {showMetrics && (
+                        <>
+                          <td className={`px-2 py-2 whitespace-nowrap text-xs text-gray-900 ${getHeatmapColor(totalTaskTime, stats.taskTime)}`}>
+                            {formatTime(totalTaskTime)}
+                          </td>
+                          <td className={`px-2 py-2 whitespace-nowrap text-xs text-gray-900 ${getHeatmapColor(avgCaseDuration, stats.caseDuration)}`}>
+                            {formatTime(avgCaseDuration)}
+                          </td>
+                          <td className={`px-2 py-2 whitespace-nowrap text-xs text-gray-900 ${getErrorHeatmapColor(totalErrors, stats.errors)}`}>
+                            {totalErrors}
+                          </td>
+                          <td className={`px-2 py-2 whitespace-nowrap text-xs text-gray-900 ${getErrorHeatmapColor(metrics.errorRates[TaskType.ORDER_VALIDATION], stats.errors)}`}>
+                            {metrics.errorRates[TaskType.ORDER_VALIDATION]}
+                          </td>
+                          <td className={`px-2 py-2 whitespace-nowrap text-xs text-gray-900 ${getErrorHeatmapColor(metrics.errorRates[TaskType.ORDER_ASSIGNMENT], stats.errors)}`}>
+                            {metrics.errorRates[TaskType.ORDER_ASSIGNMENT]}
+                          </td>
+                          <td className={`px-2 py-2 whitespace-nowrap text-xs text-gray-900 ${getErrorHeatmapColor(metrics.errorRates[TaskType.DELIVERY_SCHEDULING], stats.errors)}`}>
+                            {metrics.errorRates[TaskType.DELIVERY_SCHEDULING]}
+                          </td>
+                          <td className={`px-2 py-2 whitespace-nowrap text-xs text-gray-900 ${getHeatmapColor(metrics.hesitationTime, stats.hesitation)}`}>
+                            {formatTime(metrics.hesitationTime)}
+                          </td>
+                          <td className={`px-2 py-2 whitespace-nowrap text-xs text-gray-900 ${getHeatmapColor(metrics.susScore, stats.sus, true)}`}>
+                            {formatScore(metrics.susScore)}
+                          </td>
+                          <td className={`px-2 py-2 whitespace-nowrap text-xs text-gray-900 ${getHeatmapColor(metrics.confidenceRating, stats.confidence, true)}`}>
+                            {formatScore(metrics.confidenceRating)}
+                          </td>
+                          <td className={`px-2 py-2 whitespace-nowrap text-xs text-gray-900 ${getHeatmapColor(avgNasaTlx, stats.nasaTlx)}`}>
+                            {formatScore(avgNasaTlx)}
+                          </td>
+                        </>
+                      )}
+                    </tr>
+                  );
+                })}
             </tbody>
           </table>
         </div>
