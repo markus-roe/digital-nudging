@@ -14,11 +14,12 @@ interface TableProps {
   unit?: string;
   showImprovement?: boolean;
   showReduction?: boolean;
+  inline?: boolean;
 }
 
-const AnalysisTable = ({ title, data, unit, showImprovement, showReduction }: TableProps) => {
+export const AnalysisTable = ({ title, data, unit, showImprovement, showReduction, inline = true }: TableProps) => {
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
+    <div className={`bg-white rounded-lg ${inline ? '' : 'shadow-sm p-6 border border-gray-100'}`}>
       <h3 className="text-sm font-medium text-gray-700 mb-4">{title}</h3>
       <div className="overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
@@ -27,11 +28,8 @@ const AnalysisTable = ({ title, data, unit, showImprovement, showReduction }: Ta
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Metric</th>
               <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Version A</th>
               <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Version B</th>
-              {showImprovement && (
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Improvement</th>
-              )}
-              {showReduction && (
-                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Reduction</th>
+              {(showImprovement || showReduction) && (
+                <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Change</th>
               )}
             </tr>
           </thead>
@@ -45,14 +43,9 @@ const AnalysisTable = ({ title, data, unit, showImprovement, showReduction }: Ta
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-right text-gray-900">
                   {item.versionB.toFixed(2)}{unit ? ` ${unit}` : ''}
                 </td>
-                {showImprovement && item.improvement && (
-                  <td className={`px-4 py-3 whitespace-nowrap text-sm text-right ${parseFloat(item.improvement) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {parseFloat(item.improvement) > 0 ? '+' : ''}{item.improvement}%
-                  </td>
-                )}
-                {showReduction && item.reduction && (
-                  <td className={`px-4 py-3 whitespace-nowrap text-sm text-right ${parseFloat(item.reduction) >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {item.reduction}%
+                {(showImprovement || showReduction) && (item.improvement || item.reduction) && (
+                  <td className={`px-4 py-3 whitespace-nowrap text-sm text-right ${parseFloat(item.improvement ?? item.reduction ?? '0') >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {parseFloat(item.improvement ?? item.reduction ?? '0') > 0 ? '+' : ''}{item.improvement ?? item.reduction}%
                   </td>
                 )}
               </tr>

@@ -261,31 +261,13 @@ export const ParticipantTable = ({ participants, completionStatus }: Participant
   return (
     <section className="bg-white rounded-xl shadow-sm p-6 mb-8">
       <h2 className="text-xl font-semibold text-gray-900 mb-6">Participant Details</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div className="bg-gray-50 rounded-lg p-4">
-          <div className="text-sm font-medium text-gray-500">Total Participants</div>
-          <div className="text-2xl font-bold text-gray-900 mt-1">{participantCount}</div>
-        </div>
-        <div className="bg-gray-50 rounded-lg p-4">
-          <div className="text-sm font-medium text-gray-500">Tasks Only</div>
-          <div className="text-2xl font-bold text-gray-900 mt-1">{completionStatus.completedTasks}</div>
-          <div className="text-sm text-gray-500 mt-1">
-            {((completionStatus.completedTasks / participantCount) * 100).toFixed(1)}% of total
-          </div>
-        </div>
-        <div className="bg-gray-50 rounded-lg p-4">
-          <div className="text-sm font-medium text-gray-500">Fully Completed</div>
-          <div className="text-2xl font-bold text-gray-900 mt-1">{completionStatus.fullyCompleted}</div>
-          <div className="text-sm text-gray-500 mt-1">
-            {((completionStatus.fullyCompleted / participantCount) * 100).toFixed(1)}% of total
-          </div>
-        </div>
-      </div>
       
       {/* Combined Participants Table */}
       <div className="mt-6">
         <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-medium text-gray-900">Participant Details</h3>
+          <h3 className="text-md font-medium text-gray-900">
+          {participantCount} Participants
+          </h3>
           <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
             <div className="flex flex-wrap gap-2">
               <button

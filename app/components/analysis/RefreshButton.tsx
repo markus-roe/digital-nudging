@@ -2,20 +2,18 @@
 
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Toast } from './Toast';
 
 export const RefreshButton = () => {
   const router = useRouter();
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [showToast, setShowToast] = useState(false);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
     try {
-      await router.refresh();
-      setShowToast(true);
+      router.refresh();
+      
+      await new Promise(resolve => setTimeout(resolve, 1000));
     } finally {
-      // Add a small delay to make the loading state visible
       setTimeout(() => {
         setIsRefreshing(false);
       }, 500);
@@ -36,15 +34,15 @@ export const RefreshButton = () => {
   }, []); // Empty dependency array since handleRefresh is stable
 
   return (
-    <>
+    <div className="fixed bottom-6 right-6 z-50">
       <button
         onClick={handleRefresh}
         disabled={isRefreshing}
-        className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed active:bg-gray-100 active:shadow-inner active:translate-y-px transition-all duration-75"
+        className="inline-flex items-center px-3 py-3 border border-gray-300 shadow-lg text-sm font-medium rounded-full text-gray-700 bg-white hover:bg-gray-50 focus:outline-none cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed active:bg-gray-100 active:shadow-inner active:translate-y-px transition-all duration-75"
       >
         {isRefreshing ? (
           <svg
-            className="animate-spin -ml-1 mr-2 h-4 w-4 text-gray-700"
+            className="animate-spin h-4 w-4 text-gray-700"
             xmlns="http://www.w3.org/2000/svg"
             fill="none"
             viewBox="0 0 24 24"
@@ -65,7 +63,7 @@ export const RefreshButton = () => {
           </svg>
         ) : (
           <svg
-            className="w-4 h-4 mr-2"
+            className="w-4 h-4"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -79,15 +77,7 @@ export const RefreshButton = () => {
             />
           </svg>
         )}
-        Reload
       </button>
-      {showToast && (
-        <Toast
-          message="Data refreshed successfully"
-          type="success"
-          onClose={() => setShowToast(false)}
-        />
-      )}
-    </>
+    </div>
   );
 }; 
