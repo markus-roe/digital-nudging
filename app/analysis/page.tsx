@@ -475,7 +475,13 @@ export default async function AnalysisPage() {
       return acc;
     }, 0) / participants.filter(p => p.version === Version.B && p.questionnaire).length;
 
-    const improvement = avgResponseA === 0 ? 0 : ((avgResponseB - avgResponseA) / avgResponseA * 100);
+    // For even-numbered questions (negative statements), lower score is better
+    // For odd-numbered questions (positive statements), higher score is better
+    const isPositiveQuestion = index % 2 === 0;
+    const improvement = avgResponseA === 0 ? 0 : 
+      isPositiveQuestion 
+        ? ((avgResponseB - avgResponseA) / avgResponseA * 100)  // Higher is better
+        : ((avgResponseA - avgResponseB) / avgResponseA * 100); // Lower is better
 
     return {
       name: question,
