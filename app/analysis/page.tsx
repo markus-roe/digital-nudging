@@ -397,15 +397,13 @@ export default async function AnalysisPage() {
     }));
 
   const hesitationTimeData: ChartData[] = Object.entries(stats.hesitationTimes).map(([task, times]) => {
-    const versionA = times.A[0] || 0;
-    const versionB = times.B[0] || 0;
-    // Calculate percentage reduction (positive means improvement, negative means worse)
-    const improvement = versionA === 0 ? '100.0' : ((versionA - versionB) / versionA * 100).toFixed(1);
-    
+    const versionA = (times.A[0] || 0) / 1000;
+    const versionB = (times.B[0] || 0) / 1000;
+    const improvement = versionA === 0 ? '100.0' : ((versionB - versionA) / versionA * 100).toFixed(1);
     return {
       name: task.replace('_', ' '),
-      versionA,
-      versionB,
+      versionA: Number(versionA.toFixed(2)),
+      versionB: Number(versionB.toFixed(2)),
       improvement
     };
   });
@@ -611,13 +609,14 @@ export default async function AnalysisPage() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
                 <NasaTLX nasaTlxData={nasaTlxData} />
                 <Confidence confidenceRatings={confidenceRatings} />
-                <SUS susScores={susScores} confidenceRatings={confidenceRatings} />
+                <SUS susScores={susScores} />
             </div>
             <AnalysisTable
               inline={false}
               title="System Usability Scale (SUS) Questions"
               data={susQuestionsTableData}
-              showImprovement
+              showChange
+              higherIsBetter={true}
             />
           </section>
         </div>

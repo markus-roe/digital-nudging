@@ -12,12 +12,12 @@ interface TableProps {
   title: string;
   data: TableData[];
   unit?: string;
-  showImprovement?: boolean;
-  showReduction?: boolean;
+  showChange?: boolean;
   inline?: boolean;
+  higherIsBetter?: boolean;
 }
 
-export const AnalysisTable = ({ title, data, unit, showImprovement, showReduction, inline = true }: TableProps) => {
+export const AnalysisTable = ({ title, data, unit, showChange, inline = true, higherIsBetter }: TableProps) => {
   return (
     <div className={`bg-white rounded-lg ${inline ? '' : 'shadow-sm p-6 border border-gray-100'}`}>
       <h3 className="text-sm font-medium text-gray-700 mb-4">{title}</h3>
@@ -28,7 +28,7 @@ export const AnalysisTable = ({ title, data, unit, showImprovement, showReductio
               <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Metric</th>
               <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Version A</th>
               <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Version B</th>
-              {(showImprovement || showReduction) && (
+              {showChange && (
                 <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Change</th>
               )}
             </tr>
@@ -43,9 +43,16 @@ export const AnalysisTable = ({ title, data, unit, showImprovement, showReductio
                 <td className="px-4 py-3 whitespace-nowrap text-sm text-right text-gray-900">
                   {item.versionB.toFixed(2)}{unit ? ` ${unit}` : ''}
                 </td>
-                {(showImprovement || showReduction) && (item.improvement || item.reduction) && (
-                  <td className={`px-4 py-3 whitespace-nowrap text-sm text-right ${parseFloat(item.improvement ?? item.reduction ?? '0') >= 0 ? 'text-green-600' : 'text-red-600'}`}>
-                    {parseFloat(item.improvement ?? item.reduction ?? '0') > 0 ? '+' : ''}{item.improvement ?? item.reduction}%
+                {showChange && (item.improvement || item.reduction) && (
+                  <td
+                    className={`px-4 py-3 whitespace-nowrap text-sm text-right ${
+                      (higherIsBetter ?? false)
+                        ? (parseFloat(item.improvement ?? item.reduction ?? '0') >= 0 ? 'text-green-600' : 'text-red-600')
+                        : (parseFloat(item.improvement ?? item.reduction ?? '0') < 0 ? 'text-green-600' : 'text-red-600')
+                    }`}
+                  >
+                    {parseFloat(item.improvement ?? item.reduction ?? '0') > 0 ? '+' : ''}
+                    {item.improvement ?? item.reduction}%
                   </td>
                 )}
               </tr>
@@ -62,7 +69,7 @@ const TaskPerformanceTable = ({ data }: { data: TableData[] }) => (
     title="Task Performance Metrics"
     data={data}
     unit="s"
-    showImprovement
+    showChange
   />
 );
 
@@ -70,7 +77,7 @@ const ErrorAnalysisTable = ({ data }: { data: TableData[] }) => (
   <AnalysisTable
     title="Error Analysis"
     data={data}
-    showReduction
+    showChange
   />
 );
 
@@ -78,7 +85,7 @@ const NasaTLXTable = ({ data }: { data: TableData[] }) => (
   <AnalysisTable
     title="NASA-TLX Scores (1-10 scale)"
     data={data}
-    showImprovement
+    showChange
   />
 );
 
@@ -101,7 +108,7 @@ const UsabilityTable = ({ susScores, confidenceRatings }: {
     }
   ];
 
-  return <AnalysisTable title="Usability and Confidence Metrics" data={data} showImprovement />;
+  return <AnalysisTable title="Usability and Confidence Metrics" data={data} />;
 };
 
 const HesitationTimeTable = ({ data }: { data: TableData[] }) => (
@@ -109,7 +116,7 @@ const HesitationTimeTable = ({ data }: { data: TableData[] }) => (
     title="Hesitation Time Analysis"
     data={data}
     unit="s"
-    showImprovement
+    showChange
   />
 );
 
@@ -121,7 +128,7 @@ const CaseDurationTable = ({ data }: { data: { task: string; versionA: number[];
     improvement: item.versionA[0] === 0 ? '100.0' : ((item.versionA[0] - item.versionB[0]) / item.versionA[0] * 100).toFixed(1)
   }));
 
-  return <AnalysisTable title="Case Duration Analysis" data={tableData} unit="s" showImprovement />;
+  return <AnalysisTable title="Case Duration Analysis" data={tableData} unit="s" showChange />;
 };
 
 const Tables = {

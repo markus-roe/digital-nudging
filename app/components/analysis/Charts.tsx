@@ -319,7 +319,7 @@ const getTaskCompletionTableData = (taskCompletionData: any[]) => {
   return taskCompletionData.map((d: any) => {
     const versionASeconds = d.versionA / 1000;
     const versionBSeconds = d.versionB / 1000;
-    const change = ((d.versionA - d.versionB) / d.versionA * 100);
+    const change = ((d.versionB - d.versionA) / d.versionA * 100);
     return {
       name: d.name,
       versionA: Number(versionASeconds.toFixed(1)),
@@ -403,7 +403,7 @@ const TaskCompletion = ({ taskCompletionData }: { taskCompletionData: any[] }) =
           title="Task Completion Time Data"
           data={tableData}
           unit="s"
-          showImprovement
+          showChange
         />
       </div>
     </div>
@@ -412,7 +412,7 @@ const TaskCompletion = ({ taskCompletionData }: { taskCompletionData: any[] }) =
 
 const getErrorRatesTableData = (errorRatesData: any[]) => {
   return errorRatesData.map((d: any) => {
-    const change = ((d.versionA - d.versionB) / d.versionA * 100);
+    const change = ((d.versionB - d.versionA) / d.versionA * 100);
     return {
       name: d.name,
       versionA: d.versionA,
@@ -458,7 +458,7 @@ const ErrorRates = ({ errorRatesData }: { errorRatesData: any[] }) => {
         <AnalysisTable
           title="Error Rates Data"
           data={tableData}
-          showReduction
+          showChange
         />
       </div>
     </div>
@@ -468,7 +468,7 @@ const ErrorRates = ({ errorRatesData }: { errorRatesData: any[] }) => {
 const getNasaTlxTableData = (nasaTlxData: any[]) => {
   return nasaTlxData.map((d: any) => {
     const isPerformance = d.name === 'Performance';
-    const change = ((d.versionA - d.versionB) / d.versionA * 100);
+    const change = ((d.versionB - d.versionA) / d.versionA * 100);
     return {
       name: d.name,
       versionA: Number(d.versionA.toFixed(1)),
@@ -514,33 +514,35 @@ const NasaTLX = ({ nasaTlxData }: { nasaTlxData: any[] }) => {
         <AnalysisTable
           title="NASA-TLX Data"
           data={tableData}
-          showImprovement
+          showChange
         />
       </div>
     </div>
   );
 };
 
-// SUS and Confidence Table Data
-const getSusConfidenceTableData = (susScores: { versionA: number; versionB: number }, confidenceRatings: { versionA: number; versionB: number }) => {
-  return [
-    {
-      name: 'System Usability Scale (SUS)',
-      versionA: Number(susScores.versionA.toFixed(1)),
-      versionB: Number(susScores.versionB.toFixed(1)),
-      improvement: ((susScores.versionB - susScores.versionA) / susScores.versionA * 100).toFixed(1),
-    },
-    {
-      name: 'Decision Confidence',
-      versionA: Number(confidenceRatings.versionA.toFixed(1)),
-      versionB: Number(confidenceRatings.versionB.toFixed(1)),
-      improvement: ((confidenceRatings.versionB - confidenceRatings.versionA) / confidenceRatings.versionA * 100).toFixed(1),
-    }
-  ];
+// SUS Table Data
+const getSusTableData = (susScores: { versionA: number; versionB: number }) => {
+  return [{
+    name: 'System Usability Scale (SUS)',
+    versionA: Number(susScores.versionA.toFixed(1)),
+    versionB: Number(susScores.versionB.toFixed(1)),
+    improvement: ((susScores.versionB - susScores.versionA) / susScores.versionA * 100).toFixed(1),
+  }];
 };
 
-const SUS = ({ susScores, confidenceRatings }: { susScores: { versionA: number; versionB: number }, confidenceRatings: { versionA: number; versionB: number } }) => {
-  const tableData = getSusConfidenceTableData(susScores, confidenceRatings).slice(0, 1);
+// Confidence Table Data
+const getConfidenceTableData = (confidenceRatings: { versionA: number; versionB: number }) => {
+  return [{
+    name: 'Decision Confidence',
+    versionA: Number(confidenceRatings.versionA.toFixed(1)),
+    versionB: Number(confidenceRatings.versionB.toFixed(1)),
+    improvement: ((confidenceRatings.versionB - confidenceRatings.versionA) / confidenceRatings.versionA * 100).toFixed(1),
+  }];
+};
+
+const SUS = ({ susScores }: { susScores: { versionA: number; versionB: number } }) => {
+  const tableData = getSusTableData(susScores);
   return (
     <div className="col-span-full bg-white rounded-lg shadow-sm p-6 border border-gray-100">
       <h3 className="text-sm font-medium text-gray-700 mb-4">System Usability Scale (SUS)</h3>
@@ -596,7 +598,8 @@ const SUS = ({ susScores, confidenceRatings }: { susScores: { versionA: number; 
         <AnalysisTable
           title="SUS Data"
           data={tableData}
-          showImprovement
+          showChange
+          higherIsBetter
         />
       </div>
     </div>
@@ -604,7 +607,7 @@ const SUS = ({ susScores, confidenceRatings }: { susScores: { versionA: number; 
 };
 
 const Confidence = ({ confidenceRatings }: { confidenceRatings: { versionA: number; versionB: number } }) => {
-  const tableData = getSusConfidenceTableData({ versionA: 0, versionB: 0 }, confidenceRatings).slice(1);
+  const tableData = getConfidenceTableData(confidenceRatings);
   return (
     <div className="col-span-full bg-white rounded-lg shadow-sm p-6 border border-gray-100">
       <h3 className="text-sm font-medium text-gray-700 mb-4">Confidence Ratings</h3>
@@ -660,66 +663,50 @@ const Confidence = ({ confidenceRatings }: { confidenceRatings: { versionA: numb
         <AnalysisTable
           title="Confidence Data"
           data={tableData}
-          showImprovement
+          showChange
+          higherIsBetter
         />
       </div>
     </div>
   );
 };
 
-const getHesitationTimeTableData = (hesitationTimeData: ChartData[]) => {
-  return hesitationTimeData
-    .filter(d => typeof d.versionA === 'number' && typeof d.versionB === 'number' && !isNaN(d.versionA) && !isNaN(d.versionB) && d.versionA > 0 && d.versionB > 0)
-    .map(d => {
-      const versionASeconds = d.versionA / 1000;
-      const versionBSeconds = d.versionB / 1000;
-      const change = ((d.versionA - d.versionB) / d.versionA * 100);
-      return {
-        name: d.name,
-        versionA: Number(versionASeconds.toFixed(1)),
-        versionB: Number(versionBSeconds.toFixed(1)),
-        improvement: change.toFixed(1),
-      };
-    });
-};
-
 const HesitationTime = ({ hesitationTimeData }: { hesitationTimeData: ChartData[] }) => {
-  const validData = hesitationTimeData.filter(d =>
-    typeof d.versionA === 'number' &&
-    typeof d.versionB === 'number' &&
-    !isNaN(d.versionA) &&
-    !isNaN(d.versionB) &&
-    d.versionA > 0 &&
-    d.versionB > 0
+  // Only show rows with valid, positive numbers
+  const validData = hesitationTimeData.filter(
+    d => typeof d.versionA === 'number' && typeof d.versionB === 'number' && d.versionA > 0 && d.versionB > 0
   );
+
   const chartData = {
     labels: validData.map(d => d.name),
     datasets: [
       {
         label: 'Version A',
-        data: validData.map(d => Number((d.versionA / 1000).toFixed(2))),
+        data: validData.map(d => d.versionA), // already in seconds
         backgroundColor: COLORS[0],
         borderRadius: 2,
       },
       {
         label: 'Version B',
-        data: validData.map(d => Number((d.versionB / 1000).toFixed(2))),
+        data: validData.map(d => d.versionB), // already in seconds
         backgroundColor: COLORS[1],
         borderRadius: 2,
       }
     ]
   };
-  const tableData = getHesitationTimeTableData(hesitationTimeData);
+
   return (
     <div className="col-span-full bg-white rounded-lg shadow-sm p-6 border border-gray-100">
       <h3 className="text-sm font-medium text-gray-700 mb-4">Hesitation Time</h3>
-      <div className="text-xs text-gray-500 mb-4">Time between completing one order and starting the next (lower is better)</div>
+      <div className="text-xs text-gray-500 mb-4">
+        Time between completing one order and starting the next (lower is better)
+      </div>
       <div className="h-[240px] w-full">
         <Bar
           data={chartData}
           options={getBarChartOptions({
             yTitle: 'Time (seconds)',
-            datasets: [validData.map(d => Number((d.versionA / 1000).toFixed(2))), validData.map(d => Number((d.versionB / 1000).toFixed(2)))],
+            datasets: [validData.map(d => d.versionA), validData.map(d => d.versionB)],
           })}
           plugins={[dataLabelPlugin]}
         />
@@ -727,9 +714,9 @@ const HesitationTime = ({ hesitationTimeData }: { hesitationTimeData: ChartData[
       <div className="mt-4">
         <AnalysisTable
           title="Hesitation Time Data"
-          data={tableData}
+          data={hesitationTimeData}
           unit="s"
-          showImprovement
+          showChange
         />
       </div>
     </div>
@@ -740,7 +727,7 @@ const getCaseDurationsTableData = (caseDurationsData: { task: string; versionA: 
   return caseDurationsData.map(d => {
     const versionASeconds = d.versionA[0] / 1000;
     const versionBSeconds = d.versionB[0] / 1000;
-    const change = ((d.versionA[0] - d.versionB[0]) / d.versionA[0] * 100);
+    const change = ((d.versionB[0] - d.versionA[0]) / d.versionA[0] * 100);
     return {
       name: d.task.replace('_', ' '),
       versionA: Number(versionASeconds.toFixed(1)),
@@ -787,7 +774,7 @@ const CaseDurations = ({ caseDurationsData }: { caseDurationsData: { task: strin
           title="Case Duration Data"
           data={tableData}
           unit="s"
-          showImprovement
+          showChange
         />
       </div>
     </div>
