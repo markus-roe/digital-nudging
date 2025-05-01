@@ -12,6 +12,7 @@ import {
   PointElement,
 } from 'chart.js';
 import { Bar, Pie, Scatter } from 'react-chartjs-2';
+import { AnalysisTable } from '../analysis/Tables';
 
 ChartJS.register(
   CategoryScale,
@@ -97,6 +98,74 @@ const commonChartOptions = {
   }
 };
 
+// --- Data label plugin for all bar charts ---
+const dataLabelPlugin = {
+  id: 'dataLabelPlugin',
+  afterDatasetsDraw(chart: any) {
+    const { ctx, data } = chart;
+    ctx.save();
+    chart.data.datasets.forEach((dataset: any, datasetIndex: number) => {
+      const meta = chart.getDatasetMeta(datasetIndex);
+      meta.data.forEach((bar: any, index: number) => {
+        const value = dataset.data[index];
+        if (typeof value !== 'number' || isNaN(value)) return;
+        ctx.font = 'bold 11px Inter, system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'bottom';
+        // If backgroundColor is an array, pick the correct color for this bar
+        if (Array.isArray(dataset.backgroundColor)) {
+          ctx.fillStyle = dataset.backgroundColor[index % dataset.backgroundColor.length];
+        } else {
+          ctx.fillStyle = dataset.backgroundColor;
+        }
+        // Value formatting by chart type
+        let label = '';
+        if (chart.options.scales?.y?.title?.text?.includes('seconds')) {
+          label = `${value.toFixed(1)}s`;
+        } else if (chart.options.scales?.y?.title?.text?.includes('Score')) {
+          label = `${value.toFixed(1)}`;
+        } else if (chart.options.scales?.y?.title?.text?.includes('Number of Errors')) {
+          label = `${value}`;
+        } else {
+          label = `${value}`;
+        }
+        ctx.fillText(label, bar.x, bar.y - 4);
+      });
+    });
+    ctx.restore();
+  }
+};
+
+function DemographicsTable({ label, data }: { label: string; data: { value: string; count: number }[] }) {
+  return (
+    <div className="overflow-x-auto mt-2">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="">
+          <tr>
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{label}</th>
+            <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Participants</th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {data.map((row, i) => (
+            <tr key={i}>
+              <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{row.value}</td>
+              <td className="px-4 py-3 whitespace-nowrap text-sm text-right text-gray-900">{row.count}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function getDemographicTableData(data: Record<string, number>) {
+  return Object.entries(data).map(([value, count]) => ({
+    value,
+    count: Number(count),
+  }));
+}
+
 function DemographicsCharts({ demographics }: DemographicsChartsProps) {
   const formatData = (data: Record<string, number>) => {
     return {
@@ -110,7 +179,6 @@ function DemographicsCharts({ demographics }: DemographicsChartsProps) {
       }]
     };
   };
-
   const barOptions = {
     ...commonChartOptions,
     plugins: {
@@ -131,7 +199,6 @@ function DemographicsCharts({ demographics }: DemographicsChartsProps) {
       }
     },
   };
-
   const pieOptions = {
     ...commonChartOptions,
     plugins: {
@@ -153,34 +220,37 @@ function DemographicsCharts({ demographics }: DemographicsChartsProps) {
       scales: {},
     },
   };
-
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
-        <h3 className="text-sm font-medium text-gray-700 mb-4">Age Distribution</h3>
-        <div className="h-[160px]">
-          <Bar options={barOptions} data={formatData(demographics.age)} />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100 flex flex-col">
+          <h4 className="text-xs font-medium text-gray-700 mb-4">Age Distribution</h4>
+          <div className="h-[160px] mb-4">
+            <Bar options={barOptions} data={formatData(demographics.age)} />
+          </div>
+          <DemographicsTable label="Age" data={getDemographicTableData(demographics.age)} />
+        </div>
+        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100 flex flex-col">
+          <h4 className="text-xs font-medium text-gray-700 mb-4">Gender Distribution</h4>
+          <div className="h-[240px] mb-4">
+            <Pie options={pieOptions} data={formatData(demographics.gender)} />
+          </div>
+          <DemographicsTable label="Gender" data={getDemographicTableData(demographics.gender)} />
+        </div>
+        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100 flex flex-col">
+          <h4 className="text-xs font-medium text-gray-700 mb-4">Experience</h4>
+          <div className="h-[160px] mb-4">
+            <Bar options={barOptions} data={formatData(demographics.experience)} />
+          </div>
+          <DemographicsTable label="Experience" data={getDemographicTableData(demographics.experience)} />
+        </div>
+        <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100 flex flex-col">
+          <h4 className="text-xs font-medium text-gray-700 mb-4">Education</h4>
+          <div className="h-[160px] mb-4">
+            <Bar options={barOptions} data={formatData(demographics.education)} />
+          </div>
+          <DemographicsTable label="Education" data={getDemographicTableData(demographics.education)} />
         </div>
       </div>
-      <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
-        <h3 className="text-sm font-medium text-gray-700 mb-4">Gender Distribution</h3>
-        <div className="h-[240px]">
-          <Pie options={pieOptions} data={formatData(demographics.gender)} />
-        </div>
-      </div>
-      <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
-        <h3 className="text-sm font-medium text-gray-700 mb-4">Experience</h3>
-        <div className="h-[160px]">
-          <Bar options={barOptions} data={formatData(demographics.experience)} />
-        </div>
-      </div>
-      <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
-        <h3 className="text-sm font-medium text-gray-700 mb-4">Education</h3>
-        <div className="h-[160px]">
-          <Bar options={barOptions} data={formatData(demographics.education)} />
-        </div>
-      </div>
-    </div>
   );
 }
 
@@ -192,21 +262,6 @@ interface ChartData {
   reduction?: string;
 }
 
-interface ChartsProps {
-  demographics: {
-    age: Record<string, number>;
-    gender: Record<string, number>;
-    experience: Record<string, number>;
-    education: Record<string, number>;
-  };
-  taskCompletionData: any[];
-  errorRatesData: any[];
-  nasaTlxData: any[];
-  versionDistributionData: any[];
-  susScores: { versionA: number; versionB: number };
-  confidenceRatings: { versionA: number; versionB: number };
-  hesitationTimeData: ChartData[];
-}
 
 const VersionDistribution = ({ versionDistributionData }: { versionDistributionData: any[] }) => {
   const pieChartOptions = {
@@ -231,10 +286,12 @@ const VersionDistribution = ({ versionDistributionData }: { versionDistributionD
     scales: {},
   };
 
+  const tableData = getVersionDistributionTableData(versionDistributionData);
+
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
+    <div className="col-span-full bg-white rounded-lg shadow-sm p-6 border border-gray-100">
       <h3 className="text-sm font-medium text-gray-700 mb-4">Version Distribution</h3>
-      <div className="h-[240px]">
+      <div className="h-[240px] w-full">
         <Pie
           data={{
             labels: versionDistributionData.map(item => item.name),
@@ -248,79 +305,130 @@ const VersionDistribution = ({ versionDistributionData }: { versionDistributionD
           options={pieChartOptions}
         />
       </div>
+      <div className="mt-4">
+        <AnalysisTable
+          title="Version Distribution Data"
+          data={tableData}
+        />
+      </div>
     </div>
   );
 };
 
+const getTaskCompletionTableData = (taskCompletionData: any[]) => {
+  return taskCompletionData.map((d: any) => {
+    const versionASeconds = d.versionA / 1000;
+    const versionBSeconds = d.versionB / 1000;
+    const change = ((d.versionA - d.versionB) / d.versionA * 100);
+    return {
+      name: d.name,
+      versionA: Number(versionASeconds.toFixed(1)),
+      versionB: Number(versionBSeconds.toFixed(1)),
+      improvement: change.toFixed(1),
+    };
+  });
+};
+
 const TaskCompletion = ({ taskCompletionData }: { taskCompletionData: any[] }) => {
+  const labels = taskCompletionData.map(d => d.name);
+  const versionAData = taskCompletionData.map(d => d.versionA / 1000);
+  const versionBData = taskCompletionData.map(d => d.versionB / 1000);
+
+  const dataLabelPlugin = {
+    id: 'dataLabelPlugin',
+    afterDatasetsDraw(chart: any) {
+      const { ctx, data } = chart;
+      ctx.save();
+      chart.data.datasets.forEach((dataset: any, datasetIndex: number) => {
+        const meta = chart.getDatasetMeta(datasetIndex);
+        meta.data.forEach((bar: any, index: number) => {
+          const value = dataset.data[index];
+          if (typeof value !== 'number' || isNaN(value)) return;
+          ctx.font = 'bold 11px Inter, system-ui, sans-serif';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'bottom';
+          ctx.fillStyle = dataset.backgroundColor;
+          // Value formatting by chart type
+          let label = '';
+          if (chart.options.scales?.y?.title?.text?.includes('seconds')) {
+            label = `${value.toFixed(1)}s`;
+          } else if (chart.options.scales?.y?.title?.text?.includes('Score')) {
+            label = `${value.toFixed(1)}`;
+          } else if (chart.options.scales?.y?.title?.text?.includes('Number of Errors')) {
+            label = `${value}`;
+          } else {
+            label = `${value}`;
+          }
+          ctx.fillText(label, bar.x, bar.y - 4);
+        });
+      });
+      ctx.restore();
+    }
+  };
+
+  const tableData = getTaskCompletionTableData(taskCompletionData);
+
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
+    <div className="col-span-full bg-white rounded-lg shadow-sm p-6 border border-gray-100">
       <h3 className="text-sm font-medium text-gray-700 mb-4">Task Completion Time</h3>
       <div className="text-xs text-gray-500 mb-4">Time in seconds (lower is better)</div>
-      <div className="h-[240px]">
+      <div className="h-[240px] w-full">
         <Bar
           data={{
-            labels: taskCompletionData.map(d => d.name),
+            labels,
             datasets: [
               {
                 label: 'Version A',
-                data: taskCompletionData.map(d => d.versionA / 1000),
+                data: versionAData,
                 backgroundColor: COLORS[0],
                 borderRadius: 2,
               },
               {
                 label: 'Version B',
-                data: taskCompletionData.map(d => d.versionB / 1000),
+                data: versionBData,
                 backgroundColor: COLORS[1],
                 borderRadius: 2,
               }
             ]
           }}
-          options={{
-            ...commonChartOptions,
-            scales: {
-              ...commonChartOptions.scales,
-              y: {
-                ...commonChartOptions.scales.y,
-                title: {
-                  display: true,
-                  text: 'Time (seconds)',
-                  font: {
-                    family: 'Inter, system-ui, sans-serif',
-                    size: 11,
-                    weight: 500,
-                  },
-                },
-              },
-            },
-          }}
+          options={getBarChartOptions({
+            yTitle: 'Time (seconds)',
+            datasets: [versionAData, versionBData],
+          })}
+          plugins={[dataLabelPlugin]}
         />
       </div>
-      <div className="mt-4 text-xs text-gray-600">
-        {taskCompletionData.map((d, i) => {
-          const change = ((d.versionA - d.versionB) / d.versionA * 100);
-          const isReduced = change > 0;
-          const percentage = Math.abs(change).toFixed(1);
-          return (
-            <div key={i} className="flex justify-between items-center py-1">
-              <span>{d.name}</span>
-              <span className={isReduced ? "text-green-600" : "text-red-600"}>
-                Time {isReduced ? "reduced" : "increased"} by {percentage}%
-              </span>
-            </div>
-          );
-        })}
+      <div className="mt-4">
+        <AnalysisTable
+          title="Task Completion Time Data"
+          data={tableData}
+          unit="s"
+          showImprovement
+        />
       </div>
     </div>
   );
 };
 
+const getErrorRatesTableData = (errorRatesData: any[]) => {
+  return errorRatesData.map((d: any) => {
+    const change = ((d.versionA - d.versionB) / d.versionA * 100);
+    return {
+      name: d.name,
+      versionA: d.versionA,
+      versionB: d.versionB,
+      reduction: change.toFixed(1),
+    };
+  });
+};
+
 const ErrorRates = ({ errorRatesData }: { errorRatesData: any[] }) => {
+  const tableData = getErrorRatesTableData(errorRatesData);
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
+    <div className="col-span-full bg-white rounded-lg shadow-sm p-6 border border-gray-100">
       <h3 className="text-sm font-medium text-gray-700 mb-4">Error Rates</h3>
       <div className="text-xs text-gray-500 mb-4">Errors per task (lower is better)</div>
-      <div className="h-[240px]">
+      <div className="h-[240px] w-full">
         <Bar
           data={{
             labels: errorRatesData.map(d => d.name),
@@ -339,51 +447,44 @@ const ErrorRates = ({ errorRatesData }: { errorRatesData: any[] }) => {
               }
             ]
           }}
-          options={{
-            ...commonChartOptions,
-            scales: {
-              ...commonChartOptions.scales,
-              y: {
-                ...commonChartOptions.scales.y,
-                title: {
-                  display: true,
-                  text: 'Number of Errors',
-                  font: {
-                    family: 'Inter, system-ui, sans-serif',
-                    size: 11,
-                    weight: 500,
-                  },
-                },
-              },
-            },
-          }}
+          options={getBarChartOptions({
+            yTitle: 'Number of Errors',
+            datasets: [errorRatesData.map(d => d.versionA), errorRatesData.map(d => d.versionB)],
+          })}
+          plugins={[dataLabelPlugin]}
         />
       </div>
-      <div className="mt-4 text-xs text-gray-600">
-        {errorRatesData.map((d, i) => {
-          const change = ((d.versionA - d.versionB) / d.versionA * 100);
-          const isReduced = change > 0;
-          const percentage = Math.abs(change).toFixed(1);
-          return (
-            <div key={i} className="flex justify-between items-center py-1">
-              <span>{d.name}</span>
-              <span className={isReduced ? "text-green-600" : "text-red-600"}>
-                Errors {isReduced ? "reduced" : "increased"} by {percentage}%
-              </span>
-            </div>
-          );
-        })}
+      <div className="mt-4">
+        <AnalysisTable
+          title="Error Rates Data"
+          data={tableData}
+          showReduction
+        />
       </div>
     </div>
   );
 };
 
+const getNasaTlxTableData = (nasaTlxData: any[]) => {
+  return nasaTlxData.map((d: any) => {
+    const isPerformance = d.name === 'Performance';
+    const change = ((d.versionA - d.versionB) / d.versionA * 100);
+    return {
+      name: d.name,
+      versionA: Number(d.versionA.toFixed(1)),
+      versionB: Number(d.versionB.toFixed(1)),
+      improvement: isPerformance ? (-change).toFixed(1) : change.toFixed(1),
+    };
+  });
+};
+
 const NasaTLX = ({ nasaTlxData }: { nasaTlxData: any[] }) => {
+  const tableData = getNasaTlxTableData(nasaTlxData);
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
+    <div className="col-span-full bg-white rounded-lg shadow-sm p-6 border border-gray-100">
       <h3 className="text-sm font-medium text-gray-700 mb-4">NASA-TLX Scores</h3>
       <div className="text-xs text-gray-500 mb-4">1-10 scale (lower is better, except Performance)</div>
-      <div className="h-[240px]">
+      <div className="h-[240px] w-full">
         <Bar
           data={{
             labels: nasaTlxData.map(d => d.name),
@@ -402,56 +503,49 @@ const NasaTLX = ({ nasaTlxData }: { nasaTlxData: any[] }) => {
               }
             ]
           }}
-          options={{
-            ...commonChartOptions,
-            scales: {
-              ...commonChartOptions.scales,
-              y: {
-                ...commonChartOptions.scales.y,
-                min: 0,
-                max: 10,
-                title: {
-                  display: true,
-                  text: 'Score',
-                  font: {
-                    family: 'Inter, system-ui, sans-serif',
-                    size: 11,
-                    weight: 500,
-                  },
-                },
-              },
-            },
-          }}
+          options={getBarChartOptions({
+            yTitle: 'Score',
+            datasets: [nasaTlxData.map(d => d.versionA), nasaTlxData.map(d => d.versionB)],
+          })}
+          plugins={[dataLabelPlugin]}
         />
       </div>
-      <div className="mt-4 text-xs text-gray-600">
-        {nasaTlxData.map((d, i) => {
-          const isPerformance = d.name === 'Performance';
-          const change = ((d.versionA - d.versionB) / d.versionA * 100);
-          const isImproved = isPerformance ? change < 0 : change > 0;
-          const percentage = Math.abs(change).toFixed(1);
-          const label = isPerformance ? (isImproved ? "improved" : "decreased") : (isImproved ? "reduced" : "increased");
-          
-          return (
-            <div key={i} className="flex justify-between items-center py-1">
-              <span>{d.name}</span>
-              <span className={isImproved ? "text-green-600" : "text-red-600"}>
-                Score {label} by {percentage}%
-              </span>
-            </div>
-          );
-        })}
+      <div className="mt-4">
+        <AnalysisTable
+          title="NASA-TLX Data"
+          data={tableData}
+          showImprovement
+        />
       </div>
     </div>
   );
 };
 
-const SUS = ({ susScores }: { susScores: { versionA: number; versionB: number } }) => {
+// SUS and Confidence Table Data
+const getSusConfidenceTableData = (susScores: { versionA: number; versionB: number }, confidenceRatings: { versionA: number; versionB: number }) => {
+  return [
+    {
+      name: 'System Usability Scale (SUS)',
+      versionA: Number(susScores.versionA.toFixed(1)),
+      versionB: Number(susScores.versionB.toFixed(1)),
+      improvement: ((susScores.versionB - susScores.versionA) / susScores.versionA * 100).toFixed(1),
+    },
+    {
+      name: 'Decision Confidence',
+      versionA: Number(confidenceRatings.versionA.toFixed(1)),
+      versionB: Number(confidenceRatings.versionB.toFixed(1)),
+      improvement: ((confidenceRatings.versionB - confidenceRatings.versionA) / confidenceRatings.versionA * 100).toFixed(1),
+    }
+  ];
+};
+
+const SUS = ({ susScores, confidenceRatings }: { susScores: { versionA: number; versionB: number }, confidenceRatings: { versionA: number; versionB: number } }) => {
+  const tableData = getSusConfidenceTableData(susScores, confidenceRatings).slice(0, 1);
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
+    <div className="col-span-full bg-white rounded-lg shadow-sm p-6 border border-gray-100">
       <h3 className="text-sm font-medium text-gray-700 mb-4">System Usability Scale (SUS)</h3>
       <div className="text-xs text-gray-500 mb-4">0-100 scale (higher is better)</div>
-      <div className="h-[240px]">
+      <div className="h-[240px] w-full">
         <Bar
           options={{
             ...commonChartOptions,
@@ -495,21 +589,27 @@ const SUS = ({ susScores }: { susScores: { versionA: number; versionB: number } 
               borderRadius: 2,
             }],
           }}
+          plugins={[dataLabelPlugin]}
         />
       </div>
-      <div className="mt-4 text-xs text-gray-600">
-        Usability improved by {((susScores.versionB - susScores.versionA) / susScores.versionA * 100).toFixed(1)}%
+      <div className="mt-4">
+        <AnalysisTable
+          title="SUS Data"
+          data={tableData}
+          showImprovement
+        />
       </div>
     </div>
   );
 };
 
 const Confidence = ({ confidenceRatings }: { confidenceRatings: { versionA: number; versionB: number } }) => {
+  const tableData = getSusConfidenceTableData({ versionA: 0, versionB: 0 }, confidenceRatings).slice(1);
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
+    <div className="col-span-full bg-white rounded-lg shadow-sm p-6 border border-gray-100">
       <h3 className="text-sm font-medium text-gray-700 mb-4">Confidence Ratings</h3>
       <div className="text-xs text-gray-500 mb-4">1-10 scale (higher is better)</div>
-      <div className="h-[240px]">
+      <div className="h-[240px] w-full">
         <Bar
           options={{
             ...commonChartOptions,
@@ -553,29 +653,45 @@ const Confidence = ({ confidenceRatings }: { confidenceRatings: { versionA: numb
               borderRadius: 2,
             }],
           }}
+          plugins={[dataLabelPlugin]}
         />
       </div>
-      <div className="mt-4 text-xs text-gray-600">
-        Confidence improved by {((confidenceRatings.versionB - confidenceRatings.versionA) / confidenceRatings.versionA * 100).toFixed(1)}%
+      <div className="mt-4">
+        <AnalysisTable
+          title="Confidence Data"
+          data={tableData}
+          showImprovement
+        />
       </div>
     </div>
   );
 };
 
+const getHesitationTimeTableData = (hesitationTimeData: ChartData[]) => {
+  return hesitationTimeData
+    .filter(d => typeof d.versionA === 'number' && typeof d.versionB === 'number' && !isNaN(d.versionA) && !isNaN(d.versionB) && d.versionA > 0 && d.versionB > 0)
+    .map(d => {
+      const versionASeconds = d.versionA / 1000;
+      const versionBSeconds = d.versionB / 1000;
+      const change = ((d.versionA - d.versionB) / d.versionA * 100);
+      return {
+        name: d.name,
+        versionA: Number(versionASeconds.toFixed(1)),
+        versionB: Number(versionBSeconds.toFixed(1)),
+        improvement: change.toFixed(1),
+      };
+    });
+};
+
 const HesitationTime = ({ hesitationTimeData }: { hesitationTimeData: ChartData[] }) => {
-  console.log('Raw Hesitation Time Data:', hesitationTimeData);
-  
-  // Filter out any invalid data points and ensure we have valid numbers
-  const validData = hesitationTimeData.filter(d => 
-    typeof d.versionA === 'number' && 
-    typeof d.versionB === 'number' && 
-    !isNaN(d.versionA) && 
+  const validData = hesitationTimeData.filter(d =>
+    typeof d.versionA === 'number' &&
+    typeof d.versionB === 'number' &&
+    !isNaN(d.versionA) &&
     !isNaN(d.versionB) &&
-    d.versionA > 0 &&  // Only include positive values
+    d.versionA > 0 &&
     d.versionB > 0
   );
-
-  // Convert milliseconds to seconds and ensure we have valid numbers
   const chartData = {
     labels: validData.map(d => d.name),
     datasets: [
@@ -593,135 +709,164 @@ const HesitationTime = ({ hesitationTimeData }: { hesitationTimeData: ChartData[
       }
     ]
   };
-
-  console.log('Chart Data:', chartData);
-
+  const tableData = getHesitationTimeTableData(hesitationTimeData);
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
+    <div className="col-span-full bg-white rounded-lg shadow-sm p-6 border border-gray-100">
       <h3 className="text-sm font-medium text-gray-700 mb-4">Hesitation Time</h3>
       <div className="text-xs text-gray-500 mb-4">Time between completing one order and starting the next (lower is better)</div>
-      <div className="h-[240px]">
+      <div className="h-[240px] w-full">
         <Bar
           data={chartData}
-          options={{
-            ...commonChartOptions,
-            scales: {
-              ...commonChartOptions.scales,
-              y: {
-                ...commonChartOptions.scales.y,
-                title: {
-                  display: true,
-                  text: 'Time (seconds)',
-                  font: {
-                    family: 'Inter, system-ui, sans-serif',
-                    size: 11,
-                    weight: 500,
-                  },
-                },
-                ticks: {
-                  callback: function(value: number | string) {
-                    return `${Number(value).toFixed(1)}s`;
-                  }
-                }
-              },
-            },
-          }}
+          options={getBarChartOptions({
+            yTitle: 'Time (seconds)',
+            datasets: [validData.map(d => Number((d.versionA / 1000).toFixed(2))), validData.map(d => Number((d.versionB / 1000).toFixed(2)))],
+          })}
+          plugins={[dataLabelPlugin]}
         />
       </div>
-      <div className="mt-4 text-xs text-gray-600">
-        {validData.map((d, i) => {
-          const change = ((d.versionA - d.versionB) / d.versionA * 100);
-          const isReduced = change > 0;
-          const percentage = Math.abs(change).toFixed(1);
-          return (
-            <div key={i} className="flex justify-between items-center py-1">
-              <span>{d.name}</span>
-              <span className={isReduced ? "text-green-600" : "text-red-600"}>
-                Time {isReduced ? "reduced" : "increased"} by {percentage}%
-              </span>
-            </div>
-          );
-        })}
+      <div className="mt-4">
+        <AnalysisTable
+          title="Hesitation Time Data"
+          data={tableData}
+          unit="s"
+          showImprovement
+        />
       </div>
     </div>
   );
 };
 
+const getCaseDurationsTableData = (caseDurationsData: { task: string; versionA: number[]; versionB: number[] }[]) => {
+  return caseDurationsData.map(d => {
+    const versionASeconds = d.versionA[0] / 1000;
+    const versionBSeconds = d.versionB[0] / 1000;
+    const change = ((d.versionA[0] - d.versionB[0]) / d.versionA[0] * 100);
+    return {
+      name: d.task.replace('_', ' '),
+      versionA: Number(versionASeconds.toFixed(1)),
+      versionB: Number(versionBSeconds.toFixed(1)),
+      improvement: change.toFixed(1),
+    };
+  });
+};
+
 const CaseDurations = ({ caseDurationsData }: { caseDurationsData: { task: string; versionA: number[]; versionB: number[] }[] }) => {
+  const tableData = getCaseDurationsTableData(caseDurationsData);
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
+    <div className="col-span-full bg-white rounded-lg shadow-sm p-6 border border-gray-100">
       <h3 className="text-sm font-medium text-gray-700 mb-4">Case Duration</h3>
       <div className="text-xs text-gray-500 mb-4">Average time per case in seconds (lower is better)</div>
-      <div className="h-[240px]">
+      <div className="h-[240px] w-full">
         <Bar
           data={{
             labels: caseDurationsData.map(d => d.task.replace('_', ' ')),
             datasets: [
               {
                 label: 'Version A',
-                data: caseDurationsData.map(d => d.versionA[0] / 1000), // Convert ms to seconds
+                data: caseDurationsData.map(d => d.versionA[0] / 1000),
                 backgroundColor: COLORS[0],
                 borderRadius: 2,
               },
               {
                 label: 'Version B',
-                data: caseDurationsData.map(d => d.versionB[0] / 1000), // Convert ms to seconds
+                data: caseDurationsData.map(d => d.versionB[0] / 1000),
                 backgroundColor: COLORS[1],
                 borderRadius: 2,
               }
             ]
           }}
-          options={{
-            ...commonChartOptions,
-            scales: {
-              ...commonChartOptions.scales,
-              y: {
-                ...commonChartOptions.scales.y,
-                title: {
-                  display: true,
-                  text: 'Time (seconds)',
-                  font: {
-                    family: 'Inter, system-ui, sans-serif',
-                    size: 11,
-                    weight: 500,
-                  },
-                },
-                ticks: {
-                  callback: function(value: number | string) {
-                    return `${Number(value).toFixed(1)}s`;
-                  }
-                }
-              },
-            },
-          }}
+          options={getBarChartOptions({
+            yTitle: 'Time (seconds)',
+            datasets: [caseDurationsData.map(d => d.versionA[0] / 1000), caseDurationsData.map(d => d.versionB[0] / 1000)],
+          })}
+          plugins={[dataLabelPlugin]}
         />
       </div>
-      <div className="mt-4 text-xs text-gray-600">
-        {caseDurationsData.map((d, i) => {
-          const change = ((d.versionA[0] - d.versionB[0]) / d.versionA[0] * 100);
-          const isReduced = change > 0;
-          const percentage = Math.abs(change).toFixed(1);
-          return (
-            <div key={i} className="flex justify-between items-center py-1">
-              <span>{d.task.replace('_', ' ')}</span>
-              <span className={isReduced ? "text-green-600" : "text-red-600"}>
-                Time per case {isReduced ? "reduced" : "increased"} by {percentage}%
-              </span>
-            </div>
-          );
-        })}
+      <div className="mt-4">
+        <AnalysisTable
+          title="Case Duration Data"
+          data={tableData}
+          unit="s"
+          showImprovement
+        />
       </div>
     </div>
   );
 };
 
-const TaskEfficiencyVsErrorRate = ({ 
-  taskCompletionData, 
-  errorRatesData 
-}: { 
-  taskCompletionData: ChartData[];
-  errorRatesData: ChartData[];
-}) => {
+const getVersionDistributionTableData = (versionDistributionData: any[]) => {
+  const total = versionDistributionData.reduce((sum, item) => sum + item.value, 0);
+  return versionDistributionData.map(item => ({
+    name: item.name,
+    versionA: item.value,
+    versionB: 0,
+    improvement: ((item.value / total) * 100).toFixed(1),
+  }));
+};
+
+function TaskEfficiencyTable({ data }: { data: {
+  task: string;
+  versionATime: number;
+  versionBTime: number;
+  timeChange: string;
+  versionAErrors: number;
+  versionBErrors: number;
+  errorChange: string;
+}[] }) {
+  return (
+    <div className="overflow-x-auto mt-2">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="">
+          <tr>
+            <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Task</th>
+            <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">A Time (s)</th>
+            <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">B Time (s)</th>
+            <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Δ Time (%)</th>
+            <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">A Errors</th>
+            <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">B Errors</th>
+            <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Δ Errors (%)</th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {data.map((row, i) => (
+            <tr key={i}>
+              <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">{row.task}</td>
+              <td className="px-4 py-3 whitespace-nowrap text-sm text-right text-gray-900">{row.versionATime.toFixed(1)}</td>
+              <td className="px-4 py-3 whitespace-nowrap text-sm text-right text-gray-900">{row.versionBTime.toFixed(1)}</td>
+              <td className={`px-4 py-3 whitespace-nowrap text-sm text-right ${parseFloat(row.timeChange) < 0 ? 'text-green-600' : 'text-red-600'}`}>{row.timeChange}%</td>
+              <td className="px-4 py-3 whitespace-nowrap text-sm text-right text-gray-900">{row.versionAErrors}</td>
+              <td className="px-4 py-3 whitespace-nowrap text-sm text-right text-gray-900">{row.versionBErrors}</td>
+              <td className={`px-4 py-3 whitespace-nowrap text-sm text-right ${parseFloat(row.errorChange) < 0 ? 'text-green-600' : 'text-red-600'}`}>{row.errorChange}%</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function getTaskEfficiencyTableData(taskCompletionData: ChartData[], errorRatesData: ChartData[]) {
+  return taskCompletionData.map((task) => {
+    const errorData = errorRatesData.find(e => e.name === task.name);
+    const versionATime = task.versionA / 1000;
+    const versionBTime = task.versionB / 1000;
+    const timeChange = versionATime === 0 ? '0.0' : (((versionBTime - versionATime) / versionATime) * 100).toFixed(1);
+    const versionAErrors = errorData?.versionA ?? 0;
+    const versionBErrors = errorData?.versionB ?? 0;
+    const errorChange = versionAErrors === 0 ? '0.0' : (((versionBErrors - versionAErrors) / versionAErrors) * 100).toFixed(1);
+    return {
+      task: task.name,
+      versionATime,
+      versionBTime,
+      timeChange,
+      versionAErrors,
+      versionBErrors,
+      errorChange,
+    };
+  });
+}
+
+const TaskEfficiencyVsErrorRate = ({ taskCompletionData, errorRatesData }: { taskCompletionData: ChartData[]; errorRatesData: ChartData[] }) => {
   // Assign a number to each task
   const numbers = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
   const scatterData = taskCompletionData.map((task, index) => {
@@ -764,13 +909,18 @@ const TaskEfficiencyVsErrorRate = ({
     }
   };
 
+  const tableData = getTaskEfficiencyTableData(taskCompletionData, errorRatesData);
+
   return (
-    <div className="bg-white rounded-lg shadow-sm p-6 border border-gray-100">
+    <div className="col-span-full bg-white rounded-lg shadow-sm p-6 border border-gray-100">
       <h3 className="text-sm font-medium text-gray-700 mb-4">Task Efficiency vs Error Rate</h3>
+      <div className="text-xs text-gray-500 mb-2">
+        <span className="font-semibold">Legend:</span> {numbers.slice(0, taskCompletionData.length).map((n, i) => `${n} = ${taskCompletionData[i].name}`).join('   ')}
+      </div>
       <div className="text-xs text-gray-500 mb-4">
         Correlation between completion time and error rates
       </div>
-      <div className="h-[300px]">
+      <div className="h-[300px] w-full mb-6">
         <Scatter
           data={{
             datasets: [
@@ -836,18 +986,54 @@ const TaskEfficiencyVsErrorRate = ({
           plugins={[drawNumbersPlugin]}
         />
       </div>
-      <div className="mt-4 text-xs text-gray-600">
-        <div className="flex flex-wrap gap-x-4 gap-y-1">
-          {scatterData.map((d, i) => (
-            <span key={i}>
-              {d.number} = {d.task}
-            </span>
-          ))}
-        </div>
+      <div className="mt-4">
+        <TaskEfficiencyTable data={tableData} />
       </div>
     </div>
   );
 };
+
+function getBarChartOptions({
+  yTitle,
+  datasets,
+  min,
+  max,
+  ticks,
+}: {
+  yTitle: string,
+  datasets: number[][],
+  min?: number,
+  max?: number,
+  ticks?: any,
+}) {
+  const allValues = datasets.flat();
+  const maxValue = allValues.length ? Math.max(...allValues) : 0;
+  return {
+    ...commonChartOptions,
+    layout: {
+      padding: { top: 24 },
+    },
+    scales: {
+      ...commonChartOptions.scales,
+      y: {
+        ...commonChartOptions.scales.y,
+        min,
+        max,
+        suggestedMax: max !== undefined ? max : maxValue * 1.15,
+        title: {
+          display: true,
+          text: yTitle,
+          font: {
+            family: 'Inter, system-ui, sans-serif',
+            size: 11,
+            weight: 500,
+          },
+        },
+        ...(ticks ? { ticks } : {}),
+      },
+    },
+  };
+}
 
 // Main Charts component with all subcomponents
 const Charts = {

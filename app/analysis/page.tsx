@@ -11,16 +11,9 @@ import {
   CaseDurations,
   TaskEfficiencyVsErrorRate,
 } from '../components/analysis/Charts';
-import {
-  TaskPerformanceTable,
-  ErrorAnalysisTable,
-  NasaTLXTable,
-  UsabilityTable,
-  HesitationTimeTable,
-  CaseDurationTable
-} from '../components/analysis/Tables';
 import { RefreshButton } from '../components/analysis/RefreshButton';
 import { ParticipantTable } from '../components/analysis/ParticipantTable';
+import { AnalysisTable } from '../components/analysis/Tables';
 
 
 interface ChartData {
@@ -310,7 +303,6 @@ async function getParticipantStats(): Promise<ParticipantStats> {
   });
 
   // Calculate averages
-  const participantCount = participants.length;
   const versionACount = participants.filter(p => p.version === Version.A).length;
   const versionBCount = participants.filter(p => p.version === Version.B).length;
 
@@ -371,46 +363,38 @@ export default async function AnalysisPage() {
   });
   const participantCount = participants.length;
 
-  // Analyze action logs
-  const actionLogStats = participants.reduce((acc, participant) => {
-    participant.actionLogs.forEach(log => {
-      if (!acc[log.action]) {
-        acc[log.action] = {
-          total: 0,
-          byVersion: { A: 0, B: 0 },
-          byTask: {
-            [TaskType.ORDER_ASSIGNMENT]: 0,
-            [TaskType.ORDER_VALIDATION]: 0,
-            [TaskType.DELIVERY_SCHEDULING]: 0
-          }
-        };
-      }
-      acc[log.action].total++;
-      acc[log.action].byVersion[participant.version]++;
-      if (log.task) {
-        acc[log.action].byTask[log.task]++;
-      }
-    });
-    return acc;
-  }, {} as Record<string, {
-    total: number;
-    byVersion: { A: number; B: number };
-    byTask: Record<TaskType, number>;
-  }>);
 
-  const taskCompletionData: ChartData[] = Object.entries(stats.taskCompletion).map(([task, times]) => ({
-    name: task.replace('_', ' '),
-    versionA: times.A,
-    versionB: times.B,
-    improvement: ((times.A - times.B) / times.A * 100).toFixed(1)
-  }));
+  const taskCompletionData: ChartData[] = Object.entries(stats.taskCompletion)
+    .sort(([a], [b]) => {
+      const order = {
+        [TaskType.ORDER_VALIDATION]: 0,
+        [TaskType.ORDER_ASSIGNMENT]: 1,
+        [TaskType.DELIVERY_SCHEDULING]: 2
+      };
+      return order[a as TaskType] - order[b as TaskType];
+    })
+    .map(([task, times]) => ({
+      name: task.replace('_', ' '),
+      versionA: times.A,
+      versionB: times.B,
+      improvement: ((times.A - times.B) / times.A * 100).toFixed(1)
+    }));
 
-  const errorRatesData: ChartData[] = Object.entries(stats.errorRates).map(([task, rates]) => ({
-    name: task.replace('_', ' '),
-    versionA: rates.A,
-    versionB: rates.B,
-    reduction: rates.A === 0 ? '100.0' : ((rates.A - rates.B) / rates.A * 100).toFixed(1)
-  }));
+  const errorRatesData: ChartData[] = Object.entries(stats.errorRates)
+    .sort(([a], [b]) => {
+      const order = {
+        [TaskType.ORDER_VALIDATION]: 0,
+        [TaskType.ORDER_ASSIGNMENT]: 1,
+        [TaskType.DELIVERY_SCHEDULING]: 2
+      };
+      return order[a as TaskType] - order[b as TaskType];
+    })
+    .map(([task, rates]) => ({
+      name: task.replace('_', ' '),
+      versionA: rates.A,
+      versionB: rates.B,
+      reduction: rates.A === 0 ? '100.0' : ((rates.A - rates.B) / rates.A * 100).toFixed(1)
+    }));
 
   const hesitationTimeData: ChartData[] = Object.entries(stats.hesitationTimes).map(([task, times]) => {
     const versionA = times.A[0] || 0;
@@ -450,44 +434,56 @@ export default async function AnalysisPage() {
     { name: 'Version B', value: participants.filter(p => p.version === Version.B).length }
   ];
 
-  const caseDurationsData = Object.entries(stats.caseDurations).map(([task, durations]) => ({
-    task,
-    versionA: durations.A,
-    versionB: durations.B
-  }));
+  const caseDurationsData = Object.entries(stats.caseDurations)
+    .sort(([a], [b]) => {
+      const order = {
+        [TaskType.ORDER_VALIDATION]: 0,
+        [TaskType.ORDER_ASSIGNMENT]: 1,
+        [TaskType.DELIVERY_SCHEDULING]: 2
+      };
+      return order[a as TaskType] - order[b as TaskType];
+    })
+    .map(([task, durations]) => ({
+      task,
+      versionA: durations.A,
+      versionB: durations.B
+    }));
 
-  // Calculate table data
-  const taskPerformanceData = Object.entries(stats.taskCompletion).map(([task, times]) => ({
-    name: task.replace('_', ' '),
-    versionA: times.A / 1000, // Convert to seconds
-    versionB: times.B / 1000,
-    improvement: ((times.A - times.B) / times.A * 100).toFixed(1)
-  }));
-
-  const errorAnalysisData = Object.entries(stats.errorRates).map(([task, rates]) => ({
-    name: task.replace('_', ' '),
-    versionA: rates.A,
-    versionB: rates.B,
-    reduction: rates.A === 0 ? '100.0' : ((rates.A - rates.B) / rates.A * 100).toFixed(1)
-  }));
-
-  const nasaTLXTableData = [
-    { name: 'Mental Demand', versionA: stats.nasaTlx.mental.A, versionB: stats.nasaTlx.mental.B, improvement: ((stats.nasaTlx.mental.A - stats.nasaTlx.mental.B) / stats.nasaTlx.mental.A * 100).toFixed(1) },
-    { name: 'Physical Demand', versionA: stats.nasaTlx.physical.A, versionB: stats.nasaTlx.physical.B, improvement: ((stats.nasaTlx.physical.A - stats.nasaTlx.physical.B) / stats.nasaTlx.physical.A * 100).toFixed(1) },
-    { name: 'Temporal Demand', versionA: stats.nasaTlx.temporal.A, versionB: stats.nasaTlx.temporal.B, improvement: ((stats.nasaTlx.temporal.A - stats.nasaTlx.temporal.B) / stats.nasaTlx.temporal.A * 100).toFixed(1) },
-    { name: 'Performance', versionA: stats.nasaTlx.performance.A, versionB: stats.nasaTlx.performance.B, improvement: ((stats.nasaTlx.performance.B - stats.nasaTlx.performance.A) / stats.nasaTlx.performance.A * 100).toFixed(1) },
-    { name: 'Effort', versionA: stats.nasaTlx.effort.A, versionB: stats.nasaTlx.effort.B, improvement: ((stats.nasaTlx.effort.A - stats.nasaTlx.effort.B) / stats.nasaTlx.effort.A * 100).toFixed(1) },
-    { name: 'Frustration', versionA: stats.nasaTlx.frustration.A, versionB: stats.nasaTlx.frustration.B, improvement: ((stats.nasaTlx.frustration.A - stats.nasaTlx.frustration.B) / stats.nasaTlx.frustration.A * 100).toFixed(1) }
+  const susQuestions = [
+    "I think that I would like to use this system frequently.",
+    "I found the system unnecessarily complex.",
+    "I thought the system was easy to use.",
+    "I think that I would need the support of a technical person to be able to use this system.",
+    "I found the various functions in this system were well integrated.",
+    "I thought there was too much inconsistency in this system.",
+    "I would imagine that most people would learn to use this system very quickly.",
+    "I found the system very cumbersome to use.",
+    "I felt very confident using the system.",
+    "I needed to learn a lot of things before I could get going with this system."
   ];
 
-  const hesitationTimeTableData = Object.entries(stats.hesitationTimes).map(([task, times]) => {
-    const versionA = times.A[0] || 0;
-    const versionB = times.B[0] || 0;
+  const susQuestionsTableData = susQuestions.map((question, index) => {
+    const avgResponseA = participants.reduce((acc, p) => {
+      if (p.questionnaire && p.version === Version.A) {
+        return acc + p.questionnaire.susResponses[index];
+      }
+      return acc;
+    }, 0) / participants.filter(p => p.version === Version.A && p.questionnaire).length;
+
+    const avgResponseB = participants.reduce((acc, p) => {
+      if (p.questionnaire && p.version === Version.B) {
+        return acc + p.questionnaire.susResponses[index];
+      }
+      return acc;
+    }, 0) / participants.filter(p => p.version === Version.B && p.questionnaire).length;
+
+    const improvement = avgResponseA === 0 ? 0 : ((avgResponseB - avgResponseA) / avgResponseA * 100);
+
     return {
-      name: task.replace('_', ' '),
-      versionA: versionA / 1000, // Convert to seconds
-      versionB: versionB / 1000,
-      improvement: versionA === 0 ? '100.0' : ((versionA - versionB) / versionA * 100).toFixed(1)
+      name: question,
+      versionA: avgResponseA,
+      versionB: avgResponseB,
+      improvement: improvement.toFixed(1)
     };
   });
 
@@ -507,23 +503,10 @@ export default async function AnalysisPage() {
               <RefreshButton />
               <div className="bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200 w-full sm:w-auto">
                 <div className="text-xs font-medium text-gray-600">Total Participants</div>
-                <div className="text-2xl font-bold text-blue-600">{participantCount}</div>
-              </div>
-              <div className="bg-white px-4 py-2 rounded-lg shadow-sm border border-gray-200 w-full sm:w-auto">
-                <div className="text-xs font-medium text-gray-600">Version Distribution</div>
-                <div className="mt-1">
-                  <div className="flex items-center space-x-1">
-                    <div className="flex-1 bg-blue-100 rounded-full h-2">
-                      <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${(versionDistributionData[0].value / participantCount) * 100}%` }}></div>
-                    </div>
-                    <div className="text-xs text-gray-600">A: {versionDistributionData[0].value}</div>
-                  </div>
-                  <div className="flex items-center space-x-1 mt-1">
-                    <div className="flex-1 bg-green-100 rounded-full h-2">
-                      <div className="bg-green-600 h-2 rounded-full" style={{ width: `${(versionDistributionData[1].value / participantCount) * 100}%` }}></div>
-                    </div>
-                    <div className="text-xs text-gray-600">B: {versionDistributionData[1].value}</div>
-                  </div>
+                <div className="text-2xl font-bold text-gray-800">{participantCount}</div>
+                <div className="mt-1 text-xs">
+                  <span className="text-blue-600 font-bold">A: {versionDistributionData[0].value}</span>
+                  <span className="text-green-600 ml-3 font-bold">B: {versionDistributionData[1].value}</span>
                 </div>
               </div>
             </div>
@@ -606,245 +589,36 @@ export default async function AnalysisPage() {
                 <TaskCompletion taskCompletionData={taskCompletionData} />
                 <CaseDurations caseDurationsData={caseDurationsData} />
             </div>
+           
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <ErrorRates errorRatesData={errorRatesData} />
+            </div>
             <div className="mb-6">
               <TaskEfficiencyVsErrorRate 
                 taskCompletionData={taskCompletionData}
                 errorRatesData={errorRatesData}
               />
             </div>
-            <div className="grid gap-6">
-              <TaskPerformanceTable data={taskPerformanceData} />
-              <CaseDurationTable data={caseDurationsData} />
+            <div className="mb-6">
+            <HesitationTime hesitationTimeData={hesitationTimeData} />
             </div>
           </section>
 
-          {/* Error Analysis Section */}
-          <section className="bg-white rounded-xl shadow-sm p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Error Analysis</h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-                <ErrorRates errorRatesData={errorRatesData} />
-                <HesitationTime hesitationTimeData={hesitationTimeData} />
-            </div>
-            <div className="grid gap-6">
-              <ErrorAnalysisTable data={errorAnalysisData} />
-              <HesitationTimeTable data={hesitationTimeTableData} />
-            </div>
-          </section>
 
           {/* User Experience Section */}
           <section className="bg-white rounded-xl shadow-sm p-6">
             <h2 className="text-xl font-semibold text-gray-900 mb-6">User Experience Analysis</h2>
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                <SUS susScores={susScores} />
-                <Confidence confidenceRatings={confidenceRatings} />
                 <NasaTLX nasaTlxData={nasaTlxData} />
+                <Confidence confidenceRatings={confidenceRatings} />
+                <SUS susScores={susScores} confidenceRatings={confidenceRatings} />
             </div>
-            <div className="grid gap-6">
-              <NasaTLXTable data={nasaTLXTableData} />
-              <UsabilityTable 
-                susScores={{
-                  versionA: susScores.versionA,
-                  versionB: susScores.versionB
-                }}
-                confidenceRatings={{
-                  versionA: confidenceRatings.versionA,
-                  versionB: confidenceRatings.versionB
-                }}
-              />
-            </div>
-          </section>
-
-          {/* Questionnaire Details Section */}
-          <section className="bg-white rounded-xl shadow-sm p-6">
-            <h2 className="text-xl font-semibold text-gray-900 mb-6">Questionnaire Details</h2>
-            
-            {/* Summary Statistics */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
-                <h3 className="text-sm font-medium text-blue-900 mb-2">SUS Score (Version A)</h3>
-                <div className="flex items-baseline">
-                  <span className="text-2xl font-bold text-blue-600">{stats.susScores.A.toFixed(1)}</span>
-                  <span className="text-sm text-blue-600 ml-1">/ 100</span>
-                </div>
-                <p className="text-xs text-blue-600 mt-1">Average System Usability Score</p>
-              </div>
-              <div className="bg-green-50 p-4 rounded-lg border border-green-100">
-                <h3 className="text-sm font-medium text-green-900 mb-2">SUS Score (Version B)</h3>
-                <div className="flex items-baseline">
-                  <span className="text-2xl font-bold text-green-600">{stats.susScores.B.toFixed(1)}</span>
-                  <span className="text-sm text-green-600 ml-1">/ 100</span>
-                </div>
-                <p className="text-xs text-green-600 mt-1">Average System Usability Score</p>
-              </div>
-              <div className="bg-purple-50 p-4 rounded-lg border border-purple-100">
-                <h3 className="text-sm font-medium text-purple-900 mb-2">Improvement</h3>
-                <div className="flex items-baseline">
-                  <span className="text-2xl font-bold text-purple-600">
-                    {((stats.susScores.B - stats.susScores.A) / stats.susScores.A * 100).toFixed(1)}%
-                  </span>
-                </div>
-                <p className="text-xs text-purple-600 mt-1">SUS Score Improvement</p>
-              </div>
-            </div>
-            
-            {/* SUS Questions */}
-            <div className="mb-8">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">System Usability Scale (SUS) Questions</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {[
-                  "I think that I would like to use this system frequently.",
-                  "I found the system unnecessarily complex.",
-                  "I thought the system was easy to use.",
-                  "I think that I would need the support of a technical person to be able to use this system.",
-                  "I found the various functions in this system were well integrated.",
-                  "I thought there was too much inconsistency in this system.",
-                  "I would imagine that most people would learn to use this system very quickly.",
-                  "I found the system very cumbersome to use.",
-                  "I felt very confident using the system.",
-                  "I needed to learn a lot of things before I could get going with this system."
-                ].map((question, index) => {
-                  const avgResponseA = participants.reduce((acc, p) => {
-                    if (p.questionnaire && p.version === Version.A) {
-                      return acc + p.questionnaire.susResponses[index];
-                    }
-                    return acc;
-                  }, 0) / participants.filter(p => p.version === Version.A && p.questionnaire).length;
-
-                  const avgResponseB = participants.reduce((acc, p) => {
-                    if (p.questionnaire && p.version === Version.B) {
-                      return acc + p.questionnaire.susResponses[index];
-                    }
-                    return acc;
-                  }, 0) / participants.filter(p => p.version === Version.B && p.questionnaire).length;
-
-                  const negativeIndices = [1, 3, 5, 7, 9]; // 0-based indices for Q2, Q4, Q6, Q8, Q10
-                  let improvement = ((avgResponseB - avgResponseA) / avgResponseA * 100);
-                  if (negativeIndices.includes(index)) {
-                    improvement = -improvement; // Invert for negative questions
-                  }
-                  const improvementStr = improvement.toFixed(1);
-
-                  return (
-                    <div key={index} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                      <p className="text-sm text-gray-700 mb-3">
-                        <span className="font-medium">Q{index + 1}:</span> {question}
-                      </p>
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center">
-                            <span className="text-blue-600 font-medium mr-2">A:</span>
-                            <div className="w-24 bg-blue-100 rounded-full h-2">
-                              <div 
-                                className="bg-blue-600 h-2 rounded-full" 
-                                style={{ width: `${(avgResponseA / 5) * 100}%` }}
-                              ></div>
-                            </div>
-                            <span className="text-gray-600 ml-2">{avgResponseA.toFixed(1)}</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center">
-                            <span className="text-green-600 font-medium mr-2">B:</span>
-                            <div className="w-24 bg-green-100 rounded-full h-2">
-                              <div 
-                                className="bg-green-600 h-2 rounded-full" 
-                                style={{ width: `${(avgResponseB / 5) * 100}%` }}
-                              ></div>
-                            </div>
-                            <span className="text-gray-600 ml-2">{avgResponseB.toFixed(1)}</span>
-                          </div>
-                        </div>
-                        <div className="text-xs text-gray-500 mt-1">
-                          <span className={improvement > 0 ? "text-green-600" : "text-red-600"}>
-                            {improvement > 0 ? `+${improvementStr}% improvement` : `${improvementStr}% change`}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* NASA-TLX Descriptions */}
-            <div>
-              <h3 className="text-lg font-medium text-gray-900 mb-4">NASA-TLX Dimensions</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {Object.entries({
-                  mental: {
-                    label: "Mental Demand",
-                    description: "How much mental and perceptual activity was required? For example, how much did you need to think, decide, calculate, remember, look, search, etc.?"
-                  },
-                  physical: {
-                    label: "Physical Demand",
-                    description: "How much physical activity was required? For example, how much did you need to push, pull, turn, control, or activate?"
-                  },
-                  temporal: {
-                    label: "Time Pressure",
-                    description: "How much time pressure did you feel due to the rate or pace at which the tasks or task elements occurred?"
-                  },
-                  performance: {
-                    label: "Task Performance",
-                    description: "How successful were you in accomplishing what you were asked to do? How satisfied were you with your performance in accomplishing these tasks?"
-                  },
-                  effort: {
-                    label: "Effort Required",
-                    description: "How hard did you have to work (mentally and physically) to accomplish your level of performance?"
-                  },
-                  frustration: {
-                    label: "Frustration Level",
-                    description: "How irritated, stressed, and annoyed versus content, relaxed, and complacent did you feel during the tasks?"
-                  }
-                }).map(([key, { label, description }]) => {
-                  const avgScoreA = stats.nasaTlx[key as keyof typeof stats.nasaTlx].A;
-                  const avgScoreB = stats.nasaTlx[key as keyof typeof stats.nasaTlx].B;
-                  // For NASA-TLX, lower scores are better (except for Performance)
-                  const improvement = key === 'performance' 
-                    ? ((avgScoreB - avgScoreA) / avgScoreA * 100).toFixed(1)  // Higher is better for Performance
-                    : ((avgScoreA - avgScoreB) / avgScoreA * 100).toFixed(1); // Lower is better for other dimensions
-
-                  return (
-                    <div key={key} className="bg-gray-50 p-4 rounded-lg border border-gray-200">
-                      <h4 className="font-medium text-gray-900 mb-2">{label}</h4>
-                      <p className="text-sm text-gray-700 mb-3">{description}</p>
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center">
-                            <span className="text-blue-600 font-medium mr-2">A:</span>
-                            <div className="w-24 bg-blue-100 rounded-full h-2">
-                              <div 
-                                className="bg-blue-600 h-2 rounded-full" 
-                                style={{ width: `${(avgScoreA / 100) * 100}%` }}
-                              ></div>
-                            </div>
-                            <span className="text-gray-600 ml-2">{avgScoreA.toFixed(1)}</span>
-                          </div>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center">
-                            <span className="text-green-600 font-medium mr-2">B:</span>
-                            <div className="w-24 bg-green-100 rounded-full h-2">
-                              <div 
-                                className="bg-green-600 h-2 rounded-full" 
-                                style={{ width: `${(avgScoreB / 100) * 100}%` }}
-                              ></div>
-                            </div>
-                            <span className="text-gray-600 ml-2">{avgScoreB.toFixed(1)}</span>
-                          </div>
-                        </div>
-                        <div className="text-xs text-gray-500 mt-1">
-                          {parseFloat(improvement) > 0 ? (
-                            <span className="text-green-600">+{improvement}% improvement</span>
-                          ) : (
-                            <span className="text-red-600">{improvement}% change</span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+            <AnalysisTable
+              inline={false}
+              title="System Usability Scale (SUS) Questions"
+              data={susQuestionsTableData}
+              showImprovement
+            />
           </section>
         </div>
       </div>
