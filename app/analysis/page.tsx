@@ -10,6 +10,7 @@ import {
   HesitationTime,
   CaseDurations,
   TaskEfficiencyVsErrorRate,
+  UserEfficiencyVsErrorRate,
 } from '../components/analysis/Charts';
 import { RefreshButton } from '../components/analysis/RefreshButton';
 import { ParticipantTable } from '../components/analysis/ParticipantTable';
@@ -349,6 +350,81 @@ async function getParticipantStats(): Promise<ParticipantStats> {
   return stats;
 }
 
+async function getRawParticipantData() {
+  const participants = await prisma.participant.findMany({
+    include: {
+      actionLogs: true,
+      errorLogs: true,
+      questionnaire: true,
+    },
+  });
+
+  const rawData = participants.map(participant => {
+    // Calculate task completion times
+    const taskTimes = {
+      [TaskType.ORDER_VALIDATION]: 0,
+      [TaskType.ORDER_ASSIGNMENT]: 0,
+      [TaskType.DELIVERY_SCHEDULING]: 0,
+    };
+
+    participant.actionLogs.forEach(log => {
+      if (log.action === 'TASK_END') {
+        const taskStart = participant.actionLogs.find(
+          l => l.action === 'TASK_START' && l.task === log.task
+        );
+        if (taskStart) {
+          const duration = log.timestamp.getTime() - taskStart.timestamp.getTime();
+          taskTimes[log.task] = duration / 1000; // Convert to seconds
+        }
+      }
+    });
+
+    // Calculate error counts
+    const errorCounts = {
+      [TaskType.ORDER_VALIDATION]: 0,
+      [TaskType.ORDER_ASSIGNMENT]: 0,
+      [TaskType.DELIVERY_SCHEDULING]: 0,
+    };
+
+    participant.errorLogs.forEach(error => {
+      errorCounts[error.task]++;
+    });
+
+    // Get NASA-TLX scores
+    const nasaTlx = participant.questionnaire ? {
+      mental: participant.questionnaire.nasaTlxMental,
+      physical: participant.questionnaire.nasaTlxPhysical,
+      temporal: participant.questionnaire.nasaTlxTemporal,
+      performance: participant.questionnaire.nasaTlxPerformance,
+      effort: participant.questionnaire.nasaTlxEffort,
+      frustration: participant.questionnaire.nasaTlxFrustration,
+    } : null;
+
+    // Calculate SUS score
+    let susScore = 0;
+    if (participant.questionnaire) {
+      const susPoints = participant.questionnaire.susResponses.map((response, index) => {
+        return index % 2 === 0
+          ? response - 1 // positive Qs
+          : 5 - response; // negative Qs
+      });
+      susScore = susPoints.reduce((a, b) => a + b, 0) * 2.5;
+    }
+
+    return {
+      participantId: participant.id,
+      version: participant.version,
+      taskTimes,
+      errorCounts,
+      nasaTlx,
+      susScore,
+      confidenceRating: participant.questionnaire?.confidenceRating || 0,
+    };
+  });
+
+  return rawData;
+}
+
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
@@ -361,6 +437,7 @@ export default async function AnalysisPage() {
       questionnaire: true,
     },
   });
+  const rawData = await getRawParticipantData();
   const participantCount = participants.length;
 
 
@@ -491,6 +568,16 @@ export default async function AnalysisPage() {
     };
   });
 
+  // Create feedback table data
+  const feedbackTableData = participants
+    .filter(p => p.questionnaire?.feedback)
+    .map(p => ({
+      name: p.id,
+      versionA: p.version === Version.A ? 1 : 0,
+      versionB: p.version === Version.B ? 1 : 0,
+      feedback: p.questionnaire?.feedback || ''
+    })).sort((a, b) => b.versionA - a.versionA);
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Dashboard Header */}
@@ -604,10 +691,12 @@ export default async function AnalysisPage() {
               />
             </div>
             <div className="mb-6">
+              <UserEfficiencyVsErrorRate participants={participants} />
+            </div>
+            <div className="mb-6">
             <HesitationTime hesitationTimeData={hesitationTimeData} />
             </div>
           </section>
-
 
           {/* User Experience Section */}
           <section className="bg-white rounded-xl shadow-sm p-6">
@@ -625,6 +714,32 @@ export default async function AnalysisPage() {
               higherIsBetter={true}
             />
           </section>
+
+          {/* Feedback Section */}
+          <section className="bg-white rounded-xl shadow-sm p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">Participant Feedback</h2>
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead>
+                  <tr>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Version</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Feedback</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {feedbackTableData.map((item) => (
+                    <tr key={item.name} className={item.versionA === 1 ? 'bg-blue-50' : 'bg-green-50'}>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-gray-900">
+                        {item.versionA === 1 ? 'Version A' : 'Version B'}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-900">{item.feedback}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
         </div>
       </div>
     </div>

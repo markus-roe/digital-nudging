@@ -6,6 +6,7 @@ interface TableData {
   versionB: number;
   improvement?: string;
   reduction?: string;
+  higherIsBetter?: boolean;
 }
 
 interface TableProps {
@@ -46,7 +47,7 @@ export const AnalysisTable = ({ title, data, unit, showChange, inline = true, hi
                 {showChange && (item.improvement || item.reduction) && (
                   <td
                     className={`px-4 py-3 whitespace-nowrap text-sm text-right ${
-                      (higherIsBetter ?? false)
+                      (item.higherIsBetter ?? higherIsBetter ?? false)
                         ? (parseFloat(item.improvement ?? item.reduction ?? '0') >= 0 ? 'text-green-600' : 'text-red-600')
                         : (parseFloat(item.improvement ?? item.reduction ?? '0') < 0 ? 'text-green-600' : 'text-red-600')
                     }`}

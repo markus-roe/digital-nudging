@@ -13,6 +13,7 @@ import {
 } from 'chart.js';
 import { Bar, Pie, Scatter } from 'react-chartjs-2';
 import { AnalysisTable } from '../analysis/Tables';
+import { TaskType } from '@/lib/types/logging';
 
 ChartJS.register(
   CategoryScale,
@@ -467,13 +468,13 @@ const ErrorRates = ({ errorRatesData }: { errorRatesData: any[] }) => {
 
 const getNasaTlxTableData = (nasaTlxData: any[]) => {
   return nasaTlxData.map((d: any) => {
-    const isPerformance = d.name === 'Performance';
     const change = ((d.versionB - d.versionA) / d.versionA * 100);
     return {
       name: d.name,
       versionA: Number(d.versionA.toFixed(1)),
       versionB: Number(d.versionB.toFixed(1)),
-      improvement: isPerformance ? (-change).toFixed(1) : change.toFixed(1),
+      improvement: change.toFixed(1),
+      higherIsBetter: d.name === 'Performance',
     };
   });
 };
@@ -1022,6 +1023,117 @@ function getBarChartOptions({
   };
 }
 
+const UserEfficiencyVsErrorRate = ({ participants }: { participants: any[] }) => {
+  // Prepare data: one point per participant
+  const userData = participants.map((participant, idx) => {
+    // Calculate total task time (sum of all tasks)
+    let totalTaskTime = 0;
+    if (participant.actionLogs) {
+      const taskTypes = [
+        TaskType.ORDER_VALIDATION,
+        TaskType.ORDER_ASSIGNMENT,
+        TaskType.DELIVERY_SCHEDULING,
+      ];
+      taskTypes.forEach(task => {
+        const start = participant.actionLogs.find(
+          (l: any) => l.action === 'TASK_START' && l.task === task
+        );
+        const end = participant.actionLogs.find(
+          (l: any) => l.action === 'TASK_END' && l.task === task
+        );
+        if (start && end) {
+          totalTaskTime += (end.timestamp.getTime() - start.timestamp.getTime());
+        }
+      });
+    }
+    // Calculate total errors
+    const totalErrors = participant.errorLogs ? participant.errorLogs.length : 0;
+    return {
+      x: totalTaskTime / 1000, // seconds
+      y: totalErrors,
+      version: participant.version,
+      label: `User ${idx + 1}`,
+    };
+  });
+
+  return (
+    <div className="col-span-full bg-white rounded-lg shadow-sm p-6 border border-gray-100">
+      <h3 className="text-sm font-medium text-gray-700 mb-4">User Task Efficiency vs Error Rate</h3>
+      <div className="text-xs text-gray-500 mb-4">
+        Each point represents a participant's total task time and total errors (lower left is better)
+      </div>
+      <div className="h-[320px] w-full">
+        <Scatter
+          data={{
+            datasets: [
+              {
+                label: 'Version A',
+                data: userData.filter(d => d.version === 'A'),
+                backgroundColor: COLORS[0],
+                pointRadius: 6,
+                pointHoverRadius: 10,
+                parsing: false,
+              },
+              {
+                label: 'Version B',
+                data: userData.filter(d => d.version === 'B'),
+                backgroundColor: COLORS[1],
+                pointRadius: 6,
+                pointHoverRadius: 10,
+                parsing: false,
+              }
+            ]
+          }}
+          options={{
+            ...commonChartOptions,
+            plugins: {
+              ...commonChartOptions.plugins,
+              tooltip: {
+                ...commonChartOptions.plugins.tooltip,
+                callbacks: {
+                  label: (context: any) => {
+                    const d = context.raw;
+                    return `${d.label} (Version ${d.version}): ${d.x.toFixed(1)}s, ${d.y} errors`;
+                  }
+                }
+              }
+            },
+            scales: {
+              x: {
+                type: 'linear',
+                position: 'bottom',
+                title: {
+                  display: true,
+                  text: 'Total Task Time (seconds)',
+                  font: {
+                    family: 'Inter, system-ui, sans-serif',
+                    size: 11,
+                    weight: 500,
+                  },
+                },
+                min: 0,
+                max: Math.max(...userData.map(d => d.x)) * 1.1,
+              },
+              y: {
+                title: {
+                  display: true,
+                  text: 'Total Errors',
+                  font: {
+                    family: 'Inter, system-ui, sans-serif',
+                    size: 11,
+                    weight: 500,
+                  },
+                },
+                min: 0,
+              }
+            },
+          }}
+        />
+      </div>
+    </div>
+  );
+};
+
 // Main Charts component with all subcomponents
 const Charts = {
   DemographicsCharts,
@@ -1034,6 +1146,7 @@ const Charts = {
   HesitationTime,
   CaseDurations,
   TaskEfficiencyVsErrorRate,
+  UserEfficiencyVsErrorRate,
 };
 
 export {
@@ -1047,6 +1160,7 @@ export {
   HesitationTime,
   CaseDurations,
   TaskEfficiencyVsErrorRate,
+  UserEfficiencyVsErrorRate,
 };
 
 export default Charts; 
