@@ -58,8 +58,8 @@ const NASA_TLX_LABELS = {
     right: "Very High"
   },
   performance: {
-    left: "Failure",
-    right: "Perfect"
+    left: "Perfect",
+    right: "Failure"
   },
   effort: {
     left: "Very Low",
