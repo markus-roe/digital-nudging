@@ -14,7 +14,7 @@ import {
 } from '../components/analysis/Charts';
 import { RefreshButton } from '../components/analysis/RefreshButton';
 import { ParticipantTable } from '../components/analysis/ParticipantTable';
-import { AnalysisTable } from '../components/analysis/Tables';
+import { AnalysisTable, KeyMetricsTable } from '../components/analysis/Tables';
 
 
 interface ChartData {
@@ -23,6 +23,7 @@ interface ChartData {
   versionB: number;
   improvement?: string;
   reduction?: string;
+  higherIsBetter: boolean;
 }
 
 interface VersionDistributionData {
@@ -454,7 +455,8 @@ export default async function AnalysisPage() {
       name: task.replace('_', ' '),
       versionA: times.A,
       versionB: times.B,
-      improvement: ((times.A - times.B) / times.A * 100).toFixed(1)
+      improvement: ((times.A - times.B) / times.A * 100).toFixed(1),
+      higherIsBetter: false
     }));
 
   const errorRatesData: ChartData[] = Object.entries(stats.errorRates)
@@ -470,7 +472,8 @@ export default async function AnalysisPage() {
       name: task.replace('_', ' '),
       versionA: rates.A,
       versionB: rates.B,
-      reduction: rates.A === 0 ? '100.0' : ((rates.A - rates.B) / rates.A * 100).toFixed(1)
+      reduction: rates.A === 0 ? '100.0' : ((rates.A - rates.B) / rates.A * 100).toFixed(1),
+      higherIsBetter: false
     }));
 
   const hesitationTimeData: ChartData[] = Object.entries(stats.hesitationTimes).map(([task, times]) => {
@@ -481,17 +484,54 @@ export default async function AnalysisPage() {
       name: task.replace('_', ' '),
       versionA: Number(versionA.toFixed(2)),
       versionB: Number(versionB.toFixed(2)),
-      improvement
+      improvement,
+      higherIsBetter: false
     };
   });
 
   const nasaTlxData: ChartData[] = [
-    { name: 'Mental', versionA: stats.nasaTlx.mental.A, versionB: stats.nasaTlx.mental.B },
-    { name: 'Physical', versionA: stats.nasaTlx.physical.A, versionB: stats.nasaTlx.physical.B },
-    { name: 'Temporal', versionA: stats.nasaTlx.temporal.A, versionB: stats.nasaTlx.temporal.B },
-    { name: 'Performance', versionA: stats.nasaTlx.performance.A, versionB: stats.nasaTlx.performance.B },
-    { name: 'Effort', versionA: stats.nasaTlx.effort.A, versionB: stats.nasaTlx.effort.B },
-    { name: 'Frustration', versionA: stats.nasaTlx.frustration.A, versionB: stats.nasaTlx.frustration.B },
+    { 
+      name: 'Mental', 
+      versionA: stats.nasaTlx.mental.A, 
+      versionB: stats.nasaTlx.mental.B,
+      improvement: ((stats.nasaTlx.mental.A - stats.nasaTlx.mental.B) / stats.nasaTlx.mental.A * 100).toFixed(1),
+      higherIsBetter: false
+    },
+    { 
+      name: 'Physical', 
+      versionA: stats.nasaTlx.physical.A, 
+      versionB: stats.nasaTlx.physical.B,
+      improvement: ((stats.nasaTlx.physical.A - stats.nasaTlx.physical.B) / stats.nasaTlx.physical.A * 100).toFixed(1),
+      higherIsBetter: false
+    },
+    { 
+      name: 'Temporal', 
+      versionA: stats.nasaTlx.temporal.A, 
+      versionB: stats.nasaTlx.temporal.B,
+      improvement: ((stats.nasaTlx.temporal.A - stats.nasaTlx.temporal.B) / stats.nasaTlx.temporal.A * 100).toFixed(1),
+      higherIsBetter: false
+    },
+    { 
+      name: 'Performance', 
+      versionA: stats.nasaTlx.performance.A, 
+      versionB: stats.nasaTlx.performance.B,
+      improvement: ((stats.nasaTlx.performance.A - stats.nasaTlx.performance.B) / stats.nasaTlx.performance.A * 100).toFixed(1),
+      higherIsBetter: false
+    },
+    { 
+      name: 'Effort', 
+      versionA: stats.nasaTlx.effort.A, 
+      versionB: stats.nasaTlx.effort.B,
+      improvement: ((stats.nasaTlx.effort.A - stats.nasaTlx.effort.B) / stats.nasaTlx.effort.A * 100).toFixed(1),
+      higherIsBetter: false
+    },
+    { 
+      name: 'Frustration', 
+      versionA: stats.nasaTlx.frustration.A, 
+      versionB: stats.nasaTlx.frustration.B,
+      improvement: ((stats.nasaTlx.frustration.A - stats.nasaTlx.frustration.B) / stats.nasaTlx.frustration.A * 100).toFixed(1),
+      higherIsBetter: false
+    },
   ];
 
   const susScores: SusScores = {
@@ -641,8 +681,11 @@ export default async function AnalysisPage() {
                 -{Math.abs(([
                   stats.nasaTlx.mental,
                   stats.nasaTlx.effort,
-                  stats.nasaTlx.frustration
-                ].reduce((acc, curr) => acc + ((curr.A - curr.B) / curr.A), 0) / 3 * 100)).toFixed(1)}%
+                  stats.nasaTlx.frustration,
+                  stats.nasaTlx.physical,
+                  stats.nasaTlx.temporal,
+                  stats.nasaTlx.performance
+                ].reduce((acc, curr) => acc + ((curr.A - curr.B) / curr.A), 0) / 6 * 100)).toFixed(1)}%
               </span>
             </div>
             <p className="text-sm text-gray-500">Mental workload reduction</p>
@@ -658,6 +701,66 @@ export default async function AnalysisPage() {
             </div>
             <p className="text-sm text-gray-500">SUS score improvement</p>
           </div>
+        </div>
+      </div>
+
+      {/* Key Metrics Table */}
+      <div className="max-w-[1920px] mx-auto px-6 mb-8">
+        <h2 className="text-xl font-semibold text-gray-900 mb-6">Key Metrics Summary</h2>
+        <div className="bg-white rounded-xl shadow-sm p-6">
+          <KeyMetricsTable
+            title="Key Performance Metrics"
+            data={[
+              {
+                name: 'Average Task Completion Time',
+                versionA: Object.values(stats.taskCompletion).reduce((acc, curr) => acc + curr.A, 0) / Object.keys(stats.taskCompletion).length / 1000,
+                versionB: Object.values(stats.taskCompletion).reduce((acc, curr) => acc + curr.B, 0) / Object.keys(stats.taskCompletion).length / 1000,
+                improvement: (((Object.values(stats.taskCompletion).reduce((acc, curr) => acc + curr.B, 0) / Object.keys(stats.taskCompletion).length / 1000) -
+                              (Object.values(stats.taskCompletion).reduce((acc, curr) => acc + curr.A, 0) / Object.keys(stats.taskCompletion).length / 1000)) /
+                              (Object.values(stats.taskCompletion).reduce((acc, curr) => acc + curr.A, 0) / Object.keys(stats.taskCompletion).length / 1000) * 100).toFixed(1),
+                higherIsBetter: false
+              },
+              {
+                name: 'Average Error Count',
+                versionA: Object.values(stats.errorRates).reduce((acc, curr) => acc + curr.A, 0) / (participants.filter(p => p.version === Version.A).length || 1),
+                versionB: Object.values(stats.errorRates).reduce((acc, curr) => acc + curr.B, 0) / (participants.filter(p => p.version === Version.B).length || 1),
+                improvement: (((Object.values(stats.errorRates).reduce((acc, curr) => acc + curr.B, 0) / (participants.filter(p => p.version === Version.B).length || 1)) -
+                              (Object.values(stats.errorRates).reduce((acc, curr) => acc + curr.A, 0) / (participants.filter(p => p.version === Version.A).length || 1))) /
+                              (Object.values(stats.errorRates).reduce((acc, curr) => acc + curr.A, 0) / (participants.filter(p => p.version === Version.A).length || 1)) * 100).toFixed(1),
+                higherIsBetter: false
+              },
+              {
+                name: 'NASA-TLX Average',
+                versionA: (stats.nasaTlx.mental.A + stats.nasaTlx.physical.A + stats.nasaTlx.temporal.A +
+                          stats.nasaTlx.performance.A + stats.nasaTlx.effort.A + stats.nasaTlx.frustration.A) / 6,
+                versionB: (stats.nasaTlx.mental.B + stats.nasaTlx.physical.B + stats.nasaTlx.temporal.B +
+                          stats.nasaTlx.performance.B + stats.nasaTlx.effort.B + stats.nasaTlx.frustration.B) / 6,
+                improvement: ((((stats.nasaTlx.mental.B + stats.nasaTlx.physical.B + stats.nasaTlx.temporal.B +
+                              stats.nasaTlx.performance.B + stats.nasaTlx.effort.B + stats.nasaTlx.frustration.B) / 6) -
+                             ((stats.nasaTlx.mental.A + stats.nasaTlx.physical.A + stats.nasaTlx.temporal.A +
+                              stats.nasaTlx.performance.A + stats.nasaTlx.effort.A + stats.nasaTlx.frustration.A) / 6)) /
+                             ((stats.nasaTlx.mental.A + stats.nasaTlx.physical.A + stats.nasaTlx.temporal.A +
+                              stats.nasaTlx.performance.A + stats.nasaTlx.effort.A + stats.nasaTlx.frustration.A) / 6) * 100).toFixed(1),
+                higherIsBetter: false
+              },
+              {
+                name: 'SUS Score Average',
+                versionA: stats.susScores.A,
+                versionB: stats.susScores.B,
+                improvement: ((stats.susScores.B - stats.susScores.A) / stats.susScores.A * 100).toFixed(1),
+                higherIsBetter: true
+              },
+              {
+                name: 'Decision Confidence',
+                versionA: stats.confidenceRatings.A,
+                versionB: stats.confidenceRatings.B,
+                improvement: ((stats.confidenceRatings.B - stats.confidenceRatings.A) / stats.confidenceRatings.A * 100).toFixed(1),
+                higherIsBetter: true
+              },
+            ]}
+            showChange
+            inline={false}
+          />
         </div>
       </div>
 
