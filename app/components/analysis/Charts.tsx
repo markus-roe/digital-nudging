@@ -471,10 +471,10 @@ const getNasaTlxTableData = (nasaTlxData: any[]) => {
     const change = ((d.versionB - d.versionA) / d.versionA * 100);
     return {
       name: d.name,
-      versionA: Number(d.versionA.toFixed(1)),
-      versionB: Number(d.versionB.toFixed(1)),
+      versionA: Number(d.versionA),
+      versionB: Number(d.versionB),
       improvement: change.toFixed(1),
-      higherIsBetter: d.name === 'Performance',
+      higherIsBetter: false,
     };
   });
 };
@@ -484,7 +484,7 @@ const NasaTLX = ({ nasaTlxData }: { nasaTlxData: any[] }) => {
   return (
     <div className="col-span-full bg-white rounded-lg shadow-sm p-6 border border-gray-100">
       <h3 className="text-sm font-medium text-gray-700 mb-4">NASA-TLX Scores</h3>
-      <div className="text-xs text-gray-500 mb-4">1-10 scale (lower is better, except Performance)</div>
+      <div className="text-xs text-gray-500 mb-4">1-10 scale (lower is better)</div>
       <div className="h-[240px] w-full">
         <Bar
           data={{
